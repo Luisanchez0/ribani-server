@@ -1,0 +1,432 @@
+generator client {
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
+  previewFeatures = ["partialIndexes"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model adulto_familiares {
+  id                                               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  adulto_id                                        String   @unique(map: "adulto_familiar_principal_uq", where: raw("(es_contacto_principal AND ((estado)::text = 'ACTIVA'::text))")) @db.Uuid
+  familiar_id                                      String   @db.Uuid
+  parentesco                                       String?  @db.VarChar(40)
+  es_contacto_principal                            Boolean  @default(false)
+  puede_ver_ubicacion                              Boolean  @default(true)
+  puede_gestionar_medicamentos                     Boolean  @default(true)
+  estado                                           String   @default("ACTIVA") @db.VarChar(15)
+  created_at                                       DateTime @default(now()) @db.Timestamptz(6)
+  usuarios_adulto_familiares_adulto_idTousuarios   usuarios @relation("adulto_familiares_adulto_idTousuarios", fields: [adulto_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  usuarios_adulto_familiares_familiar_idTousuarios usuarios @relation("adulto_familiares_familiar_idTousuarios", fields: [familiar_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([adulto_id, familiar_id])
+  @@index([familiar_id, estado], map: "adulto_familiares_familiar_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model alerta_eventos {
+  id         BigInt    @id @default(autoincrement())
+  alerta_id  String    @db.Uuid
+  usuario_id String?   @db.Uuid
+  evento     String    @db.VarChar(30)
+  detalle    String?   @db.VarChar(500)
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  alertas    alertas   @relation(fields: [alerta_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  usuarios   usuarios? @relation(fields: [usuario_id], references: [id], onUpdate: NoAction)
+
+  @@index([alerta_id, created_at], map: "alerta_eventos_alerta_fecha_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model alertas {
+  id                                      String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  adulto_id                               String                    @db.Uuid
+  dispositivo_id                          String?                   @db.Uuid
+  tipo                                    String                    @db.VarChar(30)
+  severidad                               String                    @default("MEDIA") @db.VarChar(15)
+  estado                                  String                    @default("ABIERTA") @db.VarChar(20)
+  titulo                                  String                    @db.VarChar(120)
+  descripcion                             String?                   @db.VarChar(1000)
+  latitud                                 Decimal?                  @db.Decimal(9, 6)
+  longitud                                Decimal?                  @db.Decimal(9, 6)
+  ocurrida_en                             DateTime                  @default(now()) @db.Timestamptz(6)
+  atendida_por                            String?                   @db.Uuid
+  atendida_en                             DateTime?                 @db.Timestamptz(6)
+  cerrada_en                              DateTime?                 @db.Timestamptz(6)
+  created_at                              DateTime                  @default(now()) @db.Timestamptz(6)
+  alerta_eventos                          alerta_eventos[]
+  usuarios_alertas_adulto_idTousuarios    usuarios                  @relation("alertas_adulto_idTousuarios", fields: [adulto_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  usuarios_alertas_atendida_porTousuarios usuarios?                 @relation("alertas_atendida_porTousuarios", fields: [atendida_por], references: [id], onUpdate: NoAction)
+  dispositivos                            dispositivos?             @relation(fields: [dispositivo_id], references: [id], onUpdate: NoAction)
+  notificaciones_whatsapp                 notificaciones_whatsapp[]
+
+  @@index([estado, severidad, ocurrida_en(sort: Desc)], map: "alertas_abiertas_idx", where: raw("((estado)::text = ANY ((ARRAY['ABIERTA'::character varying, 'EN_ATENCION'::character varying])::text[]))"))
+  @@index([adulto_id, ocurrida_en(sort: Desc)], map: "alertas_adulto_fecha_idx")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model auditoria {
+  id            BigInt    @id @default(autoincrement())
+  actor_id      String?   @db.Uuid
+  accion        String    @db.VarChar(100)
+  entidad       String    @db.VarChar(80)
+  entidad_id    String?   @db.VarChar(100)
+  ip            String?   @db.Inet
+  user_agent    String?   @db.VarChar(500)
+  datos_antes   Json?
+  datos_despues Json?
+  created_at    DateTime  @default(now()) @db.Timestamptz(6)
+  usuarios      usuarios? @relation(fields: [actor_id], references: [id], onUpdate: NoAction)
+
+  @@index([actor_id, created_at(sort: Desc)], map: "auditoria_actor_fecha_idx")
+  @@index([entidad, entidad_id, created_at(sort: Desc)], map: "auditoria_entidad_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model configuracion_adulto {
+  adulto_id                  String   @id @db.Uuid
+  zona_horaria               String   @default("America/Mexico_City") @db.VarChar(64)
+  notificaciones_habilitadas Boolean  @default(true)
+  recordatorio_medicamentos  Boolean  @default(true)
+  minutos_repeticion         Int      @default(10) @db.SmallInt
+  max_repeticiones           Int      @default(3) @db.SmallInt
+  ubicacion_compartida       Boolean  @default(true)
+  created_at                 DateTime @default(now()) @db.Timestamptz(6)
+  updated_at                 DateTime @default(now()) @db.Timestamptz(6)
+  usuarios                   usuarios @relation(fields: [adulto_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model contactos_emergencia {
+  id                     String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  adulto_id              String                   @db.Uuid
+  nombre                 String                   @db.VarChar(120)
+  parentesco             String?                  @db.VarChar(40)
+  telefono               String                   @db.VarChar(20)
+  email                  String?                  @db.VarChar(254)
+  prioridad              Int                      @default(1) @db.SmallInt
+  activo                 Boolean                  @default(true)
+  created_at             DateTime                 @default(now()) @db.Timestamptz(6)
+  usuarios               usuarios                 @relation(fields: [adulto_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  whatsapp_destinatarios whatsapp_destinatarios[]
+
+  @@unique([adulto_id, prioridad])
+  @@index([adulto_id, prioridad], map: "contactos_adulto_activo_idx", where: raw("activo"))
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model dispositivos {
+  id                 String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  usuario_id         String        @db.Uuid
+  nombre             String        @db.VarChar(100)
+  plataforma         String        @db.VarChar(20)
+  identificador_hash String?       @unique(map: "dispositivos_identificador_uq", where: raw("(identificador_hash IS NOT NULL)")) @db.VarChar(255)
+  push_token         String?       @db.VarChar(512)
+  version_app        String?       @db.VarChar(30)
+  ultimo_contacto_en DateTime?     @db.Timestamptz(6)
+  activo             Boolean       @default(true)
+  created_at         DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime      @default(now()) @db.Timestamptz(6)
+  alertas            alertas[]
+  usuarios           usuarios      @relation(fields: [usuario_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  sesiones           sesiones[]
+  ubicaciones        ubicaciones[]
+
+  @@index([usuario_id, activo], map: "dispositivos_usuario_activo_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model horarios_medicamento {
+  id                String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  medicamento_id    String              @db.Uuid
+  hora_local        DateTime            @db.Time(6)
+  dias_semana       Int[]               @default(dbgenerated("ARRAY[(1)::smallint, (2)::smallint, (3)::smallint, (4)::smallint, (5)::smallint, (6)::smallint, (7)::smallint]")) @db.SmallInt
+  intervalo_minutos Int                 @default(0) @db.SmallInt
+  ventana_minutos   Int                 @default(60) @db.SmallInt
+  activo            Boolean             @default(true)
+  created_at        DateTime            @default(now()) @db.Timestamptz(6)
+  medicamentos      medicamentos        @relation(fields: [medicamento_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  tomas_medicamento tomas_medicamento[]
+
+  @@index([medicamento_id, hora_local], map: "horarios_medicamento_activos_idx", where: raw("activo"))
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model medicamentos {
+  id                                         String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  adulto_id                                  String                 @db.Uuid
+  nombre                                     String                 @db.VarChar(120)
+  descripcion                                String?                @db.VarChar(500)
+  dosis                                      Decimal                @db.Decimal(10, 3)
+  unidad_dosis                               String                 @db.VarChar(30)
+  instrucciones                              String?                @db.VarChar(500)
+  fecha_inicio                               DateTime               @db.Date
+  fecha_fin                                  DateTime?              @db.Date
+  zona_horaria                               String                 @default("America/Mexico_City") @db.VarChar(64)
+  activo                                     Boolean                @default(true)
+  creado_por                                 String?                @db.Uuid
+  created_at                                 DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at                                 DateTime               @default(now()) @db.Timestamptz(6)
+  horarios_medicamento                       horarios_medicamento[]
+  usuarios_medicamentos_adulto_idTousuarios  usuarios               @relation("medicamentos_adulto_idTousuarios", fields: [adulto_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  usuarios_medicamentos_creado_porTousuarios usuarios?              @relation("medicamentos_creado_porTousuarios", fields: [creado_por], references: [id], onUpdate: NoAction)
+  tomas_medicamento                          tomas_medicamento[]
+
+  @@index([adulto_id, activo, fecha_inicio], map: "medicamentos_adulto_activos_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model notificaciones_whatsapp {
+  id                         String                       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  destinatario_id            String                       @db.Uuid
+  alerta_id                  String?                      @db.Uuid
+  toma_id                    String?                      @db.Uuid
+  tipo                       String                       @db.VarChar(25)
+  plantilla                  String                       @db.VarChar(100)
+  idioma                     String                       @default("es_MX") @db.VarChar(10)
+  parametros                 Json                         @default("[]")
+  estado                     String                       @default("EN_COLA") @db.VarChar(15)
+  proveedor                  String                       @default("META_CLOUD_API") @db.VarChar(20)
+  proveedor_message_id       String?                      @db.VarChar(150)
+  intentos                   Int                          @default(0) @db.SmallInt
+  programada_para            DateTime                     @default(now()) @db.Timestamptz(6)
+  siguiente_intento_en       DateTime?                    @db.Timestamptz(6)
+  enviada_en                 DateTime?                    @db.Timestamptz(6)
+  entregada_en               DateTime?                    @db.Timestamptz(6)
+  leida_en                   DateTime?                    @db.Timestamptz(6)
+  fallida_en                 DateTime?                    @db.Timestamptz(6)
+  codigo_error               String?                      @db.VarChar(40)
+  detalle_error              String?                      @db.VarChar(500)
+  created_at                 DateTime                     @default(now()) @db.Timestamptz(6)
+  updated_at                 DateTime                     @default(now()) @db.Timestamptz(6)
+  alertas                    alertas?                     @relation(fields: [alerta_id], references: [id], onUpdate: NoAction)
+  whatsapp_destinatarios     whatsapp_destinatarios       @relation(fields: [destinatario_id], references: [id], onUpdate: NoAction)
+  tomas_medicamento          tomas_medicamento?           @relation(fields: [toma_id], references: [id], onUpdate: NoAction)
+  whatsapp_estados_proveedor whatsapp_estados_proveedor[]
+
+  @@unique([proveedor, proveedor_message_id])
+  @@index([alerta_id], map: "wa_notificaciones_alerta_idx", where: raw("(alerta_id IS NOT NULL)"))
+  @@index([programada_para, created_at], map: "wa_notificaciones_cola_idx", where: raw("((estado)::text = ANY ((ARRAY['EN_COLA'::character varying, 'FALLIDA'::character varying])::text[]))"))
+  @@index([destinatario_id, created_at(sort: Desc)], map: "wa_notificaciones_destino_fecha_idx")
+  @@index([toma_id], map: "wa_notificaciones_toma_idx", where: raw("(toma_id IS NOT NULL)"))
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model password_reset_tokens {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  usuario_id String    @db.Uuid
+  token_hash String    @unique @db.VarChar(255)
+  expira_en  DateTime  @db.Timestamptz(6)
+  usado_en   DateTime? @db.Timestamptz(6)
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  usuarios   usuarios  @relation(fields: [usuario_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([usuario_id, expira_en], map: "password_reset_usuario_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model permisos {
+  id           BigInt         @id @default(autoincrement())
+  codigo       String         @unique @db.VarChar(100)
+  recurso      String         @db.VarChar(60)
+  accion       String         @db.VarChar(30)
+  descripcion  String?        @db.VarChar(250)
+  rol_permisos rol_permisos[]
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model rol_permisos {
+  rol_id     Int      @db.SmallInt
+  permiso_id BigInt
+  permisos   permisos @relation(fields: [permiso_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  roles      roles    @relation(fields: [rol_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([rol_id, permiso_id])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model roles {
+  id           Int            @id @default(autoincrement()) @db.SmallInt
+  codigo       String         @unique @db.VarChar(30)
+  nombre       String         @db.VarChar(80)
+  descripcion  String?        @db.VarChar(250)
+  activo       Boolean        @default(true)
+  rol_permisos rol_permisos[]
+  usuarios     usuarios[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model sesiones {
+  id                 String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  usuario_id         String        @db.Uuid
+  refresh_token_hash String        @unique @db.VarChar(255)
+  dispositivo_id     String?       @db.Uuid
+  ip                 String?       @db.Inet
+  user_agent         String?       @db.VarChar(500)
+  expira_en          DateTime      @db.Timestamptz(6)
+  revocada_en        DateTime?     @db.Timestamptz(6)
+  created_at         DateTime      @default(now()) @db.Timestamptz(6)
+  dispositivos       dispositivos? @relation(fields: [dispositivo_id], references: [id], onUpdate: NoAction, map: "sesiones_dispositivo_fk")
+  usuarios           usuarios      @relation(fields: [usuario_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([usuario_id, expira_en], map: "sesiones_usuario_vigente_idx", where: raw("(revocada_en IS NULL)"))
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model tomas_medicamento {
+  id                                                  String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  medicamento_id                                      String                    @db.Uuid
+  horario_id                                          String?                   @db.Uuid
+  adulto_id                                           String                    @db.Uuid
+  programada_para                                     DateTime                  @db.Timestamptz(6)
+  estado                                              String                    @default("PENDIENTE") @db.VarChar(15)
+  tomada_en                                           DateTime?                 @db.Timestamptz(6)
+  dosis_tomada                                        Decimal?                  @db.Decimal(10, 3)
+  registrada_por                                      String?                   @db.Uuid
+  nota                                                String?                   @db.VarChar(500)
+  created_at                                          DateTime                  @default(now()) @db.Timestamptz(6)
+  updated_at                                          DateTime                  @default(now()) @db.Timestamptz(6)
+  notificaciones_whatsapp                             notificaciones_whatsapp[]
+  usuarios_tomas_medicamento_adulto_idTousuarios      usuarios                  @relation("tomas_medicamento_adulto_idTousuarios", fields: [adulto_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  horarios_medicamento                                horarios_medicamento?     @relation(fields: [horario_id], references: [id], onUpdate: NoAction)
+  medicamentos                                        medicamentos              @relation(fields: [medicamento_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  usuarios_tomas_medicamento_registrada_porTousuarios usuarios?                 @relation("tomas_medicamento_registrada_porTousuarios", fields: [registrada_por], references: [id], onUpdate: NoAction)
+
+  @@unique([horario_id, programada_para])
+  @@index([adulto_id, programada_para(sort: Desc)], map: "tomas_adulto_fecha_idx")
+  @@index([medicamento_id, programada_para(sort: Desc)], map: "tomas_medicamento_fecha_idx")
+  @@index([programada_para], map: "tomas_pendientes_idx", where: raw("((estado)::text = 'PENDIENTE'::text)"))
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model ubicaciones {
+  id               BigInt        @id @default(autoincrement())
+  adulto_id        String        @db.Uuid
+  dispositivo_id   String?       @db.Uuid
+  latitud          Decimal       @db.Decimal(9, 6)
+  longitud         Decimal       @db.Decimal(9, 6)
+  precision_metros Decimal?      @db.Decimal(8, 2)
+  altitud_metros   Decimal?      @db.Decimal(8, 2)
+  fuente           String        @default("GPS") @db.VarChar(20)
+  registrada_en    DateTime      @default(now()) @db.Timestamptz(6)
+  usuarios         usuarios      @relation(fields: [adulto_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  dispositivos     dispositivos? @relation(fields: [dispositivo_id], references: [id], onUpdate: NoAction)
+
+  @@index([adulto_id, registrada_en(sort: Desc)], map: "ubicaciones_adulto_fecha_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model usuarios {
+  id                                                           String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  rol_id                                                       Int                      @db.SmallInt
+  nombre                                                       String                   @db.VarChar(80)
+  apellido                                                     String                   @db.VarChar(100)
+  email                                                        String                   @unique(map: "usuarios_email_uq") @db.VarChar(254)
+  telefono                                                     String?                  @db.VarChar(20)
+  password_hash                                                String                   @db.VarChar(255)
+  email_verificado_en                                          DateTime?                @db.Timestamptz(6)
+  activo                                                       Boolean                  @default(true)
+  ultimo_acceso_en                                             DateTime?                @db.Timestamptz(6)
+  created_at                                                   DateTime                 @default(now()) @db.Timestamptz(6)
+  updated_at                                                   DateTime                 @default(now()) @db.Timestamptz(6)
+  adulto_familiares_adulto_familiares_adulto_idTousuarios      adulto_familiares?       @relation("adulto_familiares_adulto_idTousuarios")
+  adulto_familiares_adulto_familiares_familiar_idTousuarios    adulto_familiares[]      @relation("adulto_familiares_familiar_idTousuarios")
+  alerta_eventos                                               alerta_eventos[]
+  alertas_alertas_adulto_idTousuarios                          alertas[]                @relation("alertas_adulto_idTousuarios")
+  alertas_alertas_atendida_porTousuarios                       alertas[]                @relation("alertas_atendida_porTousuarios")
+  auditoria                                                    auditoria[]
+  configuracion_adulto                                         configuracion_adulto?
+  contactos_emergencia                                         contactos_emergencia[]
+  dispositivos                                                 dispositivos[]
+  medicamentos_medicamentos_adulto_idTousuarios                medicamentos[]           @relation("medicamentos_adulto_idTousuarios")
+  medicamentos_medicamentos_creado_porTousuarios               medicamentos[]           @relation("medicamentos_creado_porTousuarios")
+  password_reset_tokens                                        password_reset_tokens[]
+  sesiones                                                     sesiones[]
+  tomas_medicamento_tomas_medicamento_adulto_idTousuarios      tomas_medicamento[]      @relation("tomas_medicamento_adulto_idTousuarios")
+  tomas_medicamento_tomas_medicamento_registrada_porTousuarios tomas_medicamento[]      @relation("tomas_medicamento_registrada_porTousuarios")
+  ubicaciones                                                  ubicaciones[]
+  roles                                                        roles                    @relation(fields: [rol_id], references: [id], onUpdate: NoAction)
+  whatsapp_destinatarios                                       whatsapp_destinatarios[]
+  zonas_seguras                                                zonas_seguras[]
+
+  @@index([rol_id, activo], map: "usuarios_rol_activo_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model whatsapp_destinatarios {
+  id                      String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  usuario_id              String?                   @db.Uuid
+  contacto_emergencia_id  String?                   @db.Uuid
+  telefono_e164           String                    @unique @db.VarChar(16)
+  nombre                  String?                   @db.VarChar(120)
+  consentimiento          String                    @default("PENDIENTE") @db.VarChar(15)
+  consentimiento_origen   String?                   @db.VarChar(30)
+  consentimiento_en       DateTime?                 @db.Timestamptz(6)
+  revocado_en             DateTime?                 @db.Timestamptz(6)
+  activo                  Boolean                   @default(true)
+  created_at              DateTime                  @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime                  @default(now()) @db.Timestamptz(6)
+  notificaciones_whatsapp notificaciones_whatsapp[]
+  contactos_emergencia    contactos_emergencia?     @relation(fields: [contacto_emergencia_id], references: [id], onUpdate: NoAction)
+  usuarios                usuarios?                 @relation(fields: [usuario_id], references: [id], onUpdate: NoAction)
+
+  @@index([contacto_emergencia_id], map: "wa_destinatarios_contacto_idx", where: raw("activo"))
+  @@index([usuario_id], map: "wa_destinatarios_usuario_idx", where: raw("activo"))
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model whatsapp_estados_proveedor {
+  id                      BigInt                  @id @default(autoincrement())
+  notificacion_id         String                  @db.Uuid
+  proveedor_evento_id     String?                 @unique @db.VarChar(150)
+  estado                  String                  @db.VarChar(15)
+  ocurrido_en             DateTime                @default(now()) @db.Timestamptz(6)
+  codigo_error            String?                 @db.VarChar(40)
+  detalle_error           String?                 @db.VarChar(500)
+  payload_minimo          Json?
+  created_at              DateTime                @default(now()) @db.Timestamptz(6)
+  notificaciones_whatsapp notificaciones_whatsapp @relation(fields: [notificacion_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([notificacion_id, ocurrido_en(sort: Desc)], map: "wa_estados_notificacion_fecha_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model zonas_seguras {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  adulto_id         String   @db.Uuid
+  nombre            String   @db.VarChar(100)
+  latitud_centro    Decimal  @db.Decimal(9, 6)
+  longitud_centro   Decimal  @db.Decimal(9, 6)
+  radio_metros      Int
+  notificar_salida  Boolean  @default(true)
+  notificar_entrada Boolean  @default(false)
+  activa            Boolean  @default(true)
+  created_at        DateTime @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime @default(now()) @db.Timestamptz(6)
+  usuarios          usuarios @relation(fields: [adulto_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([adulto_id, nombre])
+  @@index([adulto_id], map: "zonas_adulto_activas_idx", where: raw("activa"))
+}
