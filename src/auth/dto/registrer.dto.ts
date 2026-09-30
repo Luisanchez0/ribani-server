@@ -1,24 +1,19 @@
 import {
   IsEmail,
-  IsInt,
   IsOptional,
   IsString,
-  IsUUID,
   MaxLength,
   MinLength,
 } from 'class-validator';
 
-export class CreateUsuarioDto {
-  @IsInt()
-  rol_id!: number;
-
+export class RegisterDto {
   @IsString()
-  @MinLength(1)
+  @MinLength(2)
   @MaxLength(80)
   nombre!: string;
 
   @IsString()
-  @MinLength(1)
+  @MinLength(2)
   @MaxLength(100)
   apellido!: string;
 
@@ -35,11 +30,4 @@ export class CreateUsuarioDto {
   @MinLength(8)
   @MaxLength(128)
   password!: string;
-
-  @IsOptional()
-  @IsString()
-  email_verificado_en?: string;
-
-  @IsOptional()
-  activo?: boolean;
 }

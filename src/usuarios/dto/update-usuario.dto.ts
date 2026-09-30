@@ -38,8 +38,8 @@ export class UpdateUsuarioDto {
   @IsOptional()
   @IsString()
   @MinLength(8)
-  @MaxLength(255)
-  password_hash?: string;
+  @MaxLength(128)
+  password?: string;
 
   @IsOptional()
   @IsString()

@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import * as bcrypt from 'bcryptjs';
 
 import { PrismaService } from '../prisma/prisma.service.js';
 
@@ -76,6 +77,11 @@ export class UsuariosService {
       );
     }
 
+    const passwordHash = await bcrypt.hash(
+      createUsuarioDto.password,
+      12,
+    );
+
     return this.prisma.usuarios.create({
       data: {
         rol_id: createUsuarioDto.rol_id,
@@ -83,7 +89,7 @@ export class UsuariosService {
         apellido: createUsuarioDto.apellido,
         email: createUsuarioDto.email,
         telefono: createUsuarioDto.telefono,
-        password_hash: createUsuarioDto.password_hash,
+        password_hash: passwordHash,
         email_verificado_en: createUsuarioDto.email_verificado_en
           ? new Date(createUsuarioDto.email_verificado_en)
           : undefined,
@@ -125,6 +131,10 @@ export class UsuariosService {
       }
     }
 
+    const passwordHash = updateUsuarioDto.password
+      ? await bcrypt.hash(updateUsuarioDto.password, 12)
+      : undefined;
+
     return this.prisma.usuarios.update({
       where: {
         id,
@@ -135,7 +145,7 @@ export class UsuariosService {
         apellido: updateUsuarioDto.apellido,
         email: updateUsuarioDto.email,
         telefono: updateUsuarioDto.telefono,
-        password_hash: updateUsuarioDto.password_hash,
+        password_hash: passwordHash,
         email_verificado_en: updateUsuarioDto.email_verificado_en
           ? new Date(updateUsuarioDto.email_verificado_en)
           : undefined,
