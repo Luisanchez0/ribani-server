@@ -1,7 +1,6 @@
 import {
   IsBoolean,
   IsEmail,
-  IsInt,
   IsOptional,
   IsString,
   MaxLength,
@@ -10,8 +9,10 @@ import {
 
 export class UpdateUsuarioDto {
   @IsOptional()
-  @IsInt()
-  rol_id?: number;
+  @IsString()
+  @MinLength(1)
+  @MaxLength(30)
+  rol_codigo?: string;
 
   @IsOptional()
   @IsString()
@@ -40,10 +41,6 @@ export class UpdateUsuarioDto {
   @MinLength(8)
   @MaxLength(128)
   password?: string;
-
-  @IsOptional()
-  @IsString()
-  email_verificado_en?: string;
 
   @IsOptional()
   @IsBoolean()

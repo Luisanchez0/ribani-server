@@ -1,0 +1,1 @@
+otpauth://totp/RIBANI:prueba.2fa%40ribani.test?secret=K6DY5XSCCHVZXCWPWPJJNRUZKVXP5LDU&issuer=RIBANI

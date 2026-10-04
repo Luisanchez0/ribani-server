@@ -1,16 +1,17 @@
 import {
+  IsBoolean,
   IsEmail,
-  IsInt,
   IsOptional,
   IsString,
-  IsUUID,
   MaxLength,
   MinLength,
 } from 'class-validator';
 
 export class CreateUsuarioDto {
-  @IsInt()
-  rol_id!: number;
+  @IsString()
+  @MinLength(1)
+  @MaxLength(30)
+  rol_codigo!: string;
 
   @IsString()
   @MinLength(1)
@@ -37,9 +38,6 @@ export class CreateUsuarioDto {
   password!: string;
 
   @IsOptional()
-  @IsString()
-  email_verificado_en?: string;
-
-  @IsOptional()
+  @IsBoolean()
   activo?: boolean;
 }

@@ -294,7 +294,7 @@ El sistema contempla como mínimo los siguientes roles conceptuales:
 
 ```text
 ADULTO_MAYOR
-FAMILIAR_ENCARGADO_DEL_ADULTO
+FAMILIAR_ENCARGADO
 ADMINISTRADOR
 ```
 
@@ -312,7 +312,7 @@ Puede tener funcionalidades como:
 - detección de caídas;
 - información relacionada con su familiar responsable.
 
-### FAMILIAR_ENCARGADO_DEL_ADULTO
+### FAMILIAR_ENCARGADO
 
 Usuario que utiliza la aplicación web.
 

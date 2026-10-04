@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -14,8 +15,24 @@ import { UpdateUsuarioDto } from './dto/update-usuario.dto.js';
 export class UsuariosService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll() {
+  async findAll(options?: { buscar?: string; rol?: string }) {
+    const { buscar, rol } = options ?? {};
+
     return this.prisma.usuarios.findMany({
+      where: {
+        ...(buscar && buscar.trim()
+          ? {
+              OR: [
+                { nombre: { contains: buscar.trim(), mode: 'insensitive' } },
+                { apellido: { contains: buscar.trim(), mode: 'insensitive' } },
+                { email: { contains: buscar.trim(), mode: 'insensitive' } },
+              ],
+            }
+          : {}),
+        ...(rol && rol.trim()
+          ? { roles: { codigo: rol.trim().toUpperCase() } }
+          : {}),
+      },
       select: {
         id: true,
         rol_id: true,
@@ -64,6 +81,28 @@ export class UsuariosService {
     return usuario;
   }
 
+  private async resolveRoleId(
+    rolCodigo: string,
+  ): Promise<number> {
+    const rol = await this.prisma.roles.findUnique({
+      where: {
+        codigo: rolCodigo,
+      },
+      select: {
+        id: true,
+        activo: true,
+      },
+    });
+
+    if (!rol || !rol.activo) {
+      throw new BadRequestException(
+        `El rol '${rolCodigo}' no existe o está inactivo.`,
+      );
+    }
+
+    return rol.id;
+  }
+
   async create(createUsuarioDto: CreateUsuarioDto) {
     const existingUser = await this.prisma.usuarios.findUnique({
       where: {
@@ -77,6 +116,10 @@ export class UsuariosService {
       );
     }
 
+    const rolId = await this.resolveRoleId(
+      createUsuarioDto.rol_codigo,
+    );
+
     const passwordHash = await bcrypt.hash(
       createUsuarioDto.password,
       12,
@@ -84,15 +127,12 @@ export class UsuariosService {
 
     return this.prisma.usuarios.create({
       data: {
-        rol_id: createUsuarioDto.rol_id,
+        rol_id: rolId,
         nombre: createUsuarioDto.nombre,
         apellido: createUsuarioDto.apellido,
         email: createUsuarioDto.email,
         telefono: createUsuarioDto.telefono,
         password_hash: passwordHash,
-        email_verificado_en: createUsuarioDto.email_verificado_en
-          ? new Date(createUsuarioDto.email_verificado_en)
-          : undefined,
         activo: createUsuarioDto.activo ?? true,
       },
       select: {
@@ -135,20 +175,21 @@ export class UsuariosService {
       ? await bcrypt.hash(updateUsuarioDto.password, 12)
       : undefined;
 
+    const rolId = updateUsuarioDto.rol_codigo
+      ? await this.resolveRoleId(updateUsuarioDto.rol_codigo)
+      : undefined;
+
     return this.prisma.usuarios.update({
       where: {
         id,
       },
       data: {
-        rol_id: updateUsuarioDto.rol_id,
+        rol_id: rolId,
         nombre: updateUsuarioDto.nombre,
         apellido: updateUsuarioDto.apellido,
         email: updateUsuarioDto.email,
         telefono: updateUsuarioDto.telefono,
         password_hash: passwordHash,
-        email_verificado_en: updateUsuarioDto.email_verificado_en
-          ? new Date(updateUsuarioDto.email_verificado_en)
-          : undefined,
         activo: updateUsuarioDto.activo,
       },
       select: {

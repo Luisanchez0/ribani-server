@@ -14,10 +14,27 @@ async function bootstrap(): Promise<void> {
     }),
   );
 
+  // CORS: orígenes del panel web (separados por coma en CORS_ORIGINS).
+  const corsOrigins = (process.env.CORS_ORIGINS ?? 'http://localhost:5173')
+    .split(',')
+    .map((origen) => origen.trim())
+    .filter(Boolean);
+
+  app.enableCors({
+    origin: corsOrigins,
+    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Authorization', 'Content-Type'],
+  });
+
   const config = new DocumentBuilder()
     .setTitle('RIBANI API')
-    .setDescription('API del sistema RIBANI')
+    .setDescription(
+      'API del sistema RIBANI — cuidado de adultos mayores que viven solos.\n\n' +
+        'Autenticación: JWT Bearer. Haga login en POST /auth/login y use el ' +
+        'accessToken en el header "Authorization: Bearer <token>".',
+    )
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
