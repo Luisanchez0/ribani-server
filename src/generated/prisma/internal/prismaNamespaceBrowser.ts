@@ -62,6 +62,7 @@ export const ModelName = {
   medicamentos: 'medicamentos',
   notificaciones_whatsapp: 'notificaciones_whatsapp',
   password_reset_tokens: 'password_reset_tokens',
+  codigos_2fa: 'codigos_2fa',
   permisos: 'permisos',
   rol_permisos: 'rol_permisos',
   roles: 'roles',
@@ -275,6 +276,20 @@ export const Password_reset_tokensScalarFieldEnum = {
 export type Password_reset_tokensScalarFieldEnum = (typeof Password_reset_tokensScalarFieldEnum)[keyof typeof Password_reset_tokensScalarFieldEnum]
 
 
+export const Codigos_2faScalarFieldEnum = {
+  id: 'id',
+  usuario_id: 'usuario_id',
+  token_hash: 'token_hash',
+  tipo: 'tipo',
+  intentos: 'intentos',
+  expira_en: 'expira_en',
+  usado_en: 'usado_en',
+  created_at: 'created_at'
+} as const
+
+export type Codigos_2faScalarFieldEnum = (typeof Codigos_2faScalarFieldEnum)[keyof typeof Codigos_2faScalarFieldEnum]
+
+
 export const PermisosScalarFieldEnum = {
   id: 'id',
   codigo: 'codigo',
@@ -361,6 +376,8 @@ export const UsuariosScalarFieldEnum = {
   email: 'email',
   telefono: 'telefono',
   password_hash: 'password_hash',
+  two_factor_secret: 'two_factor_secret',
+  two_factor_enabled: 'two_factor_enabled',
   email_verificado_en: 'email_verificado_en',
   activo: 'activo',
   ultimo_acceso_en: 'ultimo_acceso_en',

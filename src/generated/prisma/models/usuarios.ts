@@ -43,6 +43,8 @@ export type UsuariosMinAggregateOutputType = {
   email: string | null
   telefono: string | null
   password_hash: string | null
+  two_factor_secret: string | null
+  two_factor_enabled: boolean | null
   email_verificado_en: Date | null
   activo: boolean | null
   ultimo_acceso_en: Date | null
@@ -58,6 +60,8 @@ export type UsuariosMaxAggregateOutputType = {
   email: string | null
   telefono: string | null
   password_hash: string | null
+  two_factor_secret: string | null
+  two_factor_enabled: boolean | null
   email_verificado_en: Date | null
   activo: boolean | null
   ultimo_acceso_en: Date | null
@@ -73,6 +77,8 @@ export type UsuariosCountAggregateOutputType = {
   email: number
   telefono: number
   password_hash: number
+  two_factor_secret: number
+  two_factor_enabled: number
   email_verificado_en: number
   activo: number
   ultimo_acceso_en: number
@@ -98,6 +104,8 @@ export type UsuariosMinAggregateInputType = {
   email?: true
   telefono?: true
   password_hash?: true
+  two_factor_secret?: true
+  two_factor_enabled?: true
   email_verificado_en?: true
   activo?: true
   ultimo_acceso_en?: true
@@ -113,6 +121,8 @@ export type UsuariosMaxAggregateInputType = {
   email?: true
   telefono?: true
   password_hash?: true
+  two_factor_secret?: true
+  two_factor_enabled?: true
   email_verificado_en?: true
   activo?: true
   ultimo_acceso_en?: true
@@ -128,6 +138,8 @@ export type UsuariosCountAggregateInputType = {
   email?: true
   telefono?: true
   password_hash?: true
+  two_factor_secret?: true
+  two_factor_enabled?: true
   email_verificado_en?: true
   activo?: true
   ultimo_acceso_en?: true
@@ -230,6 +242,8 @@ export type UsuariosGroupByOutputType = {
   email: string
   telefono: string | null
   password_hash: string
+  two_factor_secret: string | null
+  two_factor_enabled: boolean
   email_verificado_en: Date | null
   activo: boolean
   ultimo_acceso_en: Date | null
@@ -268,6 +282,8 @@ export type usuariosWhereInput = {
   email?: Prisma.StringFilter<"usuarios"> | string
   telefono?: Prisma.StringNullableFilter<"usuarios"> | string | null
   password_hash?: Prisma.StringFilter<"usuarios"> | string
+  two_factor_secret?: Prisma.StringNullableFilter<"usuarios"> | string | null
+  two_factor_enabled?: Prisma.BoolFilter<"usuarios"> | boolean
   email_verificado_en?: Prisma.DateTimeNullableFilter<"usuarios"> | Date | string | null
   activo?: Prisma.BoolFilter<"usuarios"> | boolean
   ultimo_acceso_en?: Prisma.DateTimeNullableFilter<"usuarios"> | Date | string | null
@@ -281,6 +297,7 @@ export type usuariosWhereInput = {
   auditoria?: Prisma.AuditoriaListRelationFilter
   configuracion_adulto?: Prisma.XOR<Prisma.Configuracion_adultoNullableScalarRelationFilter, Prisma.configuracion_adultoWhereInput> | null
   contactos_emergencia?: Prisma.Contactos_emergenciaListRelationFilter
+  codigos_2fa?: Prisma.Codigos_2faListRelationFilter
   dispositivos?: Prisma.DispositivosListRelationFilter
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.MedicamentosListRelationFilter
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.MedicamentosListRelationFilter
@@ -302,6 +319,8 @@ export type usuariosOrderByWithRelationInput = {
   email?: Prisma.SortOrder
   telefono?: Prisma.SortOrderInput | Prisma.SortOrder
   password_hash?: Prisma.SortOrder
+  two_factor_secret?: Prisma.SortOrderInput | Prisma.SortOrder
+  two_factor_enabled?: Prisma.SortOrder
   email_verificado_en?: Prisma.SortOrderInput | Prisma.SortOrder
   activo?: Prisma.SortOrder
   ultimo_acceso_en?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -315,6 +334,7 @@ export type usuariosOrderByWithRelationInput = {
   auditoria?: Prisma.auditoriaOrderByRelationAggregateInput
   configuracion_adulto?: Prisma.configuracion_adultoOrderByWithRelationInput
   contactos_emergencia?: Prisma.contactos_emergenciaOrderByRelationAggregateInput
+  codigos_2fa?: Prisma.codigos_2faOrderByRelationAggregateInput
   dispositivos?: Prisma.dispositivosOrderByRelationAggregateInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosOrderByRelationAggregateInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosOrderByRelationAggregateInput
@@ -339,6 +359,8 @@ export type usuariosWhereUniqueInput = Prisma.AtLeast<{
   apellido?: Prisma.StringFilter<"usuarios"> | string
   telefono?: Prisma.StringNullableFilter<"usuarios"> | string | null
   password_hash?: Prisma.StringFilter<"usuarios"> | string
+  two_factor_secret?: Prisma.StringNullableFilter<"usuarios"> | string | null
+  two_factor_enabled?: Prisma.BoolFilter<"usuarios"> | boolean
   email_verificado_en?: Prisma.DateTimeNullableFilter<"usuarios"> | Date | string | null
   activo?: Prisma.BoolFilter<"usuarios"> | boolean
   ultimo_acceso_en?: Prisma.DateTimeNullableFilter<"usuarios"> | Date | string | null
@@ -352,6 +374,7 @@ export type usuariosWhereUniqueInput = Prisma.AtLeast<{
   auditoria?: Prisma.AuditoriaListRelationFilter
   configuracion_adulto?: Prisma.XOR<Prisma.Configuracion_adultoNullableScalarRelationFilter, Prisma.configuracion_adultoWhereInput> | null
   contactos_emergencia?: Prisma.Contactos_emergenciaListRelationFilter
+  codigos_2fa?: Prisma.Codigos_2faListRelationFilter
   dispositivos?: Prisma.DispositivosListRelationFilter
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.MedicamentosListRelationFilter
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.MedicamentosListRelationFilter
@@ -373,6 +396,8 @@ export type usuariosOrderByWithAggregationInput = {
   email?: Prisma.SortOrder
   telefono?: Prisma.SortOrderInput | Prisma.SortOrder
   password_hash?: Prisma.SortOrder
+  two_factor_secret?: Prisma.SortOrderInput | Prisma.SortOrder
+  two_factor_enabled?: Prisma.SortOrder
   email_verificado_en?: Prisma.SortOrderInput | Prisma.SortOrder
   activo?: Prisma.SortOrder
   ultimo_acceso_en?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -396,6 +421,8 @@ export type usuariosScalarWhereWithAggregatesInput = {
   email?: Prisma.StringWithAggregatesFilter<"usuarios"> | string
   telefono?: Prisma.StringNullableWithAggregatesFilter<"usuarios"> | string | null
   password_hash?: Prisma.StringWithAggregatesFilter<"usuarios"> | string
+  two_factor_secret?: Prisma.StringNullableWithAggregatesFilter<"usuarios"> | string | null
+  two_factor_enabled?: Prisma.BoolWithAggregatesFilter<"usuarios"> | boolean
   email_verificado_en?: Prisma.DateTimeNullableWithAggregatesFilter<"usuarios"> | Date | string | null
   activo?: Prisma.BoolWithAggregatesFilter<"usuarios"> | boolean
   ultimo_acceso_en?: Prisma.DateTimeNullableWithAggregatesFilter<"usuarios"> | Date | string | null
@@ -410,6 +437,8 @@ export type usuariosCreateInput = {
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -423,6 +452,7 @@ export type usuariosCreateInput = {
   auditoria?: Prisma.auditoriaCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
@@ -444,6 +474,8 @@ export type usuariosUncheckedCreateInput = {
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -457,6 +489,7 @@ export type usuariosUncheckedCreateInput = {
   auditoria?: Prisma.auditoriaUncheckedCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosUncheckedCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
@@ -476,6 +509,8 @@ export type usuariosUpdateInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -489,6 +524,7 @@ export type usuariosUpdateInput = {
   auditoria?: Prisma.auditoriaUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
@@ -510,6 +546,8 @@ export type usuariosUncheckedUpdateInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -523,6 +561,7 @@ export type usuariosUncheckedUpdateInput = {
   auditoria?: Prisma.auditoriaUncheckedUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUncheckedUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
@@ -543,6 +582,8 @@ export type usuariosCreateManyInput = {
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -557,6 +598,8 @@ export type usuariosUpdateManyMutationInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -572,6 +615,8 @@ export type usuariosUncheckedUpdateManyInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -607,6 +652,8 @@ export type usuariosCountOrderByAggregateInput = {
   email?: Prisma.SortOrder
   telefono?: Prisma.SortOrder
   password_hash?: Prisma.SortOrder
+  two_factor_secret?: Prisma.SortOrder
+  two_factor_enabled?: Prisma.SortOrder
   email_verificado_en?: Prisma.SortOrder
   activo?: Prisma.SortOrder
   ultimo_acceso_en?: Prisma.SortOrder
@@ -626,6 +673,8 @@ export type usuariosMaxOrderByAggregateInput = {
   email?: Prisma.SortOrder
   telefono?: Prisma.SortOrder
   password_hash?: Prisma.SortOrder
+  two_factor_secret?: Prisma.SortOrder
+  two_factor_enabled?: Prisma.SortOrder
   email_verificado_en?: Prisma.SortOrder
   activo?: Prisma.SortOrder
   ultimo_acceso_en?: Prisma.SortOrder
@@ -641,6 +690,8 @@ export type usuariosMinOrderByAggregateInput = {
   email?: Prisma.SortOrder
   telefono?: Prisma.SortOrder
   password_hash?: Prisma.SortOrder
+  two_factor_secret?: Prisma.SortOrder
+  two_factor_enabled?: Prisma.SortOrder
   email_verificado_en?: Prisma.SortOrder
   activo?: Prisma.SortOrder
   ultimo_acceso_en?: Prisma.SortOrder
@@ -828,6 +879,20 @@ export type usuariosUpdateOneRequiredWithoutPassword_reset_tokensNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.usuariosUpdateToOneWithWhereWithoutPassword_reset_tokensInput, Prisma.usuariosUpdateWithoutPassword_reset_tokensInput>, Prisma.usuariosUncheckedUpdateWithoutPassword_reset_tokensInput>
 }
 
+export type usuariosCreateNestedOneWithoutCodigos_2faInput = {
+  create?: Prisma.XOR<Prisma.usuariosCreateWithoutCodigos_2faInput, Prisma.usuariosUncheckedCreateWithoutCodigos_2faInput>
+  connectOrCreate?: Prisma.usuariosCreateOrConnectWithoutCodigos_2faInput
+  connect?: Prisma.usuariosWhereUniqueInput
+}
+
+export type usuariosUpdateOneRequiredWithoutCodigos_2faNestedInput = {
+  create?: Prisma.XOR<Prisma.usuariosCreateWithoutCodigos_2faInput, Prisma.usuariosUncheckedCreateWithoutCodigos_2faInput>
+  connectOrCreate?: Prisma.usuariosCreateOrConnectWithoutCodigos_2faInput
+  upsert?: Prisma.usuariosUpsertWithoutCodigos_2faInput
+  connect?: Prisma.usuariosWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.usuariosUpdateToOneWithWhereWithoutCodigos_2faInput, Prisma.usuariosUpdateWithoutCodigos_2faInput>, Prisma.usuariosUncheckedUpdateWithoutCodigos_2faInput>
+}
+
 export type usuariosCreateNestedManyWithoutRolesInput = {
   create?: Prisma.XOR<Prisma.usuariosCreateWithoutRolesInput, Prisma.usuariosUncheckedCreateWithoutRolesInput> | Prisma.usuariosCreateWithoutRolesInput[] | Prisma.usuariosUncheckedCreateWithoutRolesInput[]
   connectOrCreate?: Prisma.usuariosCreateOrConnectWithoutRolesInput | Prisma.usuariosCreateOrConnectWithoutRolesInput[]
@@ -965,6 +1030,8 @@ export type usuariosCreateWithoutAdulto_familiares_adulto_familiares_adulto_idTo
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -977,6 +1044,7 @@ export type usuariosCreateWithoutAdulto_familiares_adulto_familiares_adulto_idTo
   auditoria?: Prisma.auditoriaCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
@@ -998,6 +1066,8 @@ export type usuariosUncheckedCreateWithoutAdulto_familiares_adulto_familiares_ad
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -1010,6 +1080,7 @@ export type usuariosUncheckedCreateWithoutAdulto_familiares_adulto_familiares_ad
   auditoria?: Prisma.auditoriaUncheckedCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosUncheckedCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
@@ -1034,6 +1105,8 @@ export type usuariosCreateWithoutAdulto_familiares_adulto_familiares_familiar_id
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -1046,6 +1119,7 @@ export type usuariosCreateWithoutAdulto_familiares_adulto_familiares_familiar_id
   auditoria?: Prisma.auditoriaCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
@@ -1067,6 +1141,8 @@ export type usuariosUncheckedCreateWithoutAdulto_familiares_adulto_familiares_fa
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -1079,6 +1155,7 @@ export type usuariosUncheckedCreateWithoutAdulto_familiares_adulto_familiares_fa
   auditoria?: Prisma.auditoriaUncheckedCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosUncheckedCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
@@ -1114,6 +1191,8 @@ export type usuariosUpdateWithoutAdulto_familiares_adulto_familiares_adulto_idTo
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1126,6 +1205,7 @@ export type usuariosUpdateWithoutAdulto_familiares_adulto_familiares_adulto_idTo
   auditoria?: Prisma.auditoriaUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
@@ -1147,6 +1227,8 @@ export type usuariosUncheckedUpdateWithoutAdulto_familiares_adulto_familiares_ad
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1159,6 +1241,7 @@ export type usuariosUncheckedUpdateWithoutAdulto_familiares_adulto_familiares_ad
   auditoria?: Prisma.auditoriaUncheckedUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUncheckedUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
@@ -1189,6 +1272,8 @@ export type usuariosUpdateWithoutAdulto_familiares_adulto_familiares_familiar_id
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1201,6 +1286,7 @@ export type usuariosUpdateWithoutAdulto_familiares_adulto_familiares_familiar_id
   auditoria?: Prisma.auditoriaUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
@@ -1222,6 +1308,8 @@ export type usuariosUncheckedUpdateWithoutAdulto_familiares_adulto_familiares_fa
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1234,6 +1322,7 @@ export type usuariosUncheckedUpdateWithoutAdulto_familiares_adulto_familiares_fa
   auditoria?: Prisma.auditoriaUncheckedUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUncheckedUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
@@ -1253,6 +1342,8 @@ export type usuariosCreateWithoutAlerta_eventosInput = {
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -1265,6 +1356,7 @@ export type usuariosCreateWithoutAlerta_eventosInput = {
   auditoria?: Prisma.auditoriaCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
@@ -1286,6 +1378,8 @@ export type usuariosUncheckedCreateWithoutAlerta_eventosInput = {
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -1298,6 +1392,7 @@ export type usuariosUncheckedCreateWithoutAlerta_eventosInput = {
   auditoria?: Prisma.auditoriaUncheckedCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosUncheckedCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
@@ -1333,6 +1428,8 @@ export type usuariosUpdateWithoutAlerta_eventosInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1345,6 +1442,7 @@ export type usuariosUpdateWithoutAlerta_eventosInput = {
   auditoria?: Prisma.auditoriaUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
@@ -1366,6 +1464,8 @@ export type usuariosUncheckedUpdateWithoutAlerta_eventosInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1378,6 +1478,7 @@ export type usuariosUncheckedUpdateWithoutAlerta_eventosInput = {
   auditoria?: Prisma.auditoriaUncheckedUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUncheckedUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
@@ -1397,6 +1498,8 @@ export type usuariosCreateWithoutAlertas_alertas_adulto_idTousuariosInput = {
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -1409,6 +1512,7 @@ export type usuariosCreateWithoutAlertas_alertas_adulto_idTousuariosInput = {
   auditoria?: Prisma.auditoriaCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
@@ -1430,6 +1534,8 @@ export type usuariosUncheckedCreateWithoutAlertas_alertas_adulto_idTousuariosInp
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -1442,6 +1548,7 @@ export type usuariosUncheckedCreateWithoutAlertas_alertas_adulto_idTousuariosInp
   auditoria?: Prisma.auditoriaUncheckedCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosUncheckedCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
@@ -1466,6 +1573,8 @@ export type usuariosCreateWithoutAlertas_alertas_atendida_porTousuariosInput = {
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -1478,6 +1587,7 @@ export type usuariosCreateWithoutAlertas_alertas_atendida_porTousuariosInput = {
   auditoria?: Prisma.auditoriaCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
@@ -1499,6 +1609,8 @@ export type usuariosUncheckedCreateWithoutAlertas_alertas_atendida_porTousuarios
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -1511,6 +1623,7 @@ export type usuariosUncheckedCreateWithoutAlertas_alertas_atendida_porTousuarios
   auditoria?: Prisma.auditoriaUncheckedCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosUncheckedCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
@@ -1546,6 +1659,8 @@ export type usuariosUpdateWithoutAlertas_alertas_adulto_idTousuariosInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1558,6 +1673,7 @@ export type usuariosUpdateWithoutAlertas_alertas_adulto_idTousuariosInput = {
   auditoria?: Prisma.auditoriaUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
@@ -1579,6 +1695,8 @@ export type usuariosUncheckedUpdateWithoutAlertas_alertas_adulto_idTousuariosInp
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1591,6 +1709,7 @@ export type usuariosUncheckedUpdateWithoutAlertas_alertas_adulto_idTousuariosInp
   auditoria?: Prisma.auditoriaUncheckedUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUncheckedUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
@@ -1621,6 +1740,8 @@ export type usuariosUpdateWithoutAlertas_alertas_atendida_porTousuariosInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1633,6 +1754,7 @@ export type usuariosUpdateWithoutAlertas_alertas_atendida_porTousuariosInput = {
   auditoria?: Prisma.auditoriaUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
@@ -1654,6 +1776,8 @@ export type usuariosUncheckedUpdateWithoutAlertas_alertas_atendida_porTousuarios
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1666,6 +1790,7 @@ export type usuariosUncheckedUpdateWithoutAlertas_alertas_atendida_porTousuarios
   auditoria?: Prisma.auditoriaUncheckedUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUncheckedUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
@@ -1685,6 +1810,8 @@ export type usuariosCreateWithoutAuditoriaInput = {
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -1697,6 +1824,7 @@ export type usuariosCreateWithoutAuditoriaInput = {
   alertas_alertas_atendida_porTousuarios?: Prisma.alertasCreateNestedManyWithoutUsuarios_alertas_atendida_porTousuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
@@ -1718,6 +1846,8 @@ export type usuariosUncheckedCreateWithoutAuditoriaInput = {
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -1730,6 +1860,7 @@ export type usuariosUncheckedCreateWithoutAuditoriaInput = {
   alertas_alertas_atendida_porTousuarios?: Prisma.alertasUncheckedCreateNestedManyWithoutUsuarios_alertas_atendida_porTousuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosUncheckedCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
@@ -1765,6 +1896,8 @@ export type usuariosUpdateWithoutAuditoriaInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1777,6 +1910,7 @@ export type usuariosUpdateWithoutAuditoriaInput = {
   alertas_alertas_atendida_porTousuarios?: Prisma.alertasUpdateManyWithoutUsuarios_alertas_atendida_porTousuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
@@ -1798,6 +1932,8 @@ export type usuariosUncheckedUpdateWithoutAuditoriaInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1810,6 +1946,7 @@ export type usuariosUncheckedUpdateWithoutAuditoriaInput = {
   alertas_alertas_atendida_porTousuarios?: Prisma.alertasUncheckedUpdateManyWithoutUsuarios_alertas_atendida_porTousuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUncheckedUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
@@ -1829,6 +1966,8 @@ export type usuariosCreateWithoutConfiguracion_adultoInput = {
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -1841,6 +1980,7 @@ export type usuariosCreateWithoutConfiguracion_adultoInput = {
   alertas_alertas_atendida_porTousuarios?: Prisma.alertasCreateNestedManyWithoutUsuarios_alertas_atendida_porTousuariosInput
   auditoria?: Prisma.auditoriaCreateNestedManyWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
@@ -1862,6 +2002,8 @@ export type usuariosUncheckedCreateWithoutConfiguracion_adultoInput = {
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -1874,6 +2016,7 @@ export type usuariosUncheckedCreateWithoutConfiguracion_adultoInput = {
   alertas_alertas_atendida_porTousuarios?: Prisma.alertasUncheckedCreateNestedManyWithoutUsuarios_alertas_atendida_porTousuariosInput
   auditoria?: Prisma.auditoriaUncheckedCreateNestedManyWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosUncheckedCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
@@ -1909,6 +2052,8 @@ export type usuariosUpdateWithoutConfiguracion_adultoInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1921,6 +2066,7 @@ export type usuariosUpdateWithoutConfiguracion_adultoInput = {
   alertas_alertas_atendida_porTousuarios?: Prisma.alertasUpdateManyWithoutUsuarios_alertas_atendida_porTousuariosNestedInput
   auditoria?: Prisma.auditoriaUpdateManyWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
@@ -1942,6 +2088,8 @@ export type usuariosUncheckedUpdateWithoutConfiguracion_adultoInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1954,6 +2102,7 @@ export type usuariosUncheckedUpdateWithoutConfiguracion_adultoInput = {
   alertas_alertas_atendida_porTousuarios?: Prisma.alertasUncheckedUpdateManyWithoutUsuarios_alertas_atendida_porTousuariosNestedInput
   auditoria?: Prisma.auditoriaUncheckedUpdateManyWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUncheckedUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
@@ -1973,6 +2122,8 @@ export type usuariosCreateWithoutContactos_emergenciaInput = {
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -1985,6 +2136,7 @@ export type usuariosCreateWithoutContactos_emergenciaInput = {
   alertas_alertas_atendida_porTousuarios?: Prisma.alertasCreateNestedManyWithoutUsuarios_alertas_atendida_porTousuariosInput
   auditoria?: Prisma.auditoriaCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoCreateNestedOneWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
@@ -2006,6 +2158,8 @@ export type usuariosUncheckedCreateWithoutContactos_emergenciaInput = {
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -2018,6 +2172,7 @@ export type usuariosUncheckedCreateWithoutContactos_emergenciaInput = {
   alertas_alertas_atendida_porTousuarios?: Prisma.alertasUncheckedCreateNestedManyWithoutUsuarios_alertas_atendida_porTousuariosInput
   auditoria?: Prisma.auditoriaUncheckedCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedCreateNestedOneWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosUncheckedCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
@@ -2053,6 +2208,8 @@ export type usuariosUpdateWithoutContactos_emergenciaInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2065,6 +2222,7 @@ export type usuariosUpdateWithoutContactos_emergenciaInput = {
   alertas_alertas_atendida_porTousuarios?: Prisma.alertasUpdateManyWithoutUsuarios_alertas_atendida_porTousuariosNestedInput
   auditoria?: Prisma.auditoriaUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUpdateOneWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
@@ -2086,6 +2244,8 @@ export type usuariosUncheckedUpdateWithoutContactos_emergenciaInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2098,6 +2258,7 @@ export type usuariosUncheckedUpdateWithoutContactos_emergenciaInput = {
   alertas_alertas_atendida_porTousuarios?: Prisma.alertasUncheckedUpdateManyWithoutUsuarios_alertas_atendida_porTousuariosNestedInput
   auditoria?: Prisma.auditoriaUncheckedUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedUpdateOneWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUncheckedUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
@@ -2117,6 +2278,8 @@ export type usuariosCreateWithoutDispositivosInput = {
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -2130,6 +2293,7 @@ export type usuariosCreateWithoutDispositivosInput = {
   auditoria?: Prisma.auditoriaCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
   password_reset_tokens?: Prisma.password_reset_tokensCreateNestedManyWithoutUsuariosInput
@@ -2150,6 +2314,8 @@ export type usuariosUncheckedCreateWithoutDispositivosInput = {
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -2163,6 +2329,7 @@ export type usuariosUncheckedCreateWithoutDispositivosInput = {
   auditoria?: Prisma.auditoriaUncheckedCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
   password_reset_tokens?: Prisma.password_reset_tokensUncheckedCreateNestedManyWithoutUsuariosInput
@@ -2197,6 +2364,8 @@ export type usuariosUpdateWithoutDispositivosInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2210,6 +2379,7 @@ export type usuariosUpdateWithoutDispositivosInput = {
   auditoria?: Prisma.auditoriaUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
   password_reset_tokens?: Prisma.password_reset_tokensUpdateManyWithoutUsuariosNestedInput
@@ -2230,6 +2400,8 @@ export type usuariosUncheckedUpdateWithoutDispositivosInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2243,6 +2415,7 @@ export type usuariosUncheckedUpdateWithoutDispositivosInput = {
   auditoria?: Prisma.auditoriaUncheckedUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
   password_reset_tokens?: Prisma.password_reset_tokensUncheckedUpdateManyWithoutUsuariosNestedInput
@@ -2261,6 +2434,8 @@ export type usuariosCreateWithoutMedicamentos_medicamentos_adulto_idTousuariosIn
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -2274,6 +2449,7 @@ export type usuariosCreateWithoutMedicamentos_medicamentos_adulto_idTousuariosIn
   auditoria?: Prisma.auditoriaCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
   password_reset_tokens?: Prisma.password_reset_tokensCreateNestedManyWithoutUsuariosInput
@@ -2294,6 +2470,8 @@ export type usuariosUncheckedCreateWithoutMedicamentos_medicamentos_adulto_idTou
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -2307,6 +2485,7 @@ export type usuariosUncheckedCreateWithoutMedicamentos_medicamentos_adulto_idTou
   auditoria?: Prisma.auditoriaUncheckedCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosUncheckedCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
   password_reset_tokens?: Prisma.password_reset_tokensUncheckedCreateNestedManyWithoutUsuariosInput
@@ -2330,6 +2509,8 @@ export type usuariosCreateWithoutMedicamentos_medicamentos_creado_porTousuariosI
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -2343,6 +2524,7 @@ export type usuariosCreateWithoutMedicamentos_medicamentos_creado_porTousuariosI
   auditoria?: Prisma.auditoriaCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   password_reset_tokens?: Prisma.password_reset_tokensCreateNestedManyWithoutUsuariosInput
@@ -2363,6 +2545,8 @@ export type usuariosUncheckedCreateWithoutMedicamentos_medicamentos_creado_porTo
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -2376,6 +2560,7 @@ export type usuariosUncheckedCreateWithoutMedicamentos_medicamentos_creado_porTo
   auditoria?: Prisma.auditoriaUncheckedCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosUncheckedCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   password_reset_tokens?: Prisma.password_reset_tokensUncheckedCreateNestedManyWithoutUsuariosInput
@@ -2410,6 +2595,8 @@ export type usuariosUpdateWithoutMedicamentos_medicamentos_adulto_idTousuariosIn
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2423,6 +2610,7 @@ export type usuariosUpdateWithoutMedicamentos_medicamentos_adulto_idTousuariosIn
   auditoria?: Prisma.auditoriaUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
   password_reset_tokens?: Prisma.password_reset_tokensUpdateManyWithoutUsuariosNestedInput
@@ -2443,6 +2631,8 @@ export type usuariosUncheckedUpdateWithoutMedicamentos_medicamentos_adulto_idTou
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2456,6 +2646,7 @@ export type usuariosUncheckedUpdateWithoutMedicamentos_medicamentos_adulto_idTou
   auditoria?: Prisma.auditoriaUncheckedUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUncheckedUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
   password_reset_tokens?: Prisma.password_reset_tokensUncheckedUpdateManyWithoutUsuariosNestedInput
@@ -2485,6 +2676,8 @@ export type usuariosUpdateWithoutMedicamentos_medicamentos_creado_porTousuariosI
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2498,6 +2691,7 @@ export type usuariosUpdateWithoutMedicamentos_medicamentos_creado_porTousuariosI
   auditoria?: Prisma.auditoriaUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   password_reset_tokens?: Prisma.password_reset_tokensUpdateManyWithoutUsuariosNestedInput
@@ -2518,6 +2712,8 @@ export type usuariosUncheckedUpdateWithoutMedicamentos_medicamentos_creado_porTo
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2531,6 +2727,7 @@ export type usuariosUncheckedUpdateWithoutMedicamentos_medicamentos_creado_porTo
   auditoria?: Prisma.auditoriaUncheckedUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUncheckedUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   password_reset_tokens?: Prisma.password_reset_tokensUncheckedUpdateManyWithoutUsuariosNestedInput
@@ -2549,6 +2746,8 @@ export type usuariosCreateWithoutPassword_reset_tokensInput = {
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -2562,6 +2761,7 @@ export type usuariosCreateWithoutPassword_reset_tokensInput = {
   auditoria?: Prisma.auditoriaCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
@@ -2582,6 +2782,8 @@ export type usuariosUncheckedCreateWithoutPassword_reset_tokensInput = {
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -2595,6 +2797,7 @@ export type usuariosUncheckedCreateWithoutPassword_reset_tokensInput = {
   auditoria?: Prisma.auditoriaUncheckedCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosUncheckedCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
@@ -2629,6 +2832,8 @@ export type usuariosUpdateWithoutPassword_reset_tokensInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2642,6 +2847,7 @@ export type usuariosUpdateWithoutPassword_reset_tokensInput = {
   auditoria?: Prisma.auditoriaUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
@@ -2662,6 +2868,8 @@ export type usuariosUncheckedUpdateWithoutPassword_reset_tokensInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2675,6 +2883,7 @@ export type usuariosUncheckedUpdateWithoutPassword_reset_tokensInput = {
   auditoria?: Prisma.auditoriaUncheckedUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUncheckedUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
@@ -2686,13 +2895,15 @@ export type usuariosUncheckedUpdateWithoutPassword_reset_tokensInput = {
   zonas_seguras?: Prisma.zonas_segurasUncheckedUpdateManyWithoutUsuariosNestedInput
 }
 
-export type usuariosCreateWithoutRolesInput = {
+export type usuariosCreateWithoutCodigos_2faInput = {
   id?: string
   nombre: string
   apellido: string
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -2714,17 +2925,21 @@ export type usuariosCreateWithoutRolesInput = {
   tomas_medicamento_tomas_medicamento_adulto_idTousuarios?: Prisma.tomas_medicamentoCreateNestedManyWithoutUsuarios_tomas_medicamento_adulto_idTousuariosInput
   tomas_medicamento_tomas_medicamento_registrada_porTousuarios?: Prisma.tomas_medicamentoCreateNestedManyWithoutUsuarios_tomas_medicamento_registrada_porTousuariosInput
   ubicaciones?: Prisma.ubicacionesCreateNestedManyWithoutUsuariosInput
+  roles: Prisma.rolesCreateNestedOneWithoutUsuariosInput
   whatsapp_destinatarios?: Prisma.whatsapp_destinatariosCreateNestedManyWithoutUsuariosInput
   zonas_seguras?: Prisma.zonas_segurasCreateNestedManyWithoutUsuariosInput
 }
 
-export type usuariosUncheckedCreateWithoutRolesInput = {
+export type usuariosUncheckedCreateWithoutCodigos_2faInput = {
   id?: string
+  rol_id: number
   nombre: string
   apellido: string
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -2738,6 +2953,162 @@ export type usuariosUncheckedCreateWithoutRolesInput = {
   auditoria?: Prisma.auditoriaUncheckedCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedCreateNestedManyWithoutUsuariosInput
+  dispositivos?: Prisma.dispositivosUncheckedCreateNestedManyWithoutUsuariosInput
+  medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
+  medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
+  password_reset_tokens?: Prisma.password_reset_tokensUncheckedCreateNestedManyWithoutUsuariosInput
+  sesiones?: Prisma.sesionesUncheckedCreateNestedManyWithoutUsuariosInput
+  tomas_medicamento_tomas_medicamento_adulto_idTousuarios?: Prisma.tomas_medicamentoUncheckedCreateNestedManyWithoutUsuarios_tomas_medicamento_adulto_idTousuariosInput
+  tomas_medicamento_tomas_medicamento_registrada_porTousuarios?: Prisma.tomas_medicamentoUncheckedCreateNestedManyWithoutUsuarios_tomas_medicamento_registrada_porTousuariosInput
+  ubicaciones?: Prisma.ubicacionesUncheckedCreateNestedManyWithoutUsuariosInput
+  whatsapp_destinatarios?: Prisma.whatsapp_destinatariosUncheckedCreateNestedManyWithoutUsuariosInput
+  zonas_seguras?: Prisma.zonas_segurasUncheckedCreateNestedManyWithoutUsuariosInput
+}
+
+export type usuariosCreateOrConnectWithoutCodigos_2faInput = {
+  where: Prisma.usuariosWhereUniqueInput
+  create: Prisma.XOR<Prisma.usuariosCreateWithoutCodigos_2faInput, Prisma.usuariosUncheckedCreateWithoutCodigos_2faInput>
+}
+
+export type usuariosUpsertWithoutCodigos_2faInput = {
+  update: Prisma.XOR<Prisma.usuariosUpdateWithoutCodigos_2faInput, Prisma.usuariosUncheckedUpdateWithoutCodigos_2faInput>
+  create: Prisma.XOR<Prisma.usuariosCreateWithoutCodigos_2faInput, Prisma.usuariosUncheckedCreateWithoutCodigos_2faInput>
+  where?: Prisma.usuariosWhereInput
+}
+
+export type usuariosUpdateToOneWithWhereWithoutCodigos_2faInput = {
+  where?: Prisma.usuariosWhereInput
+  data: Prisma.XOR<Prisma.usuariosUpdateWithoutCodigos_2faInput, Prisma.usuariosUncheckedUpdateWithoutCodigos_2faInput>
+}
+
+export type usuariosUpdateWithoutCodigos_2faInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  nombre?: Prisma.StringFieldUpdateOperationsInput | string
+  apellido?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  adulto_familiares_adulto_familiares_adulto_idTousuarios?: Prisma.adulto_familiaresUpdateOneWithoutUsuarios_adulto_familiares_adulto_idTousuariosNestedInput
+  adulto_familiares_adulto_familiares_familiar_idTousuarios?: Prisma.adulto_familiaresUpdateManyWithoutUsuarios_adulto_familiares_familiar_idTousuariosNestedInput
+  alerta_eventos?: Prisma.alerta_eventosUpdateManyWithoutUsuariosNestedInput
+  alertas_alertas_adulto_idTousuarios?: Prisma.alertasUpdateManyWithoutUsuarios_alertas_adulto_idTousuariosNestedInput
+  alertas_alertas_atendida_porTousuarios?: Prisma.alertasUpdateManyWithoutUsuarios_alertas_atendida_porTousuariosNestedInput
+  auditoria?: Prisma.auditoriaUpdateManyWithoutUsuariosNestedInput
+  configuracion_adulto?: Prisma.configuracion_adultoUpdateOneWithoutUsuariosNestedInput
+  contactos_emergencia?: Prisma.contactos_emergenciaUpdateManyWithoutUsuariosNestedInput
+  dispositivos?: Prisma.dispositivosUpdateManyWithoutUsuariosNestedInput
+  medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
+  medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
+  password_reset_tokens?: Prisma.password_reset_tokensUpdateManyWithoutUsuariosNestedInput
+  sesiones?: Prisma.sesionesUpdateManyWithoutUsuariosNestedInput
+  tomas_medicamento_tomas_medicamento_adulto_idTousuarios?: Prisma.tomas_medicamentoUpdateManyWithoutUsuarios_tomas_medicamento_adulto_idTousuariosNestedInput
+  tomas_medicamento_tomas_medicamento_registrada_porTousuarios?: Prisma.tomas_medicamentoUpdateManyWithoutUsuarios_tomas_medicamento_registrada_porTousuariosNestedInput
+  ubicaciones?: Prisma.ubicacionesUpdateManyWithoutUsuariosNestedInput
+  roles?: Prisma.rolesUpdateOneRequiredWithoutUsuariosNestedInput
+  whatsapp_destinatarios?: Prisma.whatsapp_destinatariosUpdateManyWithoutUsuariosNestedInput
+  zonas_seguras?: Prisma.zonas_segurasUpdateManyWithoutUsuariosNestedInput
+}
+
+export type usuariosUncheckedUpdateWithoutCodigos_2faInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  rol_id?: Prisma.IntFieldUpdateOperationsInput | number
+  nombre?: Prisma.StringFieldUpdateOperationsInput | string
+  apellido?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  adulto_familiares_adulto_familiares_adulto_idTousuarios?: Prisma.adulto_familiaresUncheckedUpdateOneWithoutUsuarios_adulto_familiares_adulto_idTousuariosNestedInput
+  adulto_familiares_adulto_familiares_familiar_idTousuarios?: Prisma.adulto_familiaresUncheckedUpdateManyWithoutUsuarios_adulto_familiares_familiar_idTousuariosNestedInput
+  alerta_eventos?: Prisma.alerta_eventosUncheckedUpdateManyWithoutUsuariosNestedInput
+  alertas_alertas_adulto_idTousuarios?: Prisma.alertasUncheckedUpdateManyWithoutUsuarios_alertas_adulto_idTousuariosNestedInput
+  alertas_alertas_atendida_porTousuarios?: Prisma.alertasUncheckedUpdateManyWithoutUsuarios_alertas_atendida_porTousuariosNestedInput
+  auditoria?: Prisma.auditoriaUncheckedUpdateManyWithoutUsuariosNestedInput
+  configuracion_adulto?: Prisma.configuracion_adultoUncheckedUpdateOneWithoutUsuariosNestedInput
+  contactos_emergencia?: Prisma.contactos_emergenciaUncheckedUpdateManyWithoutUsuariosNestedInput
+  dispositivos?: Prisma.dispositivosUncheckedUpdateManyWithoutUsuariosNestedInput
+  medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
+  medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
+  password_reset_tokens?: Prisma.password_reset_tokensUncheckedUpdateManyWithoutUsuariosNestedInput
+  sesiones?: Prisma.sesionesUncheckedUpdateManyWithoutUsuariosNestedInput
+  tomas_medicamento_tomas_medicamento_adulto_idTousuarios?: Prisma.tomas_medicamentoUncheckedUpdateManyWithoutUsuarios_tomas_medicamento_adulto_idTousuariosNestedInput
+  tomas_medicamento_tomas_medicamento_registrada_porTousuarios?: Prisma.tomas_medicamentoUncheckedUpdateManyWithoutUsuarios_tomas_medicamento_registrada_porTousuariosNestedInput
+  ubicaciones?: Prisma.ubicacionesUncheckedUpdateManyWithoutUsuariosNestedInput
+  whatsapp_destinatarios?: Prisma.whatsapp_destinatariosUncheckedUpdateManyWithoutUsuariosNestedInput
+  zonas_seguras?: Prisma.zonas_segurasUncheckedUpdateManyWithoutUsuariosNestedInput
+}
+
+export type usuariosCreateWithoutRolesInput = {
+  id?: string
+  nombre: string
+  apellido: string
+  email: string
+  telefono?: string | null
+  password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
+  email_verificado_en?: Date | string | null
+  activo?: boolean
+  ultimo_acceso_en?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  adulto_familiares_adulto_familiares_adulto_idTousuarios?: Prisma.adulto_familiaresCreateNestedOneWithoutUsuarios_adulto_familiares_adulto_idTousuariosInput
+  adulto_familiares_adulto_familiares_familiar_idTousuarios?: Prisma.adulto_familiaresCreateNestedManyWithoutUsuarios_adulto_familiares_familiar_idTousuariosInput
+  alerta_eventos?: Prisma.alerta_eventosCreateNestedManyWithoutUsuariosInput
+  alertas_alertas_adulto_idTousuarios?: Prisma.alertasCreateNestedManyWithoutUsuarios_alertas_adulto_idTousuariosInput
+  alertas_alertas_atendida_porTousuarios?: Prisma.alertasCreateNestedManyWithoutUsuarios_alertas_atendida_porTousuariosInput
+  auditoria?: Prisma.auditoriaCreateNestedManyWithoutUsuariosInput
+  configuracion_adulto?: Prisma.configuracion_adultoCreateNestedOneWithoutUsuariosInput
+  contactos_emergencia?: Prisma.contactos_emergenciaCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faCreateNestedManyWithoutUsuariosInput
+  dispositivos?: Prisma.dispositivosCreateNestedManyWithoutUsuariosInput
+  medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
+  medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
+  password_reset_tokens?: Prisma.password_reset_tokensCreateNestedManyWithoutUsuariosInput
+  sesiones?: Prisma.sesionesCreateNestedManyWithoutUsuariosInput
+  tomas_medicamento_tomas_medicamento_adulto_idTousuarios?: Prisma.tomas_medicamentoCreateNestedManyWithoutUsuarios_tomas_medicamento_adulto_idTousuariosInput
+  tomas_medicamento_tomas_medicamento_registrada_porTousuarios?: Prisma.tomas_medicamentoCreateNestedManyWithoutUsuarios_tomas_medicamento_registrada_porTousuariosInput
+  ubicaciones?: Prisma.ubicacionesCreateNestedManyWithoutUsuariosInput
+  whatsapp_destinatarios?: Prisma.whatsapp_destinatariosCreateNestedManyWithoutUsuariosInput
+  zonas_seguras?: Prisma.zonas_segurasCreateNestedManyWithoutUsuariosInput
+}
+
+export type usuariosUncheckedCreateWithoutRolesInput = {
+  id?: string
+  nombre: string
+  apellido: string
+  email: string
+  telefono?: string | null
+  password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
+  email_verificado_en?: Date | string | null
+  activo?: boolean
+  ultimo_acceso_en?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  adulto_familiares_adulto_familiares_adulto_idTousuarios?: Prisma.adulto_familiaresUncheckedCreateNestedOneWithoutUsuarios_adulto_familiares_adulto_idTousuariosInput
+  adulto_familiares_adulto_familiares_familiar_idTousuarios?: Prisma.adulto_familiaresUncheckedCreateNestedManyWithoutUsuarios_adulto_familiares_familiar_idTousuariosInput
+  alerta_eventos?: Prisma.alerta_eventosUncheckedCreateNestedManyWithoutUsuariosInput
+  alertas_alertas_adulto_idTousuarios?: Prisma.alertasUncheckedCreateNestedManyWithoutUsuarios_alertas_adulto_idTousuariosInput
+  alertas_alertas_atendida_porTousuarios?: Prisma.alertasUncheckedCreateNestedManyWithoutUsuarios_alertas_atendida_porTousuariosInput
+  auditoria?: Prisma.auditoriaUncheckedCreateNestedManyWithoutUsuariosInput
+  configuracion_adulto?: Prisma.configuracion_adultoUncheckedCreateNestedOneWithoutUsuariosInput
+  contactos_emergencia?: Prisma.contactos_emergenciaUncheckedCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosUncheckedCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
@@ -2787,6 +3158,8 @@ export type usuariosScalarWhereInput = {
   email?: Prisma.StringFilter<"usuarios"> | string
   telefono?: Prisma.StringNullableFilter<"usuarios"> | string | null
   password_hash?: Prisma.StringFilter<"usuarios"> | string
+  two_factor_secret?: Prisma.StringNullableFilter<"usuarios"> | string | null
+  two_factor_enabled?: Prisma.BoolFilter<"usuarios"> | boolean
   email_verificado_en?: Prisma.DateTimeNullableFilter<"usuarios"> | Date | string | null
   activo?: Prisma.BoolFilter<"usuarios"> | boolean
   ultimo_acceso_en?: Prisma.DateTimeNullableFilter<"usuarios"> | Date | string | null
@@ -2801,6 +3174,8 @@ export type usuariosCreateWithoutSesionesInput = {
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -2814,6 +3189,7 @@ export type usuariosCreateWithoutSesionesInput = {
   auditoria?: Prisma.auditoriaCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
@@ -2834,6 +3210,8 @@ export type usuariosUncheckedCreateWithoutSesionesInput = {
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -2847,6 +3225,7 @@ export type usuariosUncheckedCreateWithoutSesionesInput = {
   auditoria?: Prisma.auditoriaUncheckedCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosUncheckedCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
@@ -2881,6 +3260,8 @@ export type usuariosUpdateWithoutSesionesInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2894,6 +3275,7 @@ export type usuariosUpdateWithoutSesionesInput = {
   auditoria?: Prisma.auditoriaUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
@@ -2914,6 +3296,8 @@ export type usuariosUncheckedUpdateWithoutSesionesInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2927,6 +3311,7 @@ export type usuariosUncheckedUpdateWithoutSesionesInput = {
   auditoria?: Prisma.auditoriaUncheckedUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUncheckedUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
@@ -2945,6 +3330,8 @@ export type usuariosCreateWithoutTomas_medicamento_tomas_medicamento_adulto_idTo
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -2958,6 +3345,7 @@ export type usuariosCreateWithoutTomas_medicamento_tomas_medicamento_adulto_idTo
   auditoria?: Prisma.auditoriaCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
@@ -2978,6 +3366,8 @@ export type usuariosUncheckedCreateWithoutTomas_medicamento_tomas_medicamento_ad
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -2991,6 +3381,7 @@ export type usuariosUncheckedCreateWithoutTomas_medicamento_tomas_medicamento_ad
   auditoria?: Prisma.auditoriaUncheckedCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosUncheckedCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
@@ -3014,6 +3405,8 @@ export type usuariosCreateWithoutTomas_medicamento_tomas_medicamento_registrada_
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -3027,6 +3420,7 @@ export type usuariosCreateWithoutTomas_medicamento_tomas_medicamento_registrada_
   auditoria?: Prisma.auditoriaCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
@@ -3047,6 +3441,8 @@ export type usuariosUncheckedCreateWithoutTomas_medicamento_tomas_medicamento_re
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -3060,6 +3456,7 @@ export type usuariosUncheckedCreateWithoutTomas_medicamento_tomas_medicamento_re
   auditoria?: Prisma.auditoriaUncheckedCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosUncheckedCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
@@ -3094,6 +3491,8 @@ export type usuariosUpdateWithoutTomas_medicamento_tomas_medicamento_adulto_idTo
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3107,6 +3506,7 @@ export type usuariosUpdateWithoutTomas_medicamento_tomas_medicamento_adulto_idTo
   auditoria?: Prisma.auditoriaUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
@@ -3127,6 +3527,8 @@ export type usuariosUncheckedUpdateWithoutTomas_medicamento_tomas_medicamento_ad
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3140,6 +3542,7 @@ export type usuariosUncheckedUpdateWithoutTomas_medicamento_tomas_medicamento_ad
   auditoria?: Prisma.auditoriaUncheckedUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUncheckedUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
@@ -3169,6 +3572,8 @@ export type usuariosUpdateWithoutTomas_medicamento_tomas_medicamento_registrada_
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3182,6 +3587,7 @@ export type usuariosUpdateWithoutTomas_medicamento_tomas_medicamento_registrada_
   auditoria?: Prisma.auditoriaUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
@@ -3202,6 +3608,8 @@ export type usuariosUncheckedUpdateWithoutTomas_medicamento_tomas_medicamento_re
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3215,6 +3623,7 @@ export type usuariosUncheckedUpdateWithoutTomas_medicamento_tomas_medicamento_re
   auditoria?: Prisma.auditoriaUncheckedUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUncheckedUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
@@ -3233,6 +3642,8 @@ export type usuariosCreateWithoutUbicacionesInput = {
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -3246,6 +3657,7 @@ export type usuariosCreateWithoutUbicacionesInput = {
   auditoria?: Prisma.auditoriaCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
@@ -3266,6 +3678,8 @@ export type usuariosUncheckedCreateWithoutUbicacionesInput = {
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -3279,6 +3693,7 @@ export type usuariosUncheckedCreateWithoutUbicacionesInput = {
   auditoria?: Prisma.auditoriaUncheckedCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosUncheckedCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
@@ -3313,6 +3728,8 @@ export type usuariosUpdateWithoutUbicacionesInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3326,6 +3743,7 @@ export type usuariosUpdateWithoutUbicacionesInput = {
   auditoria?: Prisma.auditoriaUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
@@ -3346,6 +3764,8 @@ export type usuariosUncheckedUpdateWithoutUbicacionesInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3359,6 +3779,7 @@ export type usuariosUncheckedUpdateWithoutUbicacionesInput = {
   auditoria?: Prisma.auditoriaUncheckedUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUncheckedUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
@@ -3377,6 +3798,8 @@ export type usuariosCreateWithoutWhatsapp_destinatariosInput = {
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -3390,6 +3813,7 @@ export type usuariosCreateWithoutWhatsapp_destinatariosInput = {
   auditoria?: Prisma.auditoriaCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
@@ -3410,6 +3834,8 @@ export type usuariosUncheckedCreateWithoutWhatsapp_destinatariosInput = {
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -3423,6 +3849,7 @@ export type usuariosUncheckedCreateWithoutWhatsapp_destinatariosInput = {
   auditoria?: Prisma.auditoriaUncheckedCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosUncheckedCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
@@ -3457,6 +3884,8 @@ export type usuariosUpdateWithoutWhatsapp_destinatariosInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3470,6 +3899,7 @@ export type usuariosUpdateWithoutWhatsapp_destinatariosInput = {
   auditoria?: Prisma.auditoriaUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
@@ -3490,6 +3920,8 @@ export type usuariosUncheckedUpdateWithoutWhatsapp_destinatariosInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3503,6 +3935,7 @@ export type usuariosUncheckedUpdateWithoutWhatsapp_destinatariosInput = {
   auditoria?: Prisma.auditoriaUncheckedUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUncheckedUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
@@ -3521,6 +3954,8 @@ export type usuariosCreateWithoutZonas_segurasInput = {
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -3534,6 +3969,7 @@ export type usuariosCreateWithoutZonas_segurasInput = {
   auditoria?: Prisma.auditoriaCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
@@ -3554,6 +3990,8 @@ export type usuariosUncheckedCreateWithoutZonas_segurasInput = {
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -3567,6 +4005,7 @@ export type usuariosUncheckedCreateWithoutZonas_segurasInput = {
   auditoria?: Prisma.auditoriaUncheckedCreateNestedManyWithoutUsuariosInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedCreateNestedOneWithoutUsuariosInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedCreateNestedManyWithoutUsuariosInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedCreateNestedManyWithoutUsuariosInput
   dispositivos?: Prisma.dispositivosUncheckedCreateNestedManyWithoutUsuariosInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_adulto_idTousuariosInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedCreateNestedManyWithoutUsuarios_medicamentos_creado_porTousuariosInput
@@ -3601,6 +4040,8 @@ export type usuariosUpdateWithoutZonas_segurasInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3614,6 +4055,7 @@ export type usuariosUpdateWithoutZonas_segurasInput = {
   auditoria?: Prisma.auditoriaUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
@@ -3634,6 +4076,8 @@ export type usuariosUncheckedUpdateWithoutZonas_segurasInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3647,6 +4091,7 @@ export type usuariosUncheckedUpdateWithoutZonas_segurasInput = {
   auditoria?: Prisma.auditoriaUncheckedUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUncheckedUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
@@ -3665,6 +4110,8 @@ export type usuariosCreateManyRolesInput = {
   email: string
   telefono?: string | null
   password_hash: string
+  two_factor_secret?: string | null
+  two_factor_enabled?: boolean
   email_verificado_en?: Date | string | null
   activo?: boolean
   ultimo_acceso_en?: Date | string | null
@@ -3679,6 +4126,8 @@ export type usuariosUpdateWithoutRolesInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3692,6 +4141,7 @@ export type usuariosUpdateWithoutRolesInput = {
   auditoria?: Prisma.auditoriaUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
@@ -3711,6 +4161,8 @@ export type usuariosUncheckedUpdateWithoutRolesInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3724,6 +4176,7 @@ export type usuariosUncheckedUpdateWithoutRolesInput = {
   auditoria?: Prisma.auditoriaUncheckedUpdateManyWithoutUsuariosNestedInput
   configuracion_adulto?: Prisma.configuracion_adultoUncheckedUpdateOneWithoutUsuariosNestedInput
   contactos_emergencia?: Prisma.contactos_emergenciaUncheckedUpdateManyWithoutUsuariosNestedInput
+  codigos_2fa?: Prisma.codigos_2faUncheckedUpdateManyWithoutUsuariosNestedInput
   dispositivos?: Prisma.dispositivosUncheckedUpdateManyWithoutUsuariosNestedInput
   medicamentos_medicamentos_adulto_idTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_adulto_idTousuariosNestedInput
   medicamentos_medicamentos_creado_porTousuarios?: Prisma.medicamentosUncheckedUpdateManyWithoutUsuarios_medicamentos_creado_porTousuariosNestedInput
@@ -3743,6 +4196,8 @@ export type usuariosUncheckedUpdateManyWithoutRolesInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  two_factor_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  two_factor_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   email_verificado_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ultimo_acceso_en?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3762,6 +4217,7 @@ export type UsuariosCountOutputType = {
   alertas_alertas_atendida_porTousuarios: number
   auditoria: number
   contactos_emergencia: number
+  codigos_2fa: number
   dispositivos: number
   medicamentos_medicamentos_adulto_idTousuarios: number
   medicamentos_medicamentos_creado_porTousuarios: number
@@ -3781,6 +4237,7 @@ export type UsuariosCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensio
   alertas_alertas_atendida_porTousuarios?: boolean | UsuariosCountOutputTypeCountAlertas_alertas_atendida_porTousuariosArgs
   auditoria?: boolean | UsuariosCountOutputTypeCountAuditoriaArgs
   contactos_emergencia?: boolean | UsuariosCountOutputTypeCountContactos_emergenciaArgs
+  codigos_2fa?: boolean | UsuariosCountOutputTypeCountCodigos_2faArgs
   dispositivos?: boolean | UsuariosCountOutputTypeCountDispositivosArgs
   medicamentos_medicamentos_adulto_idTousuarios?: boolean | UsuariosCountOutputTypeCountMedicamentos_medicamentos_adulto_idTousuariosArgs
   medicamentos_medicamentos_creado_porTousuarios?: boolean | UsuariosCountOutputTypeCountMedicamentos_medicamentos_creado_porTousuariosArgs
@@ -3843,6 +4300,13 @@ export type UsuariosCountOutputTypeCountAuditoriaArgs<ExtArgs extends runtime.Ty
  */
 export type UsuariosCountOutputTypeCountContactos_emergenciaArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.contactos_emergenciaWhereInput
+}
+
+/**
+ * UsuariosCountOutputType without action
+ */
+export type UsuariosCountOutputTypeCountCodigos_2faArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.codigos_2faWhereInput
 }
 
 /**
@@ -3924,6 +4388,8 @@ export type usuariosSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   email?: boolean
   telefono?: boolean
   password_hash?: boolean
+  two_factor_secret?: boolean
+  two_factor_enabled?: boolean
   email_verificado_en?: boolean
   activo?: boolean
   ultimo_acceso_en?: boolean
@@ -3937,6 +4403,7 @@ export type usuariosSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   auditoria?: boolean | Prisma.usuarios$auditoriaArgs<ExtArgs>
   configuracion_adulto?: boolean | Prisma.usuarios$configuracion_adultoArgs<ExtArgs>
   contactos_emergencia?: boolean | Prisma.usuarios$contactos_emergenciaArgs<ExtArgs>
+  codigos_2fa?: boolean | Prisma.usuarios$codigos_2faArgs<ExtArgs>
   dispositivos?: boolean | Prisma.usuarios$dispositivosArgs<ExtArgs>
   medicamentos_medicamentos_adulto_idTousuarios?: boolean | Prisma.usuarios$medicamentos_medicamentos_adulto_idTousuariosArgs<ExtArgs>
   medicamentos_medicamentos_creado_porTousuarios?: boolean | Prisma.usuarios$medicamentos_medicamentos_creado_porTousuariosArgs<ExtArgs>
@@ -3959,6 +4426,8 @@ export type usuariosSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   email?: boolean
   telefono?: boolean
   password_hash?: boolean
+  two_factor_secret?: boolean
+  two_factor_enabled?: boolean
   email_verificado_en?: boolean
   activo?: boolean
   ultimo_acceso_en?: boolean
@@ -3975,6 +4444,8 @@ export type usuariosSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   email?: boolean
   telefono?: boolean
   password_hash?: boolean
+  two_factor_secret?: boolean
+  two_factor_enabled?: boolean
   email_verificado_en?: boolean
   activo?: boolean
   ultimo_acceso_en?: boolean
@@ -3991,6 +4462,8 @@ export type usuariosSelectScalar = {
   email?: boolean
   telefono?: boolean
   password_hash?: boolean
+  two_factor_secret?: boolean
+  two_factor_enabled?: boolean
   email_verificado_en?: boolean
   activo?: boolean
   ultimo_acceso_en?: boolean
@@ -3998,7 +4471,7 @@ export type usuariosSelectScalar = {
   updated_at?: boolean
 }
 
-export type usuariosOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "rol_id" | "nombre" | "apellido" | "email" | "telefono" | "password_hash" | "email_verificado_en" | "activo" | "ultimo_acceso_en" | "created_at" | "updated_at", ExtArgs["result"]["usuarios"]>
+export type usuariosOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "rol_id" | "nombre" | "apellido" | "email" | "telefono" | "password_hash" | "two_factor_secret" | "two_factor_enabled" | "email_verificado_en" | "activo" | "ultimo_acceso_en" | "created_at" | "updated_at", ExtArgs["result"]["usuarios"]>
 export type usuariosInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   adulto_familiares_adulto_familiares_adulto_idTousuarios?: boolean | Prisma.usuarios$adulto_familiares_adulto_familiares_adulto_idTousuariosArgs<ExtArgs>
   adulto_familiares_adulto_familiares_familiar_idTousuarios?: boolean | Prisma.usuarios$adulto_familiares_adulto_familiares_familiar_idTousuariosArgs<ExtArgs>
@@ -4008,6 +4481,7 @@ export type usuariosInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
   auditoria?: boolean | Prisma.usuarios$auditoriaArgs<ExtArgs>
   configuracion_adulto?: boolean | Prisma.usuarios$configuracion_adultoArgs<ExtArgs>
   contactos_emergencia?: boolean | Prisma.usuarios$contactos_emergenciaArgs<ExtArgs>
+  codigos_2fa?: boolean | Prisma.usuarios$codigos_2faArgs<ExtArgs>
   dispositivos?: boolean | Prisma.usuarios$dispositivosArgs<ExtArgs>
   medicamentos_medicamentos_adulto_idTousuarios?: boolean | Prisma.usuarios$medicamentos_medicamentos_adulto_idTousuariosArgs<ExtArgs>
   medicamentos_medicamentos_creado_porTousuarios?: boolean | Prisma.usuarios$medicamentos_medicamentos_creado_porTousuariosArgs<ExtArgs>
@@ -4039,6 +4513,7 @@ export type $usuariosPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     auditoria: Prisma.$auditoriaPayload<ExtArgs>[]
     configuracion_adulto: Prisma.$configuracion_adultoPayload<ExtArgs> | null
     contactos_emergencia: Prisma.$contactos_emergenciaPayload<ExtArgs>[]
+    codigos_2fa: Prisma.$codigos_2faPayload<ExtArgs>[]
     dispositivos: Prisma.$dispositivosPayload<ExtArgs>[]
     medicamentos_medicamentos_adulto_idTousuarios: Prisma.$medicamentosPayload<ExtArgs>[]
     medicamentos_medicamentos_creado_porTousuarios: Prisma.$medicamentosPayload<ExtArgs>[]
@@ -4059,6 +4534,8 @@ export type $usuariosPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     email: string
     telefono: string | null
     password_hash: string
+    two_factor_secret: string | null
+    two_factor_enabled: boolean
     email_verificado_en: Date | null
     activo: boolean
     ultimo_acceso_en: Date | null
@@ -4466,6 +4943,7 @@ export interface Prisma__usuariosClient<T, Null = never, ExtArgs extends runtime
   auditoria<T extends Prisma.usuarios$auditoriaArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.usuarios$auditoriaArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$auditoriaPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   configuracion_adulto<T extends Prisma.usuarios$configuracion_adultoArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.usuarios$configuracion_adultoArgs<ExtArgs>>): Prisma.Prisma__configuracion_adultoClient<runtime.Types.Result.GetResult<Prisma.$configuracion_adultoPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   contactos_emergencia<T extends Prisma.usuarios$contactos_emergenciaArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.usuarios$contactos_emergenciaArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$contactos_emergenciaPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  codigos_2fa<T extends Prisma.usuarios$codigos_2faArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.usuarios$codigos_2faArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$codigos_2faPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   dispositivos<T extends Prisma.usuarios$dispositivosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.usuarios$dispositivosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$dispositivosPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   medicamentos_medicamentos_adulto_idTousuarios<T extends Prisma.usuarios$medicamentos_medicamentos_adulto_idTousuariosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.usuarios$medicamentos_medicamentos_adulto_idTousuariosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$medicamentosPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   medicamentos_medicamentos_creado_porTousuarios<T extends Prisma.usuarios$medicamentos_medicamentos_creado_porTousuariosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.usuarios$medicamentos_medicamentos_creado_porTousuariosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$medicamentosPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -4513,6 +4991,8 @@ export interface usuariosFieldRefs {
   readonly email: Prisma.FieldRef<"usuarios", 'String'>
   readonly telefono: Prisma.FieldRef<"usuarios", 'String'>
   readonly password_hash: Prisma.FieldRef<"usuarios", 'String'>
+  readonly two_factor_secret: Prisma.FieldRef<"usuarios", 'String'>
+  readonly two_factor_enabled: Prisma.FieldRef<"usuarios", 'Boolean'>
   readonly email_verificado_en: Prisma.FieldRef<"usuarios", 'DateTime'>
   readonly activo: Prisma.FieldRef<"usuarios", 'Boolean'>
   readonly ultimo_acceso_en: Prisma.FieldRef<"usuarios", 'DateTime'>
@@ -5098,6 +5578,30 @@ export type usuarios$contactos_emergenciaArgs<ExtArgs extends runtime.Types.Exte
   take?: number
   skip?: number
   distinct?: Prisma.Contactos_emergenciaScalarFieldEnum | Prisma.Contactos_emergenciaScalarFieldEnum[]
+}
+
+/**
+ * usuarios.codigos_2fa
+ */
+export type usuarios$codigos_2faArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the codigos_2fa
+   */
+  select?: Prisma.codigos_2faSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the codigos_2fa
+   */
+  omit?: Prisma.codigos_2faOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.codigos_2faInclude<ExtArgs> | null
+  where?: Prisma.codigos_2faWhereInput
+  orderBy?: Prisma.codigos_2faOrderByWithRelationInput | Prisma.codigos_2faOrderByWithRelationInput[]
+  cursor?: Prisma.codigos_2faWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.Codigos_2faScalarFieldEnum | Prisma.Codigos_2faScalarFieldEnum[]
 }
 
 /**

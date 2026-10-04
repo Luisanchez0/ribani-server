@@ -83,6 +83,13 @@ export type notificaciones_whatsapp = Prisma.notificaciones_whatsappModel
  */
 export type password_reset_tokens = Prisma.password_reset_tokensModel
 /**
+ * Model codigos_2fa
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ * This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+ */
+export type codigos_2fa = Prisma.codigos_2faModel
+/**
  * Model permisos
  * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
  * This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.

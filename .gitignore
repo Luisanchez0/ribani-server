@@ -3,6 +3,10 @@
 /node_modules
 /build
 
+/graphify-out
+
+/.freebuff
+
 # TypeScript build cache
 *.tsbuildinfo
 
@@ -54,6 +58,10 @@ pids
 *.pid
 *.seed
 *.pid.lock
+
+instructions.md
+AGENTS.md
+
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json

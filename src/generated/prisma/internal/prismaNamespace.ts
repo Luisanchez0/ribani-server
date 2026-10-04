@@ -408,6 +408,7 @@ export const ModelName = {
   medicamentos: 'medicamentos',
   notificaciones_whatsapp: 'notificaciones_whatsapp',
   password_reset_tokens: 'password_reset_tokens',
+  codigos_2fa: 'codigos_2fa',
   permisos: 'permisos',
   rol_permisos: 'rol_permisos',
   roles: 'roles',
@@ -433,7 +434,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "adulto_familiares" | "alerta_eventos" | "alertas" | "auditoria" | "configuracion_adulto" | "contactos_emergencia" | "dispositivos" | "horarios_medicamento" | "medicamentos" | "notificaciones_whatsapp" | "password_reset_tokens" | "permisos" | "rol_permisos" | "roles" | "sesiones" | "tomas_medicamento" | "ubicaciones" | "usuarios" | "whatsapp_destinatarios" | "whatsapp_estados_proveedor" | "zonas_seguras"
+    modelProps: "adulto_familiares" | "alerta_eventos" | "alertas" | "auditoria" | "configuracion_adulto" | "contactos_emergencia" | "dispositivos" | "horarios_medicamento" | "medicamentos" | "notificaciones_whatsapp" | "password_reset_tokens" | "codigos_2fa" | "permisos" | "rol_permisos" | "roles" | "sesiones" | "tomas_medicamento" | "ubicaciones" | "usuarios" | "whatsapp_destinatarios" | "whatsapp_estados_proveedor" | "zonas_seguras"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1248,6 +1249,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.password_reset_tokensCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.Password_reset_tokensCountAggregateOutputType> | number
+        }
+      }
+    }
+    codigos_2fa: {
+      payload: Prisma.$codigos_2faPayload<ExtArgs>
+      fields: Prisma.codigos_2faFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.codigos_2faFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$codigos_2faPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.codigos_2faFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$codigos_2faPayload>
+        }
+        findFirst: {
+          args: Prisma.codigos_2faFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$codigos_2faPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.codigos_2faFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$codigos_2faPayload>
+        }
+        findMany: {
+          args: Prisma.codigos_2faFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$codigos_2faPayload>[]
+        }
+        create: {
+          args: Prisma.codigos_2faCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$codigos_2faPayload>
+        }
+        createMany: {
+          args: Prisma.codigos_2faCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.codigos_2faCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$codigos_2faPayload>[]
+        }
+        delete: {
+          args: Prisma.codigos_2faDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$codigos_2faPayload>
+        }
+        update: {
+          args: Prisma.codigos_2faUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$codigos_2faPayload>
+        }
+        deleteMany: {
+          args: Prisma.codigos_2faDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.codigos_2faUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.codigos_2faUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$codigos_2faPayload>[]
+        }
+        upsert: {
+          args: Prisma.codigos_2faUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$codigos_2faPayload>
+        }
+        aggregate: {
+          args: Prisma.Codigos_2faAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCodigos_2fa>
+        }
+        groupBy: {
+          args: Prisma.codigos_2faGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.Codigos_2faGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.codigos_2faCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.Codigos_2faCountAggregateOutputType> | number
         }
       }
     }
@@ -2215,6 +2290,20 @@ export const Password_reset_tokensScalarFieldEnum = {
 export type Password_reset_tokensScalarFieldEnum = (typeof Password_reset_tokensScalarFieldEnum)[keyof typeof Password_reset_tokensScalarFieldEnum]
 
 
+export const Codigos_2faScalarFieldEnum = {
+  id: 'id',
+  usuario_id: 'usuario_id',
+  token_hash: 'token_hash',
+  tipo: 'tipo',
+  intentos: 'intentos',
+  expira_en: 'expira_en',
+  usado_en: 'usado_en',
+  created_at: 'created_at'
+} as const
+
+export type Codigos_2faScalarFieldEnum = (typeof Codigos_2faScalarFieldEnum)[keyof typeof Codigos_2faScalarFieldEnum]
+
+
 export const PermisosScalarFieldEnum = {
   id: 'id',
   codigo: 'codigo',
@@ -2301,6 +2390,8 @@ export const UsuariosScalarFieldEnum = {
   email: 'email',
   telefono: 'telefono',
   password_hash: 'password_hash',
+  two_factor_secret: 'two_factor_secret',
+  two_factor_enabled: 'two_factor_enabled',
   email_verificado_en: 'email_verificado_en',
   activo: 'activo',
   ultimo_acceso_en: 'ultimo_acceso_en',
@@ -2681,6 +2772,7 @@ export type GlobalOmitConfig = {
   medicamentos?: Prisma.medicamentosOmit
   notificaciones_whatsapp?: Prisma.notificaciones_whatsappOmit
   password_reset_tokens?: Prisma.password_reset_tokensOmit
+  codigos_2fa?: Prisma.codigos_2faOmit
   permisos?: Prisma.permisosOmit
   rol_permisos?: Prisma.rol_permisosOmit
   roles?: Prisma.rolesOmit
