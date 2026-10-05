@@ -83,19 +83,19 @@ export class AuthService {
       throw new ConflictException(
         'Ya existe un usuario con ese correo electrónico.',
       );
-    }
+    }    const rolCodigo = dto.rolCodigo ?? 'ADULTO_MAYOR';
 
     const role = await this.prisma.roles.findUnique({
       where: {
-        codigo: 'ADULTO_MAYOR',
+        codigo: rolCodigo,
       },
     });
 
     if (!role || !role.activo) {
       throw new ConflictException(
-        'El rol ADULTO_MAYOR no está disponible.',
+        `El rol ${rolCodigo} no está disponible.`,
       );
-    }
+    }
 
     const passwordHash = await bcrypt.hash(dto.password, 12);
 

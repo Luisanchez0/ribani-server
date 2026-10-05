@@ -43,6 +43,10 @@ function createPrismaMock() {
     usuarios: {
       findUnique: vi.fn(),
       update: vi.fn(),
+      create: vi.fn(),
+    },
+    roles: {
+      findUnique: vi.fn(),
     },
     codigos_2fa: {
       findUnique: vi.fn(),
@@ -128,6 +132,9 @@ describe('AuthService', () => {
         twoFactorRequired: true,
         expiresIn: 300,
       });
+      if (!('challengeToken' in result)) {
+        throw new Error('Se esperaba challengeToken en la respuesta 2FA');
+      }
       expect(typeof result.challengeToken).toBe('string');
       expect(result.challengeToken.length).toBeGreaterThan(20);
       expect(jwtMock.signAsync).not.toHaveBeenCalled();
@@ -145,6 +152,68 @@ describe('AuthService', () => {
           {},
         ),
       ).rejects.toThrow(UnauthorizedException);
+    });
+  });
+
+  describe('register', () => {
+    const registerDto = {
+      nombre: 'Ana',
+      apellido: 'Perez',
+      email: 'ana@ribani.test',
+      password: TEST_PASSWORD,
+    };
+
+    function arrangeRol(rol: Record<string, unknown>) {
+      prismaMock.roles.findUnique.mockResolvedValue(rol);
+      prismaMock.usuarios.create.mockImplementation(async (args) => ({
+        id: '11111111-1111-1111-1111-111111111111',
+        nombre: registerDto.nombre,
+        apellido: registerDto.apellido,
+        email: registerDto.email,
+        telefono: null,
+        email_verificado_en: null,
+        activo: true,
+        created_at: new Date(),
+        roles: rol,
+        ...args,
+      }));
+    }
+
+    it('asigna ADULTO_MAYOR por defecto cuando no se envía rolCodigo', async () => {
+      arrangeRol({ id: 1, codigo: 'ADULTO_MAYOR', nombre: 'Adulto Mayor', activo: true });
+
+      const result = await service.register(registerDto);
+
+      expect(prismaMock.roles.findUnique).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { codigo: 'ADULTO_MAYOR' } }),
+      );
+      const createCall = prismaMock.usuarios.create.mock.calls[0][0];
+      expect(createCall.data.rol_id).toBe(1);
+      expect(result).toMatchObject({ rol: { codigo: 'ADULTO_MAYOR' } });
+    });
+
+    it('asigna FAMILIAR_ENCARGADO cuando se solicita desde la web', async () => {
+      arrangeRol({ id: 2, codigo: 'FAMILIAR_ENCARGADO', nombre: 'Familiar Encargado', activo: true });
+
+      const result = await service.register({
+        ...registerDto,
+        rolCodigo: 'FAMILIAR_ENCARGADO',
+      });
+
+      expect(prismaMock.roles.findUnique).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { codigo: 'FAMILIAR_ENCARGADO' } }),
+      );
+      const createCall = prismaMock.usuarios.create.mock.calls[0][0];
+      expect(createCall.data.rol_id).toBe(2);
+      expect(result).toMatchObject({ rol: { codigo: 'FAMILIAR_ENCARGADO' } });
+    });
+
+    it('rechaza si el rol solicitado no está disponible', async () => {
+      prismaMock.roles.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.register({ ...registerDto, rolCodigo: 'FAMILIAR_ENCARGADO' }),
+      ).rejects.toThrow(ConflictException);
     });
   });
 
