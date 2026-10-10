@@ -53,6 +53,10 @@ lerna-debug.log*
 .temp
 .tmp
 
+# Artefactos locales de configuración 2FA (contienen secretos TOTP)
+qr-2fa-*.txt
+qr-2fa-*.png
+
 # Runtime data
 pids
 *.pid

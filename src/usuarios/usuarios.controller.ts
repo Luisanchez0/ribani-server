@@ -11,7 +11,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 
 import { AuthService } from '../auth/auth.service.js';
@@ -83,6 +83,17 @@ export class UsuariosController {
     return this.usuariosService.activate(id);
   }
 
+  /**
+   * Desactiva (baja lógica) al usuario: no borra la fila, solo deja
+   * `activo = false` para que no pueda iniciar sesión.
+   */
+  @Patch(':id/desactivar')
+  @ApiOkResponse({ description: 'Usuario desactivado (baja lógica).' })
+  @RequirePermissions('usuarios.administrar')
+  deactivate(@Param('id', new ParseUUIDPipe()) id: string) {
+    return this.usuariosService.deactivate(id);
+  }
+
   @Post(':id/2fa/setup')
   @RequirePermissions('usuarios.administrar_2fa')
   setupTwoFactorFor(
@@ -115,7 +126,11 @@ export class UsuariosController {
     );
   }
 
+  /**
+   * Elimina definitivamente al usuario de la base de datos.
+   */
   @Delete(':id')
+  @ApiOkResponse({ description: 'Usuario eliminado de la BD.' })
   @RequirePermissions('usuarios.administrar')
   remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.usuariosService.remove(id);

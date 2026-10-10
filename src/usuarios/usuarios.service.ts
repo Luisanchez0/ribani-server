@@ -208,7 +208,7 @@ export class UsuariosService {
     });
   }
 
-  async remove(id: string) {
+  async deactivate(id: string) {
     await this.findOne(id);
 
     return this.prisma.usuarios.update({
@@ -230,6 +230,20 @@ export class UsuariosService {
         ultimo_acceso_en: true,
         created_at: true,
         updated_at: true,
+      },
+    });
+  }
+
+  async remove(id: string) {
+    await this.findOne(id);
+
+    return this.prisma.usuarios.delete({
+      where: {
+        id,
+      },
+      // Para DELETE no hay nada útil que proyectar: la fila desaparece.
+      select: {
+        id: true,
       },
     });
   }
