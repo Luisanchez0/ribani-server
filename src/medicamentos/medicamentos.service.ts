@@ -123,6 +123,20 @@ export class MedicamentosService {
   }
 
   private async obtenerAdultosAccesibles(usuarioId: string): Promise<string[]> {
+    // El administrador supervisa todos los medicamentos del sistema.
+    const usuario = await this.prisma.usuarios.findUnique({
+      where: { id: usuarioId },
+      select: { roles: { select: { codigo: true } } },
+    });
+
+    if (usuario?.roles.codigo === 'ADMINISTRADOR') {
+      const adultos = await this.prisma.usuarios.findMany({
+        where: { roles: { codigo: 'ADULTO_MAYOR' } },
+        select: { id: true },
+      });
+      return adultos.map((a) => a.id);
+    }
+
     const vinculos = await this.prisma.adulto_familiares.findMany({
       where: {
         familiar_id: usuarioId,
@@ -200,13 +214,28 @@ export class MedicamentosService {
   async remove(usuarioId: string, id: string) {
     await this.findOne(usuarioId, id);
 
-    return this.prisma.medicamentos.update({
-      where: { id },
-      data: {
-        activo: false,
-        updated_at: new Date(),
-      },
-      select: SELECT_MEDICAMENTO,
-    });
+    const [medicamento] = await this.prisma.$transaction([
+      this.prisma.medicamentos.update({
+        where: { id },
+        data: {
+          activo: false,
+          updated_at: new Date(),
+        },
+        select: SELECT_MEDICAMENTO,
+      }),
+      this.prisma.tomas_medicamento.updateMany({
+        where: {
+          medicamento_id: id,
+          estado: 'PENDIENTE',
+          programada_para: { gt: new Date() },
+        },
+        data: {
+          estado: 'OMITIDA',
+          updated_at: new Date(),
+        },
+      }),
+    ]);
+
+    return medicamento;
   }
 }

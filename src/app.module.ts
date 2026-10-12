@@ -17,6 +17,8 @@ import { RolesModule } from './roles/roles.module.js';
 import { AuditoriaModule } from './auditoria/auditoria.module.js';
 import { AUDITORIA_INTERCEPTOR } from './auditoria/auditoria.interceptor.js';
 import { AuthorizationModule } from './authorization/authorization.module.js';
+import { MailModule } from './mail/mail.module.js';
+import { InvitacionesAbrirController } from './invitaciones-abrir.controller.js';
 
 
 @Module({
@@ -25,6 +27,7 @@ import { AuthorizationModule } from './authorization/authorization.module.js';
     UsuariosModule,
     AuthModule,
     AuthorizationModule,
+    MailModule,
     ContactosModule,
     MedicamentosModule,
     HorariosModule,
@@ -37,6 +40,7 @@ import { AuthorizationModule } from './authorization/authorization.module.js';
     RolesModule,
     AuditoriaModule
   ],
+  controllers: [InvitacionesAbrirController],
   providers: [AUDITORIA_INTERCEPTOR],
 })
 export class AppModule {}

@@ -115,17 +115,34 @@ export class ContactosService {
   }
 
   async findAll(usuarioId: string, soloActivos: boolean) {
-    // Si el usuario es familiar, lista los contactos de los adultos vinculados.
-    const vinculos = await this.prisma.adulto_familiares.findMany({
-      where: {
-        familiar_id: usuarioId,
-      },
-      select: {
-        adulto_id: true,
-      },
+    // El administrador supervisa los contactos de todos los adultos.
+    const usuario = await this.prisma.usuarios.findUnique({
+      where: { id: usuarioId },
+      select: { roles: { select: { codigo: true } } },
     });
 
-    const adultosIds = [...vinculos.map((v) => v.adulto_id), usuarioId];
+    const esAdmin = usuario?.roles.codigo === 'ADMINISTRADOR';
+
+    // Si el usuario es familiar, lista los contactos de los adultos vinculados.
+    const vinculos = esAdmin
+      ? []
+      : await this.prisma.adulto_familiares.findMany({
+          where: {
+            familiar_id: usuarioId,
+          },
+          select: {
+            adulto_id: true,
+          },
+        });
+
+    const adultosIds = esAdmin
+      ? (
+          await this.prisma.usuarios.findMany({
+            where: { roles: { codigo: 'ADULTO_MAYOR' } },
+            select: { id: true },
+          })
+        ).map((a) => a.id)
+      : [...vinculos.map((v) => v.adulto_id), usuarioId];
 
     return this.prisma.contactos_emergencia.findMany({
       where: {
@@ -213,10 +230,7 @@ export class ContactosService {
     });
   }
 
-  /**
-   * Soft delete: los registros de whatsapp_destinatarios pueden referenciar
-   * este contacto, por lo que NO se elimina físicamente.
-   */
+
   async remove(usuarioId: string, id: string) {
     await this.findOne(usuarioId, id);
 

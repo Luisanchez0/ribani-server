@@ -5,8 +5,6 @@ import { generateSecret, generateURI } from 'otplib';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../src/generated/prisma/client.js';
 
-// Uso: npx tsx scripts/generar-qr-2fa.ts <usuarioId> [--force]
-// Imprime la URI otpauth por stdout; los mensajes van a stderr.
 
 const usuarioId = process.argv[2];
 const forzar = process.argv.includes('--force');
@@ -29,7 +27,6 @@ if (!process.env.TWO_FACTOR_ENCRYPTION_KEY) {
 const adapter = new PrismaPg({ connectionString });
 const prisma = new PrismaClient({ adapter });
 
-// Idéntico a AuthService.encryptSecret (AES-256-GCM, clave = sha256(TWO_FACTOR_ENCRYPTION_KEY)).
 function encryptSecret(plain: string): string {
   const key = createHash('sha256')
     .update(process.env.TWO_FACTOR_ENCRYPTION_KEY as string)

@@ -23,7 +23,7 @@ model adulto_familiares {
   usuarios_adulto_familiares_adulto_idTousuarios   usuarios @relation("adulto_familiares_adulto_idTousuarios", fields: [adulto_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   usuarios_adulto_familiares_familiar_idTousuarios usuarios @relation("adulto_familiares_familiar_idTousuarios", fields: [familiar_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-  @@unique([adulto_id, familiar_id])
+  @@unique([adulto_id, familiar_id], map: "adulto_familiares_adulto_id_familiar_id_key")
   @@index([familiar_id, estado], map: "adulto_familiares_familiar_idx")
 }
 

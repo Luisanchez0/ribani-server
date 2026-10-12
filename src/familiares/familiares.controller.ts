@@ -87,7 +87,9 @@ export class FamiliaresController {
   }
 
   @Delete(':id')
-  @RequirePermissions('relaciones.administrar')
+  // El familiar del vínculo también puede revocarlo; la validación fina
+  // (dueño del vínculo vs admin) vive en el service.
+  @RequirePermissions('relaciones.leer')
   remove(
     @Req() request: AuthenticatedRequest,
     @Param('id', new ParseUUIDPipe()) id: string,
