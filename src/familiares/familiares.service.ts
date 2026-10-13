@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 
 import { Prisma } from '../generated/prisma/client.js';
+import { MailService } from '../mail/mail.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
 import bcrypt from 'bcryptjs';
@@ -53,7 +54,10 @@ const ESTADOS_VALIDOS = ['PENDIENTE', 'ACTIVA', 'REVOCADA'] as const;
 
 @Injectable()
 export class FamiliaresService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly mailService: MailService,
+  ) {}
 
 
   async obtenerAdultosAccesibles(usuarioId: string): Promise<string[]> {
@@ -149,6 +153,19 @@ export class FamiliaresService {
     });
   }
 
+
+  private async obtenerNombreUsuario(usuarioId: string): Promise<string> {
+    const usuario = await this.prisma.usuarios.findUnique({
+      where: { id: usuarioId },
+      select: { nombre: true, apellido: true },
+    });
+
+    if (!usuario) {
+      return 'Un familiar';
+    }
+
+    return `${usuario.nombre} ${usuario.apellido}`.trim();
+  }
 
   /**
    * Invita a un adulto mayor por su correo electrónico y crea el vínculo en
@@ -295,28 +312,48 @@ export class FamiliaresService {
       esNuevaCuenta = true;
     }
 
-    const vinculo = await this.prisma.adulto_familiares.upsert({
+
+    const vinculoExistentePorClave = await this.prisma.adulto_familiares.findUnique({
       where: {
         adulto_id_familiar_id: {
           adulto_id: adultoId,
           familiar_id: familiarId,
         },
       },
-      create: {
-        familiar_id: familiarId,
-        adulto_id: adultoId,
-        parentesco: dto.parentesco?.trim() || null,
-        puede_ver_ubicacion: dto.puede_ver_ubicacion ?? true,
-        puede_gestionar_medicamentos: dto.puede_gestionar_medicamentos ?? true,
-        estado: 'PENDIENTE',
-      },
-      update: {
-        estado: 'PENDIENTE',
-        parentesco: dto.parentesco?.trim() || null,
-        puede_ver_ubicacion: dto.puede_ver_ubicacion ?? true,
-        puede_gestionar_medicamentos: dto.puede_gestionar_medicamentos ?? true,
-      },
-      select: SELECT_RELACION,
+      select: { id: true },
+    });
+
+    const vinculo = vinculoExistentePorClave
+      ? await this.prisma.adulto_familiares.update({
+          where: { id: vinculoExistentePorClave.id },
+          data: {
+            estado: 'PENDIENTE',
+            parentesco: dto.parentesco?.trim() || null,
+            puede_ver_ubicacion: dto.puede_ver_ubicacion ?? true,
+            puede_gestionar_medicamentos:
+              dto.puede_gestionar_medicamentos ?? true,
+          },
+          select: SELECT_RELACION,
+        })
+      : await this.prisma.adulto_familiares.create({
+          data: {
+            familiar_id: familiarId,
+            adulto_id: adultoId,
+            parentesco: dto.parentesco?.trim() || null,
+            puede_ver_ubicacion: dto.puede_ver_ubicacion ?? true,
+            puede_gestionar_medicamentos:
+              dto.puede_gestionar_medicamentos ?? true,
+            estado: 'PENDIENTE',
+          },
+          select: SELECT_RELACION,
+        });
+
+    const nombreFamiliar = await this.obtenerNombreUsuario(familiarId);
+    await this.mailService.enviarInvitacion({
+      emailAdulto: email,
+      nombreFamiliar,
+      nombreAdulto: adultoExistente?.nombre ?? dto.adulto_nombre,
+      mensaje: 'Te invitamos a cuidar tu salud junto a tu familia.',
     });
 
     return {
@@ -342,10 +379,6 @@ export class FamiliaresService {
     };
   }
 
-  /**
-   * Completa el registro del adulto invitado: define su contraseña, activa su
-   * cuenta y acepta el vínculo PENDIENTE dirigido a su correo.
-   */
   async completarInvitacion(dto: CompletarInvitacionFamiliarDto) {
     const email = dto.email.trim().toLowerCase();
 
@@ -399,6 +432,14 @@ export class FamiliaresService {
       });
     });
 
+    // Correo de bienvenida (no bloquea: la cuenta ya está activa).
+    void this.mailService
+      .enviarBienvenida(
+        adulto.email,
+        dto.nombre?.trim() || adulto.nombre,
+      )
+      .catch(() => undefined);
+
     return {
       adulto_id: adulto.id,
       email: adulto.email,
@@ -406,9 +447,6 @@ export class FamiliaresService {
     };
   }
 
-  /**
-   * El adulto mayor (autenticado) acepta un vínculo PENDIENTE dirigido a él.
-   */
   async aceptarInvitacion(adultoId: string, rolCodigo: string, id: string) {
     if (rolCodigo !== 'ADULTO_MAYOR') {
       throw new ForbiddenException(
@@ -449,9 +487,7 @@ export class FamiliaresService {
     });
   }
 
-  /**
-   * El adulto mayor (autenticado) rechaza un vínculo PENDIENTE dirigido a él.
-   */
+
   async rechazarInvitacion(adultoId: string, rolCodigo: string, id: string) {
     if (rolCodigo !== 'ADULTO_MAYOR') {
       throw new ForbiddenException(
@@ -492,20 +528,82 @@ export class FamiliaresService {
     });
   }
 
+
   async findAll(usuarioId: string, rolCodigo: string) {
+    const esAdmin = rolCodigo === 'ADMINISTRADOR';
+
     return this.prisma.adulto_familiares.findMany({
-      where:
-        rolCodigo === 'ADMINISTRADOR'
-          ? {}
-          : {
-              OR: [{ adulto_id: usuarioId }, { familiar_id: usuarioId }],
-            },
-      select: SELECT_RELACION,
+      where: esAdmin
+        ? {}
+        : {
+            OR: [{ adulto_id: usuarioId }, { familiar_id: usuarioId }],
+          },
+      select: {
+        ...SELECT_RELACION,
+        ...(esAdmin
+          ? {
+              usuarios_adulto_familiares_familiar_idTousuarios: {
+                select: {
+                  id: true,
+                  nombre: true,
+                  apellido: true,
+                  email: true,
+                  telefono: true,
+                  activo: true,
+                },
+              },
+              usuarios_adulto_familiares_adulto_idTousuarios: {
+                select: {
+                  id: true,
+                  nombre: true,
+                  apellido: true,
+                  email: true,
+                  telefono: true,
+                  activo: true,
+                },
+              },
+            }
+          : {}),
+      },
       orderBy: [{ estado: 'asc' }, { created_at: 'desc' }],
     });
   }
 
+
   async misAdultos(usuarioId: string) {
+    const usuario = await this.prisma.usuarios.findUnique({
+      where: { id: usuarioId },
+      select: { roles: { select: { codigo: true } } },
+    });
+
+    if (usuario?.roles.codigo === 'ADMINISTRADOR') {
+      const adultos = await this.prisma.usuarios.findMany({
+        where: { roles: { codigo: 'ADULTO_MAYOR' }, activo: true },
+        select: {
+          id: true,
+          nombre: true,
+          apellido: true,
+          email: true,
+          telefono: true,
+          activo: true,
+        },
+        orderBy: [{ nombre: 'asc' }, { apellido: 'asc' }],
+      });
+
+      return adultos.map((adulto) => ({
+        id: adulto.id,
+        vinculo_id: '',
+        nombre: adulto.nombre,
+        apellido: adulto.apellido,
+        email: adulto.email,
+        parentesco: null,
+        es_contacto_principal: false,
+        puede_ver_ubicacion: true,
+        puede_gestionar_medicamentos: true,
+        estado: 'ACTIVA' as const,
+      }));
+    }
+
     return this.prisma.adulto_familiares.findMany({
       where: { familiar_id: usuarioId },
       select: {
@@ -525,7 +623,6 @@ export class FamiliaresService {
     });
   }
 
-  /** Invitaciones PENDIENTES dirigidas al adulto autenticado. */
   async invitacionesPendientes(adultoId: string) {
     return this.prisma.adulto_familiares.findMany({
       where: { adulto_id: adultoId, estado: 'PENDIENTE' },
@@ -692,10 +789,16 @@ export class FamiliaresService {
 
     await this.assertPuedeVerRelacion(usuarioId, relacion);
 
-    if (rolCodigo !== 'ADMINISTRADOR') {
+    // El admin revoca cualquier vínculo; el familiar encargado solo el suyo
+    // (assertPuedeVerRelacion ya garantiza que sea parte del vínculo).
+    if (rolCodigo !== 'ADMINISTRADOR' && relacion.familiar_id !== usuarioId) {
       throw new ForbiddenException(
-        'Solo un administrador puede revocar relaciones.',
+        'Solo el familiar del vínculo o un administrador puede revocarla.',
       );
+    }
+
+    if (relacion.estado === 'REVOCADA') {
+      throw new ConflictException('El vínculo ya está REVOCADA.');
     }
 
     return this.prisma.adulto_familiares.update({

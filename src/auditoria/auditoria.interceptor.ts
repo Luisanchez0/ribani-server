@@ -12,15 +12,6 @@ import { AuditoriaService } from './auditoria.service.js';
 
 const METODOS_AUDITABLES = new Set(['POST', 'PATCH', 'DELETE']);
 
-/**
- * Registra en auditoria cada mutacion exitosa (2xx) de la API:
- * quien (JWT), que (metodo + ruta), sobre que entidad y desde donde.
- *
- * Exclusiones: /ubicaciones (alta frecuencia, ya cubierta por el
- * dominio) y /auth/refresh (ruido de tokens).
- *
- * Los fallos de auditoria nunca interrumpen la operacion.
- */
 @Injectable()
 export class AuditoriaInterceptor implements NestInterceptor {
   private readonly logger = new Logger(AuditoriaInterceptor.name);
@@ -81,7 +72,6 @@ export class AuditoriaInterceptor implements NestInterceptor {
   }
 }
 
-/** Proveedor para registrar el interceptor globalmente en AppModule. */
 export const AUDITORIA_INTERCEPTOR = {
   provide: APP_INTERCEPTOR,
   useClass: AuditoriaInterceptor,

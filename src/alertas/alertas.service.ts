@@ -316,6 +316,24 @@ export class AlertasService {
     });
   }
 
+  /**
+   * Intervalo de reporte de ubicación recomendado para el adulto autenticado:
+   * 10 s si tiene alertas ABIERTA/EN_ATENCION (modo alerta, tracking fino);
+   * 30 s en estado normal (ahorro de batería). La app Android consulta este
+   * endpoint periódicamente y ajusta su escucha GPS en consecuencia.
+   */
+  async intervaloReporteUbicacion(adultoId: string) {
+    const abierta = await this.prisma.alertas.findFirst({
+      where: {
+        adulto_id: adultoId,
+        estado: { in: ['ABIERTA', 'EN_ATENCION'] },
+      },
+      select: { id: true },
+    });
+
+    return { intervalo_segundos: abierta ? 10 : 30 };
+  }
+
   /** Autorización para ver alertas del adulto (403 si no procede). */
   async verificarAcceso(
     usuarioId: string,

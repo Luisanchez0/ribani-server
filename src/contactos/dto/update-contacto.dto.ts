@@ -4,6 +4,7 @@ import {
   IsInt,
   IsOptional,
   IsString,
+  Matches,
   Max,
   MaxLength,
   Min,
@@ -22,10 +23,19 @@ export class UpdateContactoDto {
   @MaxLength(40)
   parentesco?: string;
 
+  /**
+   * Misma regla que el CHECK contacto_telefono_chk en PostgreSQL
+   * (E.164: + seguido de 8 a 15 dígitos) para que el cliente reciba
+   * un 400 claro y no un error 500 de la BD.
+   */
   @IsOptional()
   @IsString()
   @MinLength(7)
   @MaxLength(20)
+  @Matches(/^\+[1-9][0-9]{7,14}$/, {
+    message:
+      'El teléfono debe estar en formato internacional, ej. +5215512345678.',
+  })
   telefono?: string;
 
   @IsOptional()
@@ -38,8 +48,6 @@ export class UpdateContactoDto {
   @Min(1)
   @Max(5)
   prioridad?: number;
-  
-  
 
   @IsOptional()
   @IsBoolean()

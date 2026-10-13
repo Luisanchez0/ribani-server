@@ -12,6 +12,7 @@ import { AlertasService } from '../alertas/alertas.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
 import { CreateUbicacionDto } from './dto/create-ubicacion.dto.js';
+import { CrearLoteUbicacionesDto } from './dto/crear-lote-ubicaciones.dto.js';
 
 const SELECT_UBICACION = {
   id: true,
@@ -163,6 +164,95 @@ export class UbicacionesService {
     return ubicaciones.map((ubicacion) => this.serializar(ubicacion));
   }
 
+  async reportarLote(
+    usuarioId: string,
+    dto: CrearLoteUbicacionesDto,
+  ) {
+    const dispositivosIds = [
+      ...new Set(
+        dto.reportes
+          .map((r) => r.dispositivo_id)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    ];
+
+    if (dispositivosIds.length > 0) {
+      const dispositivos = await this.prisma.dispositivos.findMany({
+        where: { id: { in: dispositivosIds } },
+        select: { id: true, usuario_id: true, activo: true },
+      });
+
+      for (const id of dispositivosIds) {
+        const dispositivo = dispositivos.find((d) => d.id === id);
+
+        if (!dispositivo || dispositivo.usuario_id !== usuarioId) {
+          throw new ForbiddenException(
+            'El dispositivo indicado no pertenece al usuario autenticado.',
+          );
+        }
+
+        if (!dispositivo.activo) {
+          throw new ForbiddenException(
+            'El dispositivo indicado está dado de baja.',
+          );
+        }
+      }
+    }
+
+    const ahora = Date.now();
+
+    const filas = dto.reportes.map((reporte, indice) => ({
+      adulto_id: usuarioId,
+      ...(reporte.dispositivo_id
+        ? { dispositivo_id: reporte.dispositivo_id }
+        : {}),
+      latitud: reporte.latitud,
+      longitud: reporte.longitud,
+      precision_metros: reporte.precision_metros,
+      altitud_metros: reporte.altitud_metros,
+      fuente: reporte.fuente ?? 'GPS',
+      registrada_en: reporte.registrada_en
+        ? new Date(reporte.registrada_en)
+        : new Date(ahora + indice),
+    }));
+
+    const creadas = await this.prisma.ubicaciones.createManyAndReturn({
+      data: filas,
+      select: SELECT_UBICACION,
+    });
+
+    const ultima = creadas.reduce((mayor, actual) =>
+      new Date(actual.registrada_en) > new Date(mayor.registrada_en)
+        ? actual
+        : mayor,
+    );
+
+    const serializada = this.serializar(ultima);
+    this.emitir(usuarioId, serializada as unknown as Record<string, unknown>);
+
+    // Geocercas: evaluar solo con el último punto del lote.
+    // Nota: con createManyAndReturn, Prisma devuelve latitud/longitud como
+    // Decimal (el modelo los define así); se convierten a number.
+    try {
+      await this.alertasService.evaluarSalidaZonaSegura(
+        usuarioId,
+        Number(ultima.latitud),
+        Number(ultima.longitud),
+        ultima.dispositivo_id ?? undefined,
+      );
+    } catch (error) {
+      Logger.warn(
+        `No se pudo evaluar la geocerca del adulto ${usuarioId}: ${String(error)}`,
+        UbicacionesService.name,
+      );
+    }
+
+    return {
+      insertados: creadas.length,
+      ultima_reporte: serializada,
+    };
+  }
+
   stream(usuarioId: string, adultoId: string): Observable<MessageEvent> {
     const canal = this.obtenerOCrearCanal(adultoId);
 
@@ -212,6 +302,17 @@ export class UbicacionesService {
     adultoId: string,
   ): Promise<void> {
     if (usuarioId === adultoId) {
+      return;
+    }
+
+    // El administrador supervisa la ubicación de todos los adultos del
+    // sistema (centro de administración /admin).
+    const usuario = await this.prisma.usuarios.findUnique({
+      where: { id: usuarioId },
+      select: { roles: { select: { codigo: true } } },
+    });
+
+    if (usuario?.roles.codigo === 'ADMINISTRADOR') {
       return;
     }
 

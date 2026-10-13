@@ -22,10 +22,7 @@ import { AuditoriaService } from './auditoria.service.js';
 export class AuditoriaController {
   constructor(private readonly auditoriaService: AuditoriaService) {}
 
-  /**
-   * Bitacora de acciones (quien, que, cuando, desde donde).
-   * Filtros: ?actorId= &entidad= &entidadId= &accion= &desde= &hasta= &limite=
-   */
+
   @Get()
   @RequirePermissions('auditoria.leer')
   listar(

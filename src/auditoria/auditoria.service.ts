@@ -16,11 +16,7 @@ export interface RegistrarAuditoriaInput {
 export class AuditoriaService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * Registra un evento de auditoria. Nunca lanza hacia el llamador
-   * (los fallos se registran en el log del servidor): la auditoria
-   * no debe interrumpir la operacion del negocio.
-   */
+
   async registrar(input: RegistrarAuditoriaInput): Promise<void> {
     try {
       await this.prisma.auditoria.create({
@@ -41,7 +37,6 @@ export class AuditoriaService {
     }
   }
 
-  /** Consulta paginada de eventos: quien hizo que, cuando y desde donde. */
   async listar(options: {
     actorId?: string;
     entidad?: string;
@@ -80,11 +75,31 @@ export class AuditoriaService {
             }
           : {}),
       },
+      // JOIN a usuarios: nombre + email del actor (para la vista admin).
+      // Datos de sesión (rol/2FA) NO se exponen; solo identificación.
+      include: {
+        usuarios: {
+          select: { nombre: true, apellido: true, email: true },
+        },
+      },
       orderBy: { created_at: 'desc' },
       take: limiteSeguro,
     });
 
     // El id es BigInt: se serializa a string para JSON.
-    return eventos.map((e) => ({ ...e, id: e.id.toString() }));
+    return eventos.map((e) => ({
+      id: e.id.toString(),
+      actor_id: e.actor_id,
+      accion: e.accion,
+      entidad: e.entidad,
+      entidad_id: e.entidad_id,
+      ip: e.ip,
+      user_agent: e.user_agent,
+      datos_despues: e.datos_despues,
+      created_at: e.created_at,
+      actor: e.usuarios
+        ? { nombre: e.usuarios.nombre, apellido: e.usuarios.apellido, email: e.usuarios.email }
+        : null,
+    }));
   }
 }

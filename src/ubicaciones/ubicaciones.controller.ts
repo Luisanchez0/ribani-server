@@ -16,6 +16,7 @@ import type { Request } from 'express';
 import { JwtAuthGuard } from '../auth/gurads/jwt-auth.guard.js';
 
 import { CreateUbicacionDto } from './dto/create-ubicacion.dto.js';
+import { CrearLoteUbicacionesDto } from './dto/crear-lote-ubicaciones.dto.js';
 import { UbicacionesService } from './ubicaciones.service.js';
 
 interface AuthenticatedRequest extends Request {
@@ -42,6 +43,15 @@ export class UbicacionesController {
       dto,
       dto.dispositivo_id,
     );
+  }
+
+  /** Lote de reportes acumulados por la app (ahorro de batería). */
+  @Post('lote')
+  reportarLote(
+    @Req() request: AuthenticatedRequest,
+    @Body() dto: CrearLoteUbicacionesDto,
+  ) {
+    return this.ubicacionesService.reportarLote(request.user.id, dto);
   }
 
   @Get('actual')

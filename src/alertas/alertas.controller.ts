@@ -44,6 +44,13 @@ export class AlertasController {
     return this.alertasService.crear(request.user.id, dto);
   }
 
+
+  @Get('intervalo-ubicacion')
+  @RequirePermissions('alertas.leer')
+  intervaloUbicacion(@Req() request: AuthenticatedRequest) {
+    return this.alertasService.intervaloReporteUbicacion(request.user.id);
+  }
+
   @Get()
   @RequirePermissions('alertas.leer')
   listar(
@@ -61,14 +68,7 @@ export class AlertasController {
     });
   }
 
-  /**
-   * Stream SSE en tiempo real de las alertas del adulto.
-   * Autorización resuelta antes de abrir la conexión (403 si no procede).
-   * Ejemplo cliente: new EventSource('/alertas/stream?adultoId=...')
-   *
-   * NOTA: se declara ANTES de @Get(':id') para que NestJS no matchee
-   * "stream" como parámetro :id.
-   */
+
   @Sse('stream')
   @RequirePermissions('alertas.leer')
   async stream(
@@ -97,7 +97,6 @@ export class AlertasController {
     return this.alertasService.obtener(request.user.id, esAdmin, id);
   }
 
-  /** Transición de estado: atender (EN_ATENCION), resolver o cancelar. */
   @Patch(':id')
   @RequirePermissions('alertas.actualizar')
   actualizar(
