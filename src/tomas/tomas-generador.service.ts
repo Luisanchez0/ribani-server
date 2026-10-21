@@ -58,7 +58,6 @@ export class TomasGeneradorService {
     }
   }
 
-
   private async expandirHorarios(): Promise<number> {
     const medicamentos = await this.prisma.medicamentos.findMany({
       where: { activo: true },
@@ -99,11 +98,7 @@ export class TomasGeneradorService {
       }
 
       for (const offsetDias of [0, 1] as const) {
-        const baseMedianoche = this.medianocheEnZona(
-          ahora,
-          offsetDias,
-          zona,
-        );
+        const baseMedianoche = this.medianocheEnZona(ahora, offsetDias, zona);
         const diaSemana = this.diaSemanaEnZona(
           new Date(baseMedianoche.getTime() + 12 * MS_POR_MINUTO * 60),
           zona,
@@ -116,7 +111,6 @@ export class TomasGeneradorService {
             const programadaPara = new Date(
               baseMedianoche.getTime() + delta * MS_POR_MINUTO,
             );
-
 
             if (
               offsetDias === 0 &&
@@ -147,7 +141,6 @@ export class TomasGeneradorService {
 
     return resultado.count;
   }
-
 
   private deltasDelHorario(
     horario: {
@@ -218,7 +211,6 @@ export class TomasGeneradorService {
 
     return DIAS_SEMANA[nombre] ?? 0;
   }
-
 
   private parseZoned(
     anio: number,

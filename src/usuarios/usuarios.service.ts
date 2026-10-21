@@ -3,12 +3,15 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 
 import { PrismaService } from '../prisma/prisma.service.js';
 
+import { CambiarPasswordDto } from './dto/cambiar-password.dto.js';
 import { CreateUsuarioDto } from './dto/create-usuario.dto.js';
+import { UpdatePerfilDto } from './dto/update-perfil.dto.js';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto.js';
 
 @Injectable()
@@ -151,8 +154,115 @@ export class UsuariosService {
     });
   }
 
-  async update(id: string, updateUsuarioDto: UpdateUsuarioDto) {
+  /**
+   * Perfil del usuario autenticado (GET /usuarios/perfil). Misma
+   * proyección sanearizada que findOne: nunca expone password_hash.
+   */
+  async obtenerPerfil(id: string) {
+    return this.findOne(id);
+  }
+
+  /**
+   * Edita el perfil PROPIO del usuario autenticado (PATCH
+   * /usuarios/perfil). Solo toca nombre, apellido y teléfono del
+   * UpdatePerfilDto: email, contraseña, rol y `activo` solo se cambian
+   * por administración (PATCH /usuarios/{id}).
+   */
+  async actualizarPerfil(id: string, updatePerfilDto: UpdatePerfilDto) {
     await this.findOne(id);
+
+    return this.prisma.usuarios.update({
+      where: {
+        id,
+      },
+      data: {
+        ...(updatePerfilDto.nombre !== undefined
+          ? { nombre: updatePerfilDto.nombre }
+          : {}),
+        ...(updatePerfilDto.apellido !== undefined
+          ? { apellido: updatePerfilDto.apellido }
+          : {}),
+        // Enviarlo vacío limpia el teléfono (columna nullable).
+        ...(updatePerfilDto.telefono !== undefined
+          ? { telefono: updatePerfilDto.telefono === '' ? null : updatePerfilDto.telefono }
+          : {}),
+      },
+      select: {
+        id: true,
+        rol_id: true,
+        nombre: true,
+        apellido: true,
+        email: true,
+        telefono: true,
+        email_verificado_en: true,
+        activo: true,
+        ultimo_acceso_en: true,
+        created_at: true,
+        updated_at: true,
+      },
+    });
+  }
+
+  /**
+   * Cambio de CONTRASEÑA PROPIA (PATCH /usuarios/perfil/password).
+   * Verifica la contraseña actual contra el hash guardado y solo
+   * entonces re-hashea la nueva (bcrypt, cost 12 igual que
+   * create/update). La actual incorrecta rechaza PATCH sin toques a
+   * la base de datos.
+   */
+  async cambiarPasswordPropio(
+    id: string,
+    cambiarPasswordDto: CambiarPasswordDto,
+  ) {
+    const usuario = await this.prisma.usuarios.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        id: true,
+        password_hash: true,
+      },
+    });
+
+    if (!usuario) {
+      throw new NotFoundException(
+        `No se encontró el usuario con ID ${id}`,
+      );
+    }
+
+    const actualValida = await bcrypt.compare(
+      cambiarPasswordDto.password_actual,
+      usuario.password_hash,
+    );
+
+    if (!actualValida) {
+      throw new UnauthorizedException(
+        'La contraseña actual es incorrecta.',
+      );
+    }
+
+    const passwordHash = await bcrypt.hash(
+      cambiarPasswordDto.password,
+      12,
+    );
+
+    await this.prisma.usuarios.update({
+      where: {
+        id,
+      },
+      data: {
+        password_hash: passwordHash,
+      },
+      // Nada útil que devolver: la fila no cambia salvo el hash.
+      select: {
+        id: true,
+      },
+    });
+
+    return { id, password_actualizada: true };
+  }
+
+  async update(id: string, updateUsuarioDto: UpdateUsuarioDto) {    await this.findOne(id);
 
     if (updateUsuarioDto.email) {
       const existingUser = await this.prisma.usuarios.findFirst({

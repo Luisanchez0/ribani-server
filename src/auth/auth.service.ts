@@ -13,10 +13,14 @@ import {
   createDecipheriv,
   createHash,
   randomBytes,
+  randomInt,
 } from 'node:crypto';
 import { generateSecret, generateURI, verifySync } from 'otplib';
 
+import { MailService } from '../mail/mail.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { ResetPasswordDto } from './dto/reset-password.dto.js';
+import { SolicitarResetPasswordDto } from './dto/reset-password.dto.js';
 import { DisableTwoFactorDto } from './dto/disable-two-factor.dto.js';
 import { LoginDto } from './dto/login.dto.js';
 import { RefreshTokenDto } from './dto/refresh-token.dto.js';
@@ -68,6 +72,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly mailService: MailService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -95,7 +100,7 @@ export class AuthService {
       throw new ConflictException(
         `El rol ${rolCodigo} no está disponible.`,
       );
-    }
+    }
 
     const passwordHash = await bcrypt.hash(dto.password, 12);
 
@@ -315,6 +320,7 @@ export class AuthService {
         telefono: usuario.telefono,
         emailVerificado:
           usuario.email_verificado_en !== null,
+        twoFactorEnabled: usuario.two_factor_enabled,
         rol: {
           id: usuario.roles.id,
           codigo: usuario.roles.codigo,
@@ -413,6 +419,111 @@ export class AuthService {
     return createHash('sha256')
       .update(token)
       .digest('hex');
+  }
+
+  // ----- Recuperación de contraseña (código de 6 dígitos por correo) -----
+
+  /** Tiempo de validez del código de recuperación, en minutos. */
+  private static readonly resetCodeRetentionMinutes = 10;
+
+  /**
+   * POST /auth/forgot-password. Genera un código de 6 dígitos, guarda su
+   * hash en password_reset_tokens (vigencia 10 min) y lo envía por correo.
+   * Responde SIEMPRE con un mensaje genérico para no revelar si el email
+   * existe en la base (enumeración de cuentas).
+   */
+  async solicitarResetPassword(dto: SolicitarResetPasswordDto) {
+    const email = dto.email.trim().toLowerCase();
+    const usuario = await this.prisma.usuarios.findUnique({
+      where: { email },
+      select: { id: true, nombre: true, activo: true },
+    });
+
+    if (usuario && usuario.activo) {
+      const codigo = String(randomInt(0, 1_000_000)).padStart(6, '0');
+      const expiraEn = new Date(
+        Date.now() + AuthService.resetCodeRetentionMinutes * 60_000,
+      );
+
+      // Un solo código activo por cuenta: invalida los anteriores.
+      await this.prisma.$transaction([
+        this.prisma.password_reset_tokens.updateMany({
+          where: { usuario_id: usuario.id, usado_en: null },
+          data: { usado_en: new Date() },
+        }),
+        this.prisma.password_reset_tokens.create({
+          data: {
+            usuario_id: usuario.id,
+            token_hash: this.hashToken(codigo),
+            expira_en: expiraEn,
+          },
+        }),
+      ]);
+
+      // El correo puede fallar (Resend caído): el código queda guardado
+      // pero inutilizable en la práctica; la respuesta es genérica igual.
+      await this.mailService
+        .enviarResetPassword(email, usuario.nombre, codigo)
+        .catch(() => undefined);
+    }
+
+    return {
+      mensaje:
+        'Si el correo existe en RIBANI, recibirás un código de recuperación en los próximos minutos.',
+    };
+  }
+
+  /**
+   * POST /auth/reset-password. Valida el código (no usado, no expirado),
+   * actualiza la contraseña con bcrypt y cierra todas las sesiones
+   * activas de la cuenta (todos los dispositivos vuelven al login).
+   */
+  async resetPassword(dto: ResetPasswordDto) {
+    const email = dto.email.trim().toLowerCase();
+    const usuario = await this.prisma.usuarios.findUnique({
+      where: { email },
+      select: { id: true },
+    });
+
+    if (!usuario) {
+      throw new BadRequestException('Código inválido o expirado.');
+    }
+
+    const tokenHash = this.hashToken(dto.codigo.trim());
+    const token = await this.prisma.password_reset_tokens.findUnique({
+      where: { token_hash: tokenHash },
+      select: { id: true, usuario_id: true, expira_en: true, usado_en: true },
+    });
+
+    if (!token || token.usuario_id !== usuario.id) {
+      throw new BadRequestException('Código inválido o expirado.');
+    }
+    if (token.usado_en || token.expira_en <= new Date()) {
+      throw new BadRequestException('Código inválido o expirado.');
+    }
+
+    const passwordHash = await bcrypt.hash(dto.password, 12);
+
+    await this.prisma.$transaction([
+      this.prisma.password_reset_tokens.update({
+        where: { id: token.id },
+        data: { usado_en: new Date() },
+      }),
+      this.prisma.usuarios.update({
+        where: { id: usuario.id },
+        data: { password_hash: passwordHash },
+      }),
+      // Revoca TODAS las sesiones: nadie queda logueado con la antigua.
+      this.prisma.sesiones.updateMany({
+        where: { usuario_id: usuario.id, revocada_en: null },
+        data: { revocada_en: new Date() },
+      }),
+    ]);
+
+    return {
+      mensaje:
+        'Contraseña actualizada. Ya puedes iniciar sesión con la nueva.',
+    };
   }
 
   async loginWithTwoFactor(

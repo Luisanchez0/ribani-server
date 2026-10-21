@@ -15,7 +15,7 @@ export class UpdateTomaDto {
   /**
    * TOMADA: registra la toma (valida la ventana del horario).
    * OMITIDA: marca la toma como no realizada (sin validación de ventana).
-   * Las tomas solo pueden transicionar desde PENDIENTE.
+   * Las tomas pueden transicionar desde PENDIENTE o POSPUESTA.
    */
   @IsOptional()
   @IsIn(['TOMADA', 'OMITIDA'])

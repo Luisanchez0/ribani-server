@@ -10,6 +10,7 @@ import {
 import { Observable, Subject } from 'rxjs';
 
 import { PrismaService } from '../prisma/prisma.service.js';
+import { WhatsappService } from '../whatsapp/whatsapp.service.js';
 
 import { CreateAlertaDto } from './dto/create-alerta.dto.js';
 import { ResolverAlertaDto } from './dto/resolver-alerta.dto.js';
@@ -39,7 +40,7 @@ export class AlertasService {
   /** Canales SSE activos, uno por adulto_id. */
   private readonly canales = new Map<string, Subject<Record<string, unknown>>>();
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, private readonly whatsapp: WhatsappService) {}
 
   /**
    * Crea una alerta. El adulto reporta sobre sí mismo (SOS, caída, etc.);
@@ -98,7 +99,7 @@ export class AlertasService {
     // destinatarios con consentimiento. Un fallo aquí NO invalida la alerta.
     if (alerta.severidad === 'CRITICA') {
       try {
-        const encoladas = await this.encolarNotificacionesCriticas(alerta);
+        const encoladas = await this.whatsapp.encolarAlerta(alerta);
         if (encoladas > 0) {
           await this.registrarEvento({
             alertaId: alerta.id,
@@ -366,93 +367,6 @@ export class AlertasService {
         'No tienes permisos para ver las alertas de este adulto mayor.',
       );
     }
-  }
-
-  /**
-   * Encola notificaciones WhatsApp para una alerta CRITICA en
-   * notificaciones_whatsapp (estado EN_COLA). El envío real lo hará el
-   * worker/proveedor (Meta Cloud API) — aquí solo se deja la cola.
-   *
-   * Destinatarios (opt-in: activo + consentimiento ACEPTADO):
-   *  1. WhatsApp ligado a los contactos de emergencia del adulto.
-   *  2. WhatsApp ligado a los familiares con vínculo ACTIVA.
-   *
-   * Devuelve la cantidad de notificaciones creadas.
-   */
-  private async encolarNotificacionesCriticas(alerta: {
-    id: string;
-    adulto_id: string;
-    tipo: string;
-    titulo: string;
-    ocurrida_en: Date;
-  }): Promise<number> {
-    // 1) Destinatarios vía contactos de emergencia del adulto.
-    const contactos = await this.prisma.contactos_emergencia.findMany({
-      where: { adulto_id: alerta.adulto_id, activo: true },
-      select: { id: true },
-    });
-
-    const porContacto = contactos.length
-      ? await this.prisma.whatsapp_destinatarios.findMany({
-          where: {
-            contacto_emergencia_id: { in: contactos.map((c) => c.id) },
-            activo: true,
-            consentimiento: 'ACEPTADO',
-          },
-          select: { id: true },
-        })
-      : [];
-
-    // 2) Destinatarios vía familiares vinculados ACTIVA.
-    const vinculados = await this.prisma.adulto_familiares.findMany({
-      where: { adulto_id: alerta.adulto_id, estado: 'ACTIVA' },
-      select: { familiar_id: true },
-    });
-
-    const porFamiliar = vinculados.length
-      ? await this.prisma.whatsapp_destinatarios.findMany({
-          where: {
-            usuario_id: { in: vinculados.map((v) => v.familiar_id) },
-            activo: true,
-            consentimiento: 'ACEPTADO',
-          },
-          select: { id: true },
-        })
-      : [];
-
-    // Deduplicar (alguien podría aparecer por ambas vías).
-    const destinatarioIds = [
-      ...new Set([...porContacto, ...porFamiliar].map((d) => d.id)),
-    ];
-    if (destinatarioIds.length === 0) {
-      return 0;
-    }
-
-    const adulto = await this.prisma.usuarios.findUnique({
-      where: { id: alerta.adulto_id },
-      select: { nombre: true, apellido: true },
-    });
-
-    // Parámetros ordenados para la plantilla de Meta Cloud API.
-    const parametros = [
-      adulto ? `${adulto.nombre} ${adulto.apellido ?? ''}`.trim() : 'Adulto mayor',
-      alerta.tipo,
-      alerta.titulo,
-      alerta.ocurrida_en.toISOString(),
-    ];
-
-    const resultado = await this.prisma.notificaciones_whatsapp.createMany({
-      data: destinatarioIds.map((destinatarioId) => ({
-        destinatario_id: destinatarioId,
-        alerta_id: alerta.id,
-        // El CHECK admite SOS | ALERTA | MEDICAMENTO | PRUEBA | OTRA.
-        tipo: alerta.tipo === 'SOS' ? 'SOS' : 'ALERTA',
-        plantilla: 'alerta_critica',
-        parametros,
-      })),
-    });
-
-    return resultado.count;
   }
 
   /**

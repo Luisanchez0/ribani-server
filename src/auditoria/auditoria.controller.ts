@@ -5,7 +5,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { ParseUUIDPipe } from '@nestjs/common';
 import type { Request } from 'express';
 
@@ -13,6 +13,7 @@ import { JwtAuthGuard } from '../auth/gurads/jwt-auth.guard.js';
 import { PermissionsGuard } from '../authorization/guards/permissions.guard.js';
 import { RequirePermissions } from '../authorization/decorators/permissions.decorator.js';
 
+import { EventoAuditoriaRespuestaDto } from './dto/evento-auditoria-respuesta.dto.js';
 import { AuditoriaService } from './auditoria.service.js';
 
 @ApiTags('auditoria')
@@ -24,6 +25,7 @@ export class AuditoriaController {
 
 
   @Get()
+  @ApiOkResponse({ type: [EventoAuditoriaRespuestaDto] })
   @RequirePermissions('auditoria.leer')
   listar(
     @Query('actorId', new ParseUUIDPipe({ optional: true })) actorId?: string,

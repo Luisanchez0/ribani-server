@@ -25,6 +25,17 @@ const SELECT_ZONA = {
   updated_at: true,
 } as const;
 
+/** Prisma devuelve Decimal (texto en JSON); el contrato expone números. */
+function aRespuesta<T extends { latitud_centro: unknown; longitud_centro: unknown }>(
+  zona: T,
+) {
+  return {
+    ...zona,
+    latitud_centro: Number(zona.latitud_centro),
+    longitud_centro: Number(zona.longitud_centro),
+  };
+}
+
 @Injectable()
 export class ZonasSegurasService {
   constructor(private readonly prisma: PrismaService) {}
@@ -86,7 +97,7 @@ export class ZonasSegurasService {
       );
     }
 
-    return this.prisma.zonas_seguras.create({
+    return aRespuesta(await this.prisma.zonas_seguras.create({
       data: {
         adulto_id: dto.adulto_id,
         nombre,
@@ -97,7 +108,7 @@ export class ZonasSegurasService {
         notificar_entrada: dto.notificar_entrada ?? false,
       },
       select: SELECT_ZONA,
-    });
+    }));
   }
 
   async findAll(
@@ -114,7 +125,7 @@ export class ZonasSegurasService {
       ? [adultoId]
       : await this.obtenerAdultosAccesibles(usuarioId);
 
-    return this.prisma.zonas_seguras.findMany({
+    const zonas = await this.prisma.zonas_seguras.findMany({
       where: {
         adulto_id: { in: adultosIds },
         ...(soloActivas ? { activa: true } : {}),
@@ -122,11 +133,13 @@ export class ZonasSegurasService {
       select: SELECT_ZONA,
       orderBy: [{ adulto_id: 'asc' }, { nombre: 'asc' }],
     });
+
+    return zonas.map(aRespuesta);
   }
 
   private async obtenerAdultosAccesibles(usuarioId: string): Promise<string[]> {
     const vinculos = await this.prisma.adulto_familiares.findMany({
-      where: { familiar_id: usuarioId },
+      where: { familiar_id: usuarioId, estado: 'ACTIVA' },
       select: { adulto_id: true },
     });
 
@@ -146,7 +159,7 @@ export class ZonasSegurasService {
 
     await this.assertCanManageAdulto(usuarioId, zona.adulto_id);
 
-    return zona;
+    return aRespuesta(zona);
   }
 
   async update(usuarioId: string, id: string, dto: UpdateZonaSeguraDto) {
@@ -175,7 +188,7 @@ export class ZonasSegurasService {
       }
     }
 
-    return this.prisma.zonas_seguras.update({
+    return aRespuesta(await this.prisma.zonas_seguras.update({
       where: { id },
       data: {
         ...(dto.nombre !== undefined ? { nombre: dto.nombre.trim() } : {}),
@@ -197,17 +210,19 @@ export class ZonasSegurasService {
         updated_at: new Date(),
       },
       select: SELECT_ZONA,
-    });
+    }));
   }
 
   /** Soft delete: la zona queda inactiva (historial de alertas preservado). */
   async remove(usuarioId: string, id: string) {
     await this.findOne(usuarioId, id);
 
-    return this.prisma.zonas_seguras.update({
-      where: { id },
-      data: { activa: false, updated_at: new Date() },
-      select: SELECT_ZONA,
-    });
+    return aRespuesta(
+      await this.prisma.zonas_seguras.update({
+        where: { id },
+        data: { activa: false, updated_at: new Date() },
+        select: SELECT_ZONA,
+      }),
+    );
   }
 }

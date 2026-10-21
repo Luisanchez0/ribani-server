@@ -11,6 +11,8 @@ const PLANTILLA_INVITACION_ID =
 const PLANTILLA_BIENVENIDA_ID =
   process.env.RESEND_TEMPLATE_BIENVENIDA_ID ||
   'a0d77949-f31b-4b29-80fe-6934e3153f9a'; // welcome-email
+// Opcional: id de la plantilla "reset-password" en Resend; si no existe
+// se usa el HTML inline con el código (el flujo funciona igual).
 
 interface PlantillaInvitacion {
   emailAdulto: string;
@@ -120,6 +122,67 @@ export class MailService {
       throw new ServiceUnavailableException(
         'No se pudo enviar el correo de invitación. Intenta de nuevo.',
       );
+    }
+  }
+
+  /**
+   * Correo de recuperación de contraseña con un código de 6 dígitos que
+   * caduca en 10 minutos. Preferencia: plantilla "reset-password" de
+   * Resend (RESEND_TEMPLATE_RESET_ID); fallback: HTML inline. No lanza:
+   * el service del reset maneja el fallo y la respuesta es genérica.
+   */
+  async enviarResetPassword(
+    emailAdulto: string,
+    nombreAdulto: string,
+    codigo: string,
+  ): Promise<void> {
+    const nombre = nombreAdulto?.trim() || 'persona';
+    const plantillaId = process.env.RESEND_TEMPLATE_RESET_ID;
+
+    try {
+      const { error } = await this.resend.emails.send({
+        from: REMITENTE,
+        to: [emailAdulto],
+        subject: 'Tu código para recuperar la contraseña de RIBANI',
+        ...(plantillaId
+          ? {
+              template: {
+                id: plantillaId,
+                variables: {
+                  NOMBRE: nombre,
+                  CODIGO: codigo,
+                  MINUTOS: '10',
+                },
+              },
+            }
+          : {
+              html: [
+                '<div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">',
+                `  <h2>Hola ${nombre},</h2>`,
+                '  <p>Usa este código para restablecer tu contraseña de RIBANI:</p>',
+                `  <p style="font-size: 32px; letter-spacing: 8px; font-weight: bold; text-align: center; padding: 12px; background: #f0f7ee; border-radius: 8px;">${codigo}</p>`,
+                '  <p>El código <strong>caduca en 10 minutos</strong>. Si no solicitaste este correo, puedes ignorarlo: tu contraseña no cambia por este mensaje.</p>',
+                '</div>',
+              ].join('\n'),
+            }),
+      });
+
+      if (error) {
+        this.logger.error(
+          `No se pudo enviar el código de recuperación a ${emailAdulto}: ${error.message}`,
+        );
+        throw new Error(error.message);
+      }
+
+      this.logger.log(
+        `Código de recuperación enviado a ${emailAdulto} (id ${plantillaId ?? 'inline'})`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Error inesperado en reset a ${emailAdulto}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+      throw error;
     }
   }
 

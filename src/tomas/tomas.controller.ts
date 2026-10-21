@@ -11,7 +11,13 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { TomaRespuestaDto } from './dto/toma-respuesta.dto.js';
 import type { Request } from 'express';
 
 import { JwtAuthGuard } from '../auth/gurads/jwt-auth.guard.js';
@@ -34,14 +40,13 @@ export class TomasController {
   constructor(private readonly tomasService: TomasService) {}
 
   @Post()
-  create(
-    @Req() request: AuthenticatedRequest,
-    @Body() dto: CreateTomaDto,
-  ) {
+  @ApiCreatedResponse({ type: TomaRespuestaDto })
+  create(@Req() request: AuthenticatedRequest, @Body() dto: CreateTomaDto) {
     return this.tomasService.create(request.user.id, dto);
   }
 
   @Get()
+  @ApiOkResponse({ type: [TomaRespuestaDto] })
   findAll(
     @Req() request: AuthenticatedRequest,
     @Query('adultoId') adultoId?: string,
@@ -60,6 +65,7 @@ export class TomasController {
   }
 
   @Get(':id')
+  @ApiOkResponse({ type: TomaRespuestaDto })
   findOne(
     @Req() request: AuthenticatedRequest,
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -68,6 +74,7 @@ export class TomasController {
   }
 
   @Patch(':id')
+  @ApiOkResponse({ type: TomaRespuestaDto })
   update(
     @Req() request: AuthenticatedRequest,
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -77,10 +84,23 @@ export class TomasController {
   }
 
   @Delete(':id')
+  // Conserva el contrato de baja existente; POSPUESTA se registra, no se borra.
   remove(
     @Req() request: AuthenticatedRequest,
     @Param('id', new ParseUUIDPipe()) id: string,
   ) {
     return this.tomasService.remove(request.user.id, id);
+  }
+
+  @Post(':id/posponer')
+  @ApiCreatedResponse({
+    type: TomaRespuestaDto,
+    description: 'Una vez, diez minutos, dentro de la ventana original.',
+  })
+  posponer(
+    @Req() request: AuthenticatedRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.tomasService.posponer(request.user.id, id);
   }
 }

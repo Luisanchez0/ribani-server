@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 
 import { PrismaService } from '../prisma/prisma.service.js';
+import { ESTADOS_PENDIENTES } from '../tomas/toma-pendiente.js';
 
 import { CreateMedicamentoDto } from './dto/create-medicamento.dto.js';
 import { UpdateMedicamentoDto } from './dto/update-medicamento.dto.js';
@@ -43,6 +44,8 @@ export class MedicamentosService {
       where: {
         adulto_id: adultoId,
         familiar_id: usuarioId,
+        estado: 'ACTIVA',
+        puede_gestionar_medicamentos: true,
       },
       select: {
         id: true,
@@ -122,7 +125,13 @@ export class MedicamentosService {
     });
   }
 
-  private async obtenerAdultosAccesibles(usuarioId: string): Promise<string[]> {
+  /**
+   * Adultos cuyos medicamentos puede ver el usuario: él mismo (si es
+   * ADULTO_MAYOR), los adultos vinculados como familiar con permiso de
+   * gestión, o todos si es ADMINISTRADOR. Público para módulos que
+   * reutilizan esta misma autorización (p. ej. horarios).
+   */
+  async obtenerAdultosAccesibles(usuarioId: string): Promise<string[]> {
     // El administrador supervisa todos los medicamentos del sistema.
     const usuario = await this.prisma.usuarios.findUnique({
       where: { id: usuarioId },
@@ -140,6 +149,8 @@ export class MedicamentosService {
     const vinculos = await this.prisma.adulto_familiares.findMany({
       where: {
         familiar_id: usuarioId,
+        estado: 'ACTIVA',
+        puede_gestionar_medicamentos: true,
       },
       select: {
         adulto_id: true,
@@ -226,8 +237,8 @@ export class MedicamentosService {
       this.prisma.tomas_medicamento.updateMany({
         where: {
           medicamento_id: id,
-          estado: 'PENDIENTE',
-          programada_para: { gt: new Date() },
+          estado: { in: ESTADOS_PENDIENTES },
+          OR: [{ programada_para: { gt: new Date() } }, { estado: 'POSPUESTA' }],
         },
         data: {
           estado: 'OMITIDA',

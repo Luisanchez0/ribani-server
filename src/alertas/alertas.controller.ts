@@ -11,7 +11,7 @@ import {
   Sse,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 
 import { JwtAuthGuard } from '../auth/gurads/jwt-auth.guard.js';
@@ -21,6 +21,10 @@ import { RequirePermissions } from '../authorization/decorators/permissions.deco
 import { AlertasService } from './alertas.service.js';
 import { CreateAlertaDto } from './dto/create-alerta.dto.js';
 import { ResolverAlertaDto } from './dto/resolver-alerta.dto.js';
+import {
+  AlertaRespuestaDto,
+  IntervaloUbicacionRespuestaDto,
+} from './dto/alerta-respuesta.dto.js';
 
 interface AuthenticatedRequest extends Request {
   user: {
@@ -39,6 +43,7 @@ export class AlertasController {
   constructor(private readonly alertasService: AlertasService) {}
 
   @Post()
+  @ApiCreatedResponse({ type: AlertaRespuestaDto })
   @RequirePermissions('alertas.crear')
   crear(@Req() request: AuthenticatedRequest, @Body() dto: CreateAlertaDto) {
     return this.alertasService.crear(request.user.id, dto);
@@ -46,12 +51,14 @@ export class AlertasController {
 
 
   @Get('intervalo-ubicacion')
+  @ApiOkResponse({ type: IntervaloUbicacionRespuestaDto })
   @RequirePermissions('alertas.leer')
   intervaloUbicacion(@Req() request: AuthenticatedRequest) {
     return this.alertasService.intervaloReporteUbicacion(request.user.id);
   }
 
   @Get()
+  @ApiOkResponse({ type: [AlertaRespuestaDto] })
   @RequirePermissions('alertas.leer')
   listar(
     @Req() request: AuthenticatedRequest,
@@ -87,6 +94,7 @@ export class AlertasController {
   }
 
   @Get(':id')
+  @ApiOkResponse({ type: AlertaRespuestaDto })
   @RequirePermissions('alertas.leer')
   obtener(
     @Req() request: AuthenticatedRequest,
@@ -98,6 +106,7 @@ export class AlertasController {
   }
 
   @Patch(':id')
+  @ApiOkResponse({ type: AlertaRespuestaDto })
   @RequirePermissions('alertas.actualizar')
   actualizar(
     @Req() request: AuthenticatedRequest,

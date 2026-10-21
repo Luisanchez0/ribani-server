@@ -81,6 +81,23 @@ describe('AuthService', () => {
   let jwtMock: ReturnType<typeof createJwtMock>;
   let service: AuthService;
 
+  it('refresh mantiene el estado 2FA requerido por el contrato de sesión', async () => {
+    const usuario = createUsuarioFixture({ two_factor_enabled: true });
+    const prisma = {
+      ...createPrismaMock(),
+      sesiones: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: 'sesion', revocada_en: null,
+          expira_en: new Date(Date.now() + 60_000), usuarios: usuario,
+        }),
+        update: vi.fn().mockResolvedValue({}),
+      },
+    };
+    const auth = new AuthService(prisma as never, createJwtMock() as never);
+    const respuesta = await auth.refresh({ refreshToken: 'token-de-prueba' });
+    expect(respuesta.user.twoFactorEnabled).toBe(true);
+  });
+
   beforeEach(() => {
     prismaMock = createPrismaMock();
     jwtMock = createJwtMock();

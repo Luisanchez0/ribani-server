@@ -10,7 +10,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 
 import { JwtAuthGuard } from '../auth/gurads/jwt-auth.guard.js';
@@ -19,6 +19,10 @@ import { RequirePermissions } from '../authorization/decorators/permissions.deco
 
 import { AsignarPermisosDto } from './dto/asignar-permisos.dto.js';
 import { UpdateRolDto } from './dto/update-rol.dto.js';
+import {
+  PermisoRespuestaDto,
+  RolRespuestaDto,
+} from './dto/roles-respuesta.dto.js';
 import { RolesService } from './roles.service.js';
 
 interface AuthenticatedRequest extends Request {
@@ -43,12 +47,14 @@ export class RolesController {
    * matchee "permisos" como :id.
    */
   @Get('permisos')
+  @ApiOkResponse({ type: [PermisoRespuestaDto] })
   @RequirePermissions('roles.leer')
   listarPermisos() {
     return this.rolesService.listarPermisos();
   }
 
   @Get()
+  @ApiOkResponse({ type: [RolRespuestaDto] })
   @RequirePermissions('roles.leer')
   listar() {
     return this.rolesService.listar();
@@ -59,12 +65,14 @@ export class RolesController {
   // El valor del módulo es gestionar los PERMISOS de cada rol.
 
   @Get(':id')
+  @ApiOkResponse({ type: RolRespuestaDto })
   @RequirePermissions('roles.leer')
   obtener(@Param('id', new ParseIntPipe()) id: number) {
     return this.rolesService.obtener(id);
   }
 
   @Patch(':id')
+  @ApiOkResponse({ type: RolRespuestaDto })
   @RequirePermissions('roles.administrar')
   actualizar(
     @Req() request: AuthenticatedRequest,
@@ -76,6 +84,7 @@ export class RolesController {
 
   /** Reemplaza la lista completa de permisos del rol. */
   @Patch(':id/permisos')
+  @ApiOkResponse({ type: RolRespuestaDto })
   @RequirePermissions('roles.administrar')
   asignarPermisos(
     @Req() request: AuthenticatedRequest,
@@ -87,6 +96,7 @@ export class RolesController {
 
   /** Los roles del sistema NO se pueden eliminar (409). */
   @Delete(':id')
+  @ApiOkResponse({ type: RolRespuestaDto })
   @RequirePermissions('roles.administrar')
   remove(
     @Req() request: AuthenticatedRequest,

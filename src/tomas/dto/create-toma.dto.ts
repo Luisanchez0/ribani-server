@@ -1,4 +1,10 @@
-import { IsOptional, IsString, IsUUID, Matches, MaxLength } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsUUID,
+  Matches,
+  MaxLength,
+} from 'class-validator';
 
 /** Fecha y hora completa con zona: 2026-10-03T08:00:00-06:00 | ...Z | ...+00:00 */
 export const FECHA_HORA_REGEX =
@@ -8,11 +14,9 @@ export class CreateTomaDto {
   @IsUUID()
   medicamento_id!: string;
 
-
   @IsOptional()
   @IsUUID()
   horario_id?: string;
-
 
   @Matches(FECHA_HORA_REGEX, {
     message:

@@ -30,7 +30,7 @@ export class ContactosService {
   /**
    * Valida que el usuario autenticado pueda operar sobre el adulto indicado:
    * - El propio adulto (dueño de sus contactos).
-   * - Un familiar vinculado en adulto_familiares.
+   * - Un familiar con vínculo ACTIVA en adulto_familiares.
    */
   private async assertCanManageAdulto(
     usuarioId: string,
@@ -44,6 +44,7 @@ export class ContactosService {
       where: {
         adulto_id: adultoId,
         familiar_id: usuarioId,
+        estado: 'ACTIVA',
       },
       select: {
         id: true,
@@ -129,6 +130,7 @@ export class ContactosService {
       : await this.prisma.adulto_familiares.findMany({
           where: {
             familiar_id: usuarioId,
+            estado: 'ACTIVA',
           },
           select: {
             adulto_id: true,

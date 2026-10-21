@@ -11,13 +11,14 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 
 import { JwtAuthGuard } from '../auth/gurads/jwt-auth.guard.js';
 
 import { CreateDispositivoDto } from './dto/create-dispositivo.dto.js';
 import { UpdateDispositivoDto } from './dto/update-dispositivo.dto.js';
+import { DispositivoRespuestaDto } from './dto/dispositivo-respuesta.dto.js';
 import { DispositivosService } from './dispositivos.service.js';
 
 interface AuthenticatedRequest extends Request {
@@ -37,6 +38,7 @@ export class DispositivosController {
   constructor(private readonly dispositivosService: DispositivosService) {}
 
   @Post()
+  @ApiCreatedResponse({ type: DispositivoRespuestaDto })
   registrar(
     @Req() request: AuthenticatedRequest,
     @Body() dto: CreateDispositivoDto,
@@ -46,6 +48,7 @@ export class DispositivosController {
 
 
   @Get()
+  @ApiOkResponse({ type: [DispositivoRespuestaDto] })
   listar(
     @Req() request: AuthenticatedRequest,
     @Query('usuarioId') usuarioId?: string,
@@ -60,6 +63,7 @@ export class DispositivosController {
   }
 
   @Post(':id/latido')
+  @ApiCreatedResponse({ type: DispositivoRespuestaDto })
   latido(
     @Req() request: AuthenticatedRequest,
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -68,6 +72,7 @@ export class DispositivosController {
   }
 
   @Get(':id')
+  @ApiOkResponse({ type: DispositivoRespuestaDto })
   obtener(
     @Req() request: AuthenticatedRequest,
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -78,6 +83,7 @@ export class DispositivosController {
   }
 
   @Patch(':id')
+  @ApiOkResponse({ type: DispositivoRespuestaDto })
   actualizar(
     @Req() request: AuthenticatedRequest,
     @Param('id', new ParseUUIDPipe()) id: string,
