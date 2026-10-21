@@ -2,6 +2,27 @@
 
 ## 1. Contexto del proyecto
 
+### Estado verificado del código
+
+El backend ya incluye autenticación JWT/refresh y TOTP 2FA, autorización,
+usuarios/perfil, roles/permisos, familiares/invitaciones, contactos,
+medicamentos/horarios/tomas, dispositivos, alertas, ubicación SSE, zonas
+seguras, auditoría, correo con Resend y el módulo WhatsApp (Meta Cloud API:
+destinatarios/consentimiento, prueba, cola, webhook, historial y recordatorios).
+WhatsApp está deshabilitado por defecto; ver `docs/whatsapp.md` antes de activarlo.
+Las secciones que hablan de APIs
+futuras describen el orden original de desarrollo: no reconstruir esos módulos.
+
+La etapa actual es estabilizar autorización y sesiones, completar los contratos
+OpenAPI y verificar pruebas, lint y compilación. Esta revisión ejecutó 101 pruebas
+del backend, lint y build/exportación OpenAPI correctamente con Node 22.23.2.
+El lint conserva advertencias previas no bloqueantes. No se ejecutó e2e contra
+la base real. Autenticación y usuarios/perfil ya tienen respuestas documentadas;
+los contratos de los demás dominios se completarán progresivamente.
+
+La configuración existente de Prisma es `prisma7.config.ts`, utilizada
+explícitamente por los scripts de generación; no renombrarla por seguir ejemplos.
+
 RIBANI es una aplicación orientada a adultos mayores que viven solos.
 
 El sistema contempla:

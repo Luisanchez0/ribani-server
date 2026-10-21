@@ -1,0 +1,6189 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/invitaciones/abrir": {
+      "get": {
+        "operationId": "InvitacionesAbrirController_abrir",
+        "parameters": [
+          {
+            "name": "sub",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "InvitacionesAbrir"
+        ]
+      }
+    },
+    "/usuarios/perfil": {
+      "get": {
+        "operationId": "UsuariosController_miPerfil",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsuarioRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "usuarios"
+        ]
+      },
+      "patch": {
+        "operationId": "UsuariosController_editarMiPerfil",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePerfilDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsuarioRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "usuarios"
+        ]
+      }
+    },
+    "/usuarios/perfil/password": {
+      "patch": {
+        "operationId": "UsuariosController_cambiarMiPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CambiarPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Contraseña propia actualizada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PasswordActualizadaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "usuarios"
+        ]
+      }
+    },
+    "/usuarios": {
+      "get": {
+        "operationId": "UsuariosController_findAll",
+        "parameters": [
+          {
+            "name": "buscar",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "rol",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UsuarioRespuestaDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "usuarios"
+        ]
+      },
+      "post": {
+        "operationId": "UsuariosController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUsuarioDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsuarioRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "usuarios"
+        ]
+      }
+    },
+    "/usuarios/{id}": {
+      "get": {
+        "operationId": "UsuariosController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsuarioRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "usuarios"
+        ]
+      },
+      "patch": {
+        "operationId": "UsuariosController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUsuarioDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsuarioRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "usuarios"
+        ]
+      },
+      "delete": {
+        "operationId": "UsuariosController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuario eliminado de la BD.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "usuarios"
+        ]
+      }
+    },
+    "/usuarios/{id}/activar": {
+      "patch": {
+        "operationId": "UsuariosController_activate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsuarioRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "usuarios"
+        ]
+      }
+    },
+    "/usuarios/{id}/desactivar": {
+      "patch": {
+        "operationId": "UsuariosController_deactivate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuario desactivado (baja lógica).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsuarioRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "usuarios"
+        ]
+      }
+    },
+    "/usuarios/{id}/2fa/setup": {
+      "post": {
+        "operationId": "UsuariosController_setupTwoFactorFor",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfigDosPasosDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "usuarios"
+        ]
+      }
+    },
+    "/usuarios/{id}/2fa/verify": {
+      "post": {
+        "operationId": "UsuariosController_verifyTwoFactorFor",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyTwoFactorDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EstadoDosPasosDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "usuarios"
+        ]
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "operationId": "AuthController_register",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegistroRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/TokensRespuestaDto"
+                    },
+                    {
+                      "$ref": "#/components/schemas/DesafioDosPasosDto"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "operationId": "AuthController_refresh",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokensRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "operationId": "AuthController_logout",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MensajeRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/forgot-password": {
+      "post": {
+        "operationId": "AuthController_forgotPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SolicitarResetPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MensajeRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/reset-password": {
+      "post": {
+        "operationId": "AuthController_resetPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MensajeRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/2fa/setup": {
+      "post": {
+        "operationId": "AuthController_setupTwoFactor",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfigDosPasosDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/2fa/verify": {
+      "post": {
+        "operationId": "AuthController_verifyTwoFactor",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyTwoFactorDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EstadoDosPasosDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/2fa/login": {
+      "post": {
+        "operationId": "AuthController_loginWithTwoFactor",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TwoFactorLoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokensRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/2fa/disable": {
+      "post": {
+        "operationId": "AuthController_disableTwoFactor",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DisableTwoFactorDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EstadoDosPasosDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "operationId": "AuthController_me",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsuarioActualDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/whatsapp/integracion": {
+      "get": {
+        "operationId": "WhatsappController_integracion",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegracionWhatsappDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "whatsapp"
+        ]
+      }
+    },
+    "/whatsapp/destinatarios": {
+      "get": {
+        "operationId": "WhatsappController_listar",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DestinatarioWhatsappDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "whatsapp"
+        ]
+      },
+      "post": {
+        "operationId": "WhatsappController_registrar",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegistrarDestinatarioDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DestinatarioWhatsappDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "whatsapp"
+        ]
+      }
+    },
+    "/whatsapp/destinatarios/{id}/consentimiento": {
+      "patch": {
+        "operationId": "WhatsappController_consentimiento",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConsentimientoWhatsappDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DestinatarioWhatsappDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "whatsapp"
+        ]
+      }
+    },
+    "/whatsapp/destinatarios/{id}/prueba": {
+      "post": {
+        "operationId": "WhatsappController_prueba",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificacionWhatsappDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "whatsapp"
+        ]
+      }
+    },
+    "/whatsapp/historial": {
+      "get": {
+        "operationId": "WhatsappController_historial",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NotificacionWhatsappDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "whatsapp"
+        ]
+      }
+    },
+    "/whatsapp/alertas/resumen": {
+      "get": {
+        "operationId": "WhatsappController_resumenAlertas",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ResumenAlertaWhatsappDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "whatsapp"
+        ]
+      }
+    },
+    "/whatsapp/adultos/{adultoId}/preferencias": {
+      "get": {
+        "operationId": "WhatsappController_preferencias",
+        "parameters": [
+          {
+            "name": "adultoId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfiguracionWhatsappDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "whatsapp"
+        ]
+      },
+      "patch": {
+        "operationId": "WhatsappController_guardarPreferencias",
+        "parameters": [
+          {
+            "name": "adultoId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreferenciasWhatsappDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfiguracionWhatsappDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "whatsapp"
+        ]
+      }
+    },
+    "/configuracion": {
+      "get": {
+        "operationId": "ConfiguracionController_obtener",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfiguracionRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "configuracion"
+        ]
+      },
+      "patch": {
+        "operationId": "ConfiguracionController_actualizar",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActualizarConfiguracionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfiguracionRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "configuracion"
+        ]
+      }
+    },
+    "/contactos": {
+      "post": {
+        "operationId": "ContactosController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateContactoDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactoRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "contactos"
+        ]
+      },
+      "get": {
+        "operationId": "ContactosController_findAll",
+        "parameters": [
+          {
+            "name": "soloActivos",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContactoRespuestaDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "contactos"
+        ]
+      }
+    },
+    "/contactos/{id}": {
+      "get": {
+        "operationId": "ContactosController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactoRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "contactos"
+        ]
+      },
+      "patch": {
+        "operationId": "ContactosController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateContactoDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactoRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "contactos"
+        ]
+      },
+      "delete": {
+        "operationId": "ContactosController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "contactos"
+        ]
+      }
+    },
+    "/medicamentos": {
+      "post": {
+        "operationId": "MedicamentosController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMedicamentoDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicamentoRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "medicamentos"
+        ]
+      },
+      "get": {
+        "operationId": "MedicamentosController_findAll",
+        "parameters": [
+          {
+            "name": "soloActivos",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "adultoId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MedicamentoRespuestaDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "medicamentos"
+        ]
+      }
+    },
+    "/medicamentos/{id}": {
+      "get": {
+        "operationId": "MedicamentosController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicamentoRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "medicamentos"
+        ]
+      },
+      "patch": {
+        "operationId": "MedicamentosController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMedicamentoDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicamentoRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "medicamentos"
+        ]
+      },
+      "delete": {
+        "operationId": "MedicamentosController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "medicamentos"
+        ]
+      }
+    },
+    "/horarios": {
+      "get": {
+        "operationId": "HorariosListaController_findAll",
+        "parameters": [
+          {
+            "name": "adultoId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "medicamentoId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "soloActivos",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HorarioRespuestaDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "horarios"
+        ]
+      }
+    },
+    "/medicamentos/{medicamentoId}/horarios": {
+      "post": {
+        "operationId": "HorariosController_create",
+        "parameters": [
+          {
+            "name": "medicamentoId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateHorarioDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HorarioRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "horarios"
+        ]
+      },
+      "get": {
+        "operationId": "HorariosController_findAll",
+        "parameters": [
+          {
+            "name": "medicamentoId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "soloActivos",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HorarioRespuestaDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "horarios"
+        ]
+      }
+    },
+    "/medicamentos/{medicamentoId}/horarios/{id}": {
+      "get": {
+        "operationId": "HorariosController_findOne",
+        "parameters": [
+          {
+            "name": "medicamentoId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HorarioRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "horarios"
+        ]
+      },
+      "patch": {
+        "operationId": "HorariosController_update",
+        "parameters": [
+          {
+            "name": "medicamentoId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateHorarioDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HorarioRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "horarios"
+        ]
+      },
+      "delete": {
+        "operationId": "HorariosController_remove",
+        "parameters": [
+          {
+            "name": "medicamentoId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "horarios"
+        ]
+      }
+    },
+    "/tomas": {
+      "post": {
+        "operationId": "TomasController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTomaDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TomaRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "tomas"
+        ]
+      },
+      "get": {
+        "operationId": "TomasController_findAll",
+        "parameters": [
+          {
+            "name": "adultoId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "medicamentoId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "estado",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "desde",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "hasta",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TomaRespuestaDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "tomas"
+        ]
+      }
+    },
+    "/tomas/{id}": {
+      "get": {
+        "operationId": "TomasController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TomaRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "tomas"
+        ]
+      },
+      "patch": {
+        "operationId": "TomasController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTomaDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TomaRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "tomas"
+        ]
+      },
+      "delete": {
+        "operationId": "TomasController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "tomas"
+        ]
+      }
+    },
+    "/tomas/{id}/posponer": {
+      "post": {
+        "operationId": "TomasController_posponer",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Una vez, diez minutos, dentro de la ventana original.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TomaRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "tomas"
+        ]
+      }
+    },
+    "/familiares": {
+      "post": {
+        "operationId": "FamiliaresController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFamiliarDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VinculoFamiliarRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "familiares"
+        ]
+      },
+      "get": {
+        "operationId": "FamiliaresController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VinculoFamiliarRespuestaDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "familiares"
+        ]
+      }
+    },
+    "/familiares/mis-adultos": {
+      "get": {
+        "operationId": "FamiliaresController_misAdultos",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdultoVinculadoRespuestaDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "familiares"
+        ]
+      }
+    },
+    "/familiares/mis-familiares": {
+      "get": {
+        "operationId": "FamiliaresController_misFamiliares",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VinculoFamiliarRespuestaDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "familiares"
+        ]
+      }
+    },
+    "/familiares/{id}": {
+      "get": {
+        "operationId": "FamiliaresController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VinculoFamiliarRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "familiares"
+        ]
+      },
+      "patch": {
+        "operationId": "FamiliaresController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateFamiliarDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VinculoFamiliarRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "familiares"
+        ]
+      },
+      "delete": {
+        "operationId": "FamiliaresController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VinculoFamiliarRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "familiares"
+        ]
+      }
+    },
+    "/familiares/invitaciones": {
+      "post": {
+        "operationId": "InvitacionesFamiliaresController_invitar",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrearInvitacionFamiliarDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvitacionFamiliarRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "familiares"
+        ]
+      }
+    },
+    "/familiares/invitaciones/completar": {
+      "post": {
+        "operationId": "InvitacionesFamiliaresController_completar",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompletarInvitacionFamiliarDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompletarInvitacionRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "familiares"
+        ]
+      }
+    },
+    "/familiares/invitaciones/{id}/aceptar": {
+      "post": {
+        "operationId": "InvitacionesFamiliaresController_aceptar",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VinculoFamiliarRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "familiares"
+        ]
+      }
+    },
+    "/familiares/invitaciones/{id}/rechazar": {
+      "post": {
+        "operationId": "InvitacionesFamiliaresController_rechazar",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VinculoFamiliarRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "familiares"
+        ]
+      }
+    },
+    "/familiares/invitaciones/pendientes": {
+      "get": {
+        "operationId": "InvitacionesFamiliaresController_pendientes",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VinculoFamiliarRespuestaDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "familiares"
+        ]
+      }
+    },
+    "/zonas-seguras": {
+      "post": {
+        "operationId": "ZonasSegurasController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateZonaSeguraDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ZonaSeguraRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "zonas-seguras"
+        ]
+      },
+      "get": {
+        "operationId": "ZonasSegurasController_findAll",
+        "parameters": [
+          {
+            "name": "adultoId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "soloActivas",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ZonaSeguraRespuestaDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "zonas-seguras"
+        ]
+      }
+    },
+    "/zonas-seguras/{id}": {
+      "get": {
+        "operationId": "ZonasSegurasController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ZonaSeguraRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "zonas-seguras"
+        ]
+      },
+      "patch": {
+        "operationId": "ZonasSegurasController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateZonaSeguraDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ZonaSeguraRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "zonas-seguras"
+        ]
+      },
+      "delete": {
+        "operationId": "ZonasSegurasController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "zonas-seguras"
+        ]
+      }
+    },
+    "/ubicaciones": {
+      "post": {
+        "operationId": "UbicacionesController_reportar",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUbicacionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UbicacionRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "ubicaciones"
+        ]
+      }
+    },
+    "/ubicaciones/lote": {
+      "post": {
+        "operationId": "UbicacionesController_reportarLote",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrearLoteUbicacionesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoteUbicacionesRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "ubicaciones"
+        ]
+      }
+    },
+    "/ubicaciones/actual": {
+      "get": {
+        "operationId": "UbicacionesController_actual",
+        "parameters": [
+          {
+            "name": "adultoId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UbicacionRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "ubicaciones"
+        ]
+      }
+    },
+    "/ubicaciones/historial": {
+      "get": {
+        "operationId": "UbicacionesController_historial",
+        "parameters": [
+          {
+            "name": "adultoId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "desde",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "hasta",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limite",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UbicacionRespuestaDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "ubicaciones"
+        ]
+      }
+    },
+    "/ubicaciones/stream": {
+      "get": {
+        "operationId": "UbicacionesController_stream",
+        "parameters": [
+          {
+            "name": "adultoId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "ubicaciones"
+        ]
+      }
+    },
+    "/alertas": {
+      "post": {
+        "operationId": "AlertasController_crear",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAlertaDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertaRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "alertas"
+        ]
+      },
+      "get": {
+        "operationId": "AlertasController_listar",
+        "parameters": [
+          {
+            "name": "adultoId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "estado",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limite",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AlertaRespuestaDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "alertas"
+        ]
+      }
+    },
+    "/alertas/intervalo-ubicacion": {
+      "get": {
+        "operationId": "AlertasController_intervaloUbicacion",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntervaloUbicacionRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "alertas"
+        ]
+      }
+    },
+    "/alertas/stream": {
+      "get": {
+        "operationId": "AlertasController_stream",
+        "parameters": [
+          {
+            "name": "adultoId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "alertas"
+        ]
+      }
+    },
+    "/alertas/{id}": {
+      "get": {
+        "operationId": "AlertasController_obtener",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertaRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "alertas"
+        ]
+      },
+      "patch": {
+        "operationId": "AlertasController_actualizar",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResolverAlertaDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertaRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "alertas"
+        ]
+      }
+    },
+    "/dispositivos": {
+      "post": {
+        "operationId": "DispositivosController_registrar",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDispositivoDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DispositivoRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "dispositivos"
+        ]
+      },
+      "get": {
+        "operationId": "DispositivosController_listar",
+        "parameters": [
+          {
+            "name": "usuarioId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "soloActivas",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DispositivoRespuestaDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "dispositivos"
+        ]
+      }
+    },
+    "/dispositivos/{id}/latido": {
+      "post": {
+        "operationId": "DispositivosController_latido",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DispositivoRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "dispositivos"
+        ]
+      }
+    },
+    "/dispositivos/{id}": {
+      "get": {
+        "operationId": "DispositivosController_obtener",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DispositivoRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "dispositivos"
+        ]
+      },
+      "patch": {
+        "operationId": "DispositivosController_actualizar",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDispositivoDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DispositivoRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "dispositivos"
+        ]
+      },
+      "delete": {
+        "operationId": "DispositivosController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "dispositivos"
+        ]
+      }
+    },
+    "/roles/permisos": {
+      "get": {
+        "operationId": "RolesController_listarPermisos",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PermisoRespuestaDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "roles"
+        ]
+      }
+    },
+    "/roles": {
+      "get": {
+        "operationId": "RolesController_listar",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RolRespuestaDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "roles"
+        ]
+      }
+    },
+    "/roles/{id}": {
+      "get": {
+        "operationId": "RolesController_obtener",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RolRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "roles"
+        ]
+      },
+      "patch": {
+        "operationId": "RolesController_actualizar",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRolDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RolRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "roles"
+        ]
+      },
+      "delete": {
+        "operationId": "RolesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RolRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "roles"
+        ]
+      }
+    },
+    "/roles/{id}/permisos": {
+      "patch": {
+        "operationId": "RolesController_asignarPermisos",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AsignarPermisosDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RolRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "roles"
+        ]
+      }
+    },
+    "/auditoria": {
+      "get": {
+        "operationId": "AuditoriaController_listar",
+        "parameters": [
+          {
+            "name": "actorId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "entidad",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "entidadId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "accion",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "desde",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "hasta",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limite",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EventoAuditoriaRespuestaDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "auditoria"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "RIBANI API",
+    "description": "API del sistema RIBANI — cuidado de adultos mayores que viven solos.\n\nAutenticación: JWT Bearer. Haga login en POST /auth/login y use el accessToken en el header \"Authorization: Bearer <token>\".",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "UsuarioRespuestaDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "rol_id": {
+            "type": "number"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "apellido": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "telefono": {
+            "type": "string",
+            "nullable": true
+          },
+          "email_verificado_en": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "activo": {
+            "type": "boolean"
+          },
+          "ultimo_acceso_en": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "rol_id",
+          "nombre",
+          "apellido",
+          "email",
+          "telefono",
+          "email_verificado_en",
+          "activo",
+          "ultimo_acceso_en",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "UpdatePerfilDto": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "apellido": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "telefono": {
+            "type": "string",
+            "maxLength": 20
+          }
+        }
+      },
+      "CambiarPasswordDto": {
+        "type": "object",
+        "properties": {
+          "password_actual": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 128,
+            "writeOnly": true
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 128,
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "password_actual",
+          "password"
+        ]
+      },
+      "PasswordActualizadaDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "password_actualizada": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "password_actualizada"
+        ]
+      },
+      "CreateUsuarioDto": {
+        "type": "object",
+        "properties": {
+          "rol_codigo": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 30
+          },
+          "nombre": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "apellido": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email"
+          },
+          "telefono": {
+            "type": "string",
+            "maxLength": 20
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 128
+          },
+          "activo": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "rol_codigo",
+          "nombre",
+          "apellido",
+          "email",
+          "password"
+        ]
+      },
+      "UpdateUsuarioDto": {
+        "type": "object",
+        "properties": {
+          "rol_codigo": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 30
+          },
+          "nombre": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "apellido": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email"
+          },
+          "telefono": {
+            "type": "string",
+            "maxLength": 20
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 128
+          },
+          "activo": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ConfigDosPasosDto": {
+        "type": "object",
+        "properties": {
+          "secret": {
+            "type": "string"
+          },
+          "otpauthUrl": {
+            "type": "string"
+          },
+          "mensaje": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "secret",
+          "otpauthUrl",
+          "mensaje"
+        ]
+      },
+      "VerifyTwoFactorDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 6,
+            "maxLength": 8,
+            "pattern": "^\\d+$"
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "EstadoDosPasosDto": {
+        "type": "object",
+        "properties": {
+          "twoFactorEnabled": {
+            "type": "boolean"
+          },
+          "mensaje": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "twoFactorEnabled",
+          "mensaje"
+        ]
+      },
+      "RolSesionDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "codigo": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "codigo",
+          "nombre"
+        ]
+      },
+      "UsuarioSesionDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "apellido": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "telefono": {
+            "type": "string",
+            "nullable": true
+          },
+          "emailVerificado": {
+            "type": "boolean"
+          },
+          "twoFactorEnabled": {
+            "type": "boolean"
+          },
+          "rol": {
+            "$ref": "#/components/schemas/RolSesionDto"
+          },
+          "permisos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "nombre",
+          "apellido",
+          "email",
+          "telefono",
+          "emailVerificado",
+          "twoFactorEnabled",
+          "rol",
+          "permisos"
+        ]
+      },
+      "TokensRespuestaDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "refreshToken": {
+            "type": "string"
+          },
+          "tokenType": {
+            "type": "string",
+            "enum": [
+              "Bearer"
+            ]
+          },
+          "expiresIn": {
+            "type": "number"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UsuarioSesionDto"
+          }
+        },
+        "required": [
+          "accessToken",
+          "refreshToken",
+          "tokenType",
+          "expiresIn",
+          "user"
+        ]
+      },
+      "DesafioDosPasosDto": {
+        "type": "object",
+        "properties": {
+          "twoFactorRequired": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "challengeToken": {
+            "type": "string"
+          },
+          "expiresIn": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "twoFactorRequired",
+          "challengeToken",
+          "expiresIn"
+        ]
+      },
+      "RegisterDto": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 80
+          },
+          "apellido": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 100
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email"
+          },
+          "telefono": {
+            "type": "string",
+            "maxLength": 20
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 128
+          },
+          "rolCodigo": {
+            "type": "string",
+            "enum": [
+              "ADULTO_MAYOR",
+              "FAMILIAR_ENCARGADO"
+            ]
+          }
+        },
+        "required": [
+          "nombre",
+          "apellido",
+          "email",
+          "password"
+        ]
+      },
+      "RegistroRespuestaDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "apellido": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "telefono": {
+            "type": "string",
+            "nullable": true
+          },
+          "activo": {
+            "type": "boolean"
+          },
+          "rol": {
+            "$ref": "#/components/schemas/RolSesionDto"
+          },
+          "emailVerificado": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "nombre",
+          "apellido",
+          "email",
+          "telefono",
+          "activo",
+          "rol",
+          "emailVerificado",
+          "createdAt"
+        ]
+      },
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "RefreshTokenDto": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "minLength": 20
+          }
+        },
+        "required": [
+          "refreshToken"
+        ]
+      },
+      "MensajeRespuestaDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "SolicitarResetPasswordDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "ana@ejemplo.mx"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "ResetPasswordDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "ana@ejemplo.mx"
+          },
+          "codigo": {
+            "type": "string",
+            "minLength": 6,
+            "maxLength": 6,
+            "description": "Código de 6 dígitos enviado por correo."
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 64
+          }
+        },
+        "required": [
+          "email",
+          "codigo",
+          "password"
+        ]
+      },
+      "TwoFactorLoginDto": {
+        "type": "object",
+        "properties": {
+          "challengeToken": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 1024
+          },
+          "code": {
+            "type": "string",
+            "minLength": 6,
+            "maxLength": 8,
+            "pattern": "^\\d+$"
+          }
+        },
+        "required": [
+          "challengeToken",
+          "code"
+        ]
+      },
+      "DisableTwoFactorDto": {
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "password"
+        ]
+      },
+      "UsuarioActualDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "apellido": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "telefono": {
+            "type": "string",
+            "nullable": true
+          },
+          "emailVerificado": {
+            "type": "boolean"
+          },
+          "twoFactorEnabled": {
+            "type": "boolean"
+          },
+          "rol": {
+            "$ref": "#/components/schemas/RolSesionDto"
+          },
+          "permisos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "ultimoAcceso": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "nombre",
+          "apellido",
+          "email",
+          "telefono",
+          "emailVerificado",
+          "twoFactorEnabled",
+          "rol",
+          "permisos",
+          "ultimoAcceso"
+        ]
+      },
+      "IntegracionWhatsappDto": {
+        "type": "object",
+        "properties": {
+          "habilitada": {
+            "type": "boolean"
+          },
+          "procesador_habilitado": {
+            "type": "boolean"
+          },
+          "recordatorios_habilitados": {
+            "type": "boolean"
+          },
+          "prueba_configurada": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "habilitada",
+          "procesador_habilitado",
+          "recordatorios_habilitados",
+          "prueba_configurada"
+        ]
+      },
+      "DestinatarioWhatsappDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "usuario_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "contacto_emergencia_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "telefono_e164": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string",
+            "nullable": true
+          },
+          "consentimiento": {
+            "type": "string",
+            "enum": [
+              "PENDIENTE",
+              "ACEPTADO",
+              "REVOCADO"
+            ]
+          },
+          "consentimiento_origen": {
+            "type": "string",
+            "nullable": true
+          },
+          "consentimiento_en": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "revocado_en": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "activo": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "usuario_id",
+          "contacto_emergencia_id",
+          "telefono_e164",
+          "nombre",
+          "consentimiento",
+          "consentimiento_origen",
+          "consentimiento_en",
+          "revocado_en",
+          "activo"
+        ]
+      },
+      "RegistrarDestinatarioDto": {
+        "type": "object",
+        "properties": {
+          "telefono_e164": {
+            "type": "string",
+            "pattern": "^\\+[1-9][0-9]{7,14}$",
+            "example": "+525512345678"
+          },
+          "contacto_emergencia_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Solo administrador; teléfono del contacto, consentimiento inicialmente pendiente."
+          }
+        },
+        "required": [
+          "telefono_e164"
+        ]
+      },
+      "ConsentimientoWhatsappDto": {
+        "type": "object",
+        "properties": {
+          "aceptado": {
+            "type": "boolean",
+            "description": "Declaración expresa del titular. false revoca y cancela pendientes."
+          },
+          "origen": {
+            "enum": [
+              "FORMULARIO",
+              "OTRO"
+            ],
+            "type": "string",
+            "description": "Para contactos sin cuenta, el administrador debe conservar evidencia externa del consentimiento."
+          }
+        },
+        "required": [
+          "aceptado"
+        ]
+      },
+      "EstadoWhatsappDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "estado": {
+            "type": "string"
+          },
+          "ocurrido_en": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "codigo_error": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "estado",
+          "ocurrido_en",
+          "codigo_error"
+        ]
+      },
+      "NotificacionWhatsappDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "destinatario_id": {
+            "type": "string"
+          },
+          "alerta_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "toma_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "tipo": {
+            "type": "string"
+          },
+          "estado": {
+            "type": "string"
+          },
+          "intentos": {
+            "type": "number"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "codigo_error": {
+            "type": "string",
+            "nullable": true
+          },
+          "siguiente_intento_en": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "eventos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EstadoWhatsappDto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "destinatario_id",
+          "alerta_id",
+          "toma_id",
+          "tipo",
+          "estado",
+          "intentos",
+          "created_at",
+          "codigo_error",
+          "siguiente_intento_en",
+          "eventos"
+        ]
+      },
+      "ResumenAlertaWhatsappDto": {
+        "type": "object",
+        "properties": {
+          "alerta_id": {
+            "type": "string"
+          },
+          "estado": {
+            "type": "string"
+          },
+          "cantidad": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "alerta_id",
+          "estado",
+          "cantidad"
+        ]
+      },
+      "ConfiguracionWhatsappDto": {
+        "type": "object",
+        "properties": {
+          "notificaciones_habilitadas": {
+            "type": "boolean"
+          },
+          "recordatorio_medicamentos": {
+            "type": "boolean"
+          },
+          "minutos_repeticion": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 120
+          },
+          "max_repeticiones": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 12
+          },
+          "adulto_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "adulto_id"
+        ]
+      },
+      "PreferenciasWhatsappDto": {
+        "type": "object",
+        "properties": {
+          "notificaciones_habilitadas": {
+            "type": "boolean"
+          },
+          "recordatorio_medicamentos": {
+            "type": "boolean"
+          },
+          "minutos_repeticion": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 120
+          },
+          "max_repeticiones": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 12
+          }
+        }
+      },
+      "ConfiguracionRespuestaDto": {
+        "type": "object",
+        "properties": {
+          "adulto_id": {
+            "type": "string"
+          },
+          "zona_horaria": {
+            "type": "string"
+          },
+          "notificaciones_habilitadas": {
+            "type": "boolean"
+          },
+          "recordatorio_medicamentos": {
+            "type": "boolean"
+          },
+          "minutos_repeticion": {
+            "type": "number"
+          },
+          "max_repeticiones": {
+            "type": "number"
+          },
+          "ubicacion_compartida": {
+            "type": "boolean"
+          },
+          "familiares_activos": {
+            "type": "number",
+            "description": "Familiares con cuenta activa y vínculo ACTIVA; no indica disponibilidad de sensores."
+          }
+        },
+        "required": [
+          "adulto_id",
+          "zona_horaria",
+          "notificaciones_habilitadas",
+          "recordatorio_medicamentos",
+          "minutos_repeticion",
+          "max_repeticiones",
+          "ubicacion_compartida",
+          "familiares_activos"
+        ]
+      },
+      "ActualizarConfiguracionDto": {
+        "type": "object",
+        "properties": {
+          "notificaciones_habilitadas": {
+            "type": "boolean"
+          },
+          "recordatorio_medicamentos": {
+            "type": "boolean"
+          },
+          "minutos_repeticion": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 120
+          },
+          "max_repeticiones": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 12
+          },
+          "zona_horaria": {
+            "type": "string",
+            "maxLength": 64
+          }
+        }
+      },
+      "CreateContactoDto": {
+        "type": "object",
+        "properties": {
+          "adulto_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "nombre": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "parentesco": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "telefono": {
+            "type": "string",
+            "minLength": 7,
+            "maxLength": 20,
+            "pattern": "^\\+[1-9][0-9]{7,14}$"
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email"
+          },
+          "prioridad": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 5
+          }
+        },
+        "required": [
+          "adulto_id",
+          "nombre",
+          "telefono"
+        ]
+      },
+      "ContactoRespuestaDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "adulto_id": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "parentesco": {
+            "type": "string",
+            "nullable": true
+          },
+          "telefono": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "prioridad": {
+            "type": "number"
+          },
+          "activo": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "adulto_id",
+          "nombre",
+          "telefono",
+          "prioridad",
+          "activo",
+          "created_at"
+        ]
+      },
+      "UpdateContactoDto": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "parentesco": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "telefono": {
+            "type": "string",
+            "minLength": 7,
+            "maxLength": 20,
+            "pattern": "^\\+[1-9][0-9]{7,14}$"
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email"
+          },
+          "prioridad": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "activo": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CreateMedicamentoDto": {
+        "type": "object",
+        "properties": {
+          "adulto_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "nombre": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "descripcion": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "dosis": {
+            "type": "number",
+            "minimum": 0.001,
+            "maximum": 9999999.999
+          },
+          "unidad_dosis": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 30
+          },
+          "instrucciones": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "fecha_inicio": {
+            "type": "string"
+          },
+          "fecha_fin": {
+            "type": "string"
+          },
+          "zona_horaria": {
+            "type": "string",
+            "maxLength": 64
+          }
+        },
+        "required": [
+          "adulto_id",
+          "nombre",
+          "dosis",
+          "unidad_dosis",
+          "fecha_inicio"
+        ]
+      },
+      "MedicamentoRespuestaDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "adulto_id": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "descripcion": {
+            "type": "string",
+            "nullable": true
+          },
+          "dosis": {
+            "type": "number"
+          },
+          "unidad_dosis": {
+            "type": "string"
+          },
+          "instrucciones": {
+            "type": "string",
+            "nullable": true
+          },
+          "fecha_inicio": {
+            "type": "string",
+            "format": "date"
+          },
+          "fecha_fin": {
+            "type": "string",
+            "nullable": true,
+            "format": "date"
+          },
+          "zona_horaria": {
+            "type": "string"
+          },
+          "activo": {
+            "type": "boolean"
+          },
+          "creado_por": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "adulto_id",
+          "nombre",
+          "dosis",
+          "unidad_dosis",
+          "fecha_inicio",
+          "zona_horaria",
+          "activo",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "UpdateMedicamentoDto": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "descripcion": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "dosis": {
+            "type": "number",
+            "minimum": 0.001,
+            "maximum": 9999999.999
+          },
+          "unidad_dosis": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 30
+          },
+          "instrucciones": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "fecha_inicio": {
+            "type": "string"
+          },
+          "fecha_fin": {
+            "type": "string"
+          },
+          "zona_horaria": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "activo": {
+            "type": "boolean"
+          }
+        }
+      },
+      "HorarioRespuestaDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "medicamento_id": {
+            "type": "string"
+          },
+          "hora_local": {
+            "type": "object",
+            "description": "Hora local del día, HH:mm:ss."
+          },
+          "dias_semana": {
+            "description": "Días de la semana ISO (1=lunes … 7=domingo).",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "intervalo_minutos": {
+            "type": "number",
+            "description": "Minutos entre tomas dentro del horario (0 = único evento)."
+          },
+          "ventana_minutos": {
+            "type": "number",
+            "description": "Ventana en minutos alrededor de la hora para registrar."
+          },
+          "activo": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "medicamento_id",
+          "hora_local",
+          "dias_semana",
+          "intervalo_minutos",
+          "ventana_minutos",
+          "activo",
+          "created_at"
+        ]
+      },
+      "CreateHorarioDto": {
+        "type": "object",
+        "properties": {
+          "hora_local": {
+            "type": "string",
+            "maxLength": 8,
+            "pattern": "^([01]\\d|2[0-3]):([0-5]\\d)(:[0-5]\\d)?$"
+          },
+          "dias_semana": {
+            "uniqueItems": true,
+            "minItems": 1,
+            "maxItems": 7,
+            "type": "array",
+            "items": {
+              "type": "number",
+              "maximum": 7,
+              "minimum": 1
+            }
+          },
+          "intervalo_minutos": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 32767
+          },
+          "ventana_minutos": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 1440
+          }
+        },
+        "required": [
+          "hora_local"
+        ]
+      },
+      "UpdateHorarioDto": {
+        "type": "object",
+        "properties": {
+          "hora_local": {
+            "type": "string",
+            "maxLength": 8,
+            "pattern": "^([01]\\d|2[0-3]):([0-5]\\d)(:[0-5]\\d)?$"
+          },
+          "dias_semana": {
+            "uniqueItems": true,
+            "minItems": 1,
+            "maxItems": 7,
+            "type": "array",
+            "items": {
+              "type": "number",
+              "maximum": 7,
+              "minimum": 1
+            }
+          },
+          "intervalo_minutos": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 32767
+          },
+          "ventana_minutos": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 1440
+          },
+          "activo": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CreateTomaDto": {
+        "type": "object",
+        "properties": {
+          "medicamento_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "horario_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "programada_para": {
+            "type": "string"
+          },
+          "nota": {
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "medicamento_id",
+          "programada_para"
+        ]
+      },
+      "TomaRespuestaDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "medicamento_id": {
+            "type": "string"
+          },
+          "horario_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "adulto_id": {
+            "type": "string"
+          },
+          "programada_para": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "recordar_en": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Hora del recordatorio; no cambia la ventana original de la toma."
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "PENDIENTE",
+              "POSPUESTA",
+              "TOMADA",
+              "OMITIDA",
+              "CANCELADA"
+            ]
+          },
+          "tomada_en": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "dosis_tomada": {
+            "type": "string",
+            "nullable": true,
+            "description": "Decimal serializado por Prisma."
+          },
+          "registrada_por": {
+            "type": "string",
+            "nullable": true
+          },
+          "nota": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "medicamento_id",
+          "horario_id",
+          "adulto_id",
+          "programada_para",
+          "recordar_en",
+          "estado",
+          "tomada_en",
+          "dosis_tomada",
+          "registrada_por",
+          "nota",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "UpdateTomaDto": {
+        "type": "object",
+        "properties": {
+          "estado": {
+            "type": "string",
+            "enum": [
+              "TOMADA",
+              "OMITIDA"
+            ]
+          },
+          "tomada_en": {
+            "type": "string"
+          },
+          "dosis_tomada": {
+            "type": "number",
+            "minimum": 0.001,
+            "maximum": 9999999.999
+          },
+          "nota": {
+            "type": "string",
+            "maxLength": 500
+          }
+        }
+      },
+      "CreateFamiliarDto": {
+        "type": "object",
+        "properties": {
+          "familiar_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "adulto_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "parentesco": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "puede_ver_ubicacion": {
+            "type": "boolean"
+          },
+          "puede_gestionar_medicamentos": {
+            "type": "boolean"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "ACTIVA",
+              "PENDIENTE"
+            ]
+          }
+        },
+        "required": [
+          "familiar_id",
+          "adulto_id"
+        ]
+      },
+      "UsuarioResumenDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "apellido": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "telefono": {
+            "type": "string",
+            "nullable": true
+          },
+          "activo": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "nombre",
+          "apellido",
+          "email"
+        ]
+      },
+      "VinculoFamiliarRespuestaDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "adulto_id": {
+            "type": "string"
+          },
+          "familiar_id": {
+            "type": "string"
+          },
+          "parentesco": {
+            "type": "string",
+            "nullable": true
+          },
+          "es_contacto_principal": {
+            "type": "boolean"
+          },
+          "puede_ver_ubicacion": {
+            "type": "boolean"
+          },
+          "puede_gestionar_medicamentos": {
+            "type": "boolean"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "PENDIENTE",
+              "ACTIVA",
+              "REVOCADA"
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "usuarios_adulto_familiares_adulto_idTousuarios": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UsuarioResumenDto"
+              }
+            ]
+          },
+          "usuarios_adulto_familiares_familiar_idTousuarios": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UsuarioResumenDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "adulto_id",
+          "familiar_id",
+          "es_contacto_principal",
+          "puede_ver_ubicacion",
+          "puede_gestionar_medicamentos",
+          "estado",
+          "created_at"
+        ]
+      },
+      "AdultoVinculadoRespuestaDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "vinculo_id": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "apellido": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "parentesco": {
+            "type": "string",
+            "nullable": true
+          },
+          "es_contacto_principal": {
+            "type": "boolean"
+          },
+          "puede_ver_ubicacion": {
+            "type": "boolean"
+          },
+          "puede_gestionar_medicamentos": {
+            "type": "boolean"
+          },
+          "estado": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "vinculo_id",
+          "nombre",
+          "apellido",
+          "email",
+          "es_contacto_principal",
+          "puede_ver_ubicacion",
+          "puede_gestionar_medicamentos",
+          "estado"
+        ]
+      },
+      "UpdateFamiliarDto": {
+        "type": "object",
+        "properties": {
+          "parentesco": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "es_contacto_principal": {
+            "type": "boolean"
+          },
+          "puede_ver_ubicacion": {
+            "type": "boolean"
+          },
+          "puede_gestionar_medicamentos": {
+            "type": "boolean"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "PENDIENTE",
+              "ACTIVA",
+              "REVOCADA"
+            ]
+          }
+        }
+      },
+      "CrearInvitacionFamiliarDto": {
+        "type": "object",
+        "properties": {
+          "familiar_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "adulto_email": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email"
+          },
+          "adulto_nombre": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 80
+          },
+          "adulto_apellido": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 100
+          },
+          "adulto_telefono": {
+            "type": "string",
+            "maxLength": 20
+          },
+          "parentesco": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "puede_ver_ubicacion": {
+            "type": "boolean"
+          },
+          "puede_gestionar_medicamentos": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "adulto_email"
+        ]
+      },
+      "InvitacionAdultoDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string",
+            "nullable": true
+          },
+          "apellido": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string"
+          },
+          "esNuevaCuenta": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "email"
+        ]
+      },
+      "InvitacionFamiliarRespuestaDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "adulto_id": {
+            "type": "string"
+          },
+          "familiar_id": {
+            "type": "string"
+          },
+          "parentesco": {
+            "type": "string",
+            "nullable": true
+          },
+          "es_contacto_principal": {
+            "type": "boolean"
+          },
+          "puede_ver_ubicacion": {
+            "type": "boolean"
+          },
+          "puede_gestionar_medicamentos": {
+            "type": "boolean"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "PENDIENTE",
+              "ACTIVA",
+              "REVOCADA"
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "usuarios_adulto_familiares_adulto_idTousuarios": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UsuarioResumenDto"
+              }
+            ]
+          },
+          "usuarios_adulto_familiares_familiar_idTousuarios": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UsuarioResumenDto"
+              }
+            ]
+          },
+          "adulto": {
+            "$ref": "#/components/schemas/InvitacionAdultoDto"
+          },
+          "esNuevaCuenta": {
+            "type": "boolean"
+          },
+          "mensaje": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "adulto_id",
+          "familiar_id",
+          "es_contacto_principal",
+          "puede_ver_ubicacion",
+          "puede_gestionar_medicamentos",
+          "estado",
+          "created_at",
+          "adulto",
+          "esNuevaCuenta",
+          "mensaje"
+        ]
+      },
+      "CompletarInvitacionFamiliarDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 128
+          },
+          "nombre": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "apellido": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "telefono": {
+            "type": "string",
+            "maxLength": 20
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "CompletarInvitacionRespuestaDto": {
+        "type": "object",
+        "properties": {
+          "adulto_id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "mensaje": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "adulto_id",
+          "email",
+          "mensaje"
+        ]
+      },
+      "CreateZonaSeguraDto": {
+        "type": "object",
+        "properties": {
+          "adulto_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "nombre": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "latitud_centro": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90
+          },
+          "longitud_centro": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180
+          },
+          "radio_metros": {
+            "type": "number",
+            "minimum": 50,
+            "maximum": 10000
+          },
+          "notificar_salida": {
+            "type": "boolean"
+          },
+          "notificar_entrada": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "adulto_id",
+          "nombre",
+          "latitud_centro",
+          "longitud_centro",
+          "radio_metros"
+        ]
+      },
+      "ZonaSeguraRespuestaDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "adulto_id": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "latitud_centro": {
+            "type": "number"
+          },
+          "longitud_centro": {
+            "type": "number"
+          },
+          "radio_metros": {
+            "type": "number"
+          },
+          "notificar_salida": {
+            "type": "boolean"
+          },
+          "notificar_entrada": {
+            "type": "boolean"
+          },
+          "activa": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "adulto_id",
+          "nombre",
+          "latitud_centro",
+          "longitud_centro",
+          "radio_metros",
+          "notificar_salida",
+          "notificar_entrada",
+          "activa",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "UpdateZonaSeguraDto": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "latitud_centro": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90
+          },
+          "longitud_centro": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180
+          },
+          "radio_metros": {
+            "type": "number",
+            "minimum": 50,
+            "maximum": 10000
+          },
+          "notificar_salida": {
+            "type": "boolean"
+          },
+          "notificar_entrada": {
+            "type": "boolean"
+          },
+          "activa": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CreateUbicacionDto": {
+        "type": "object",
+        "properties": {
+          "dispositivo_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "latitud": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90
+          },
+          "longitud": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180
+          },
+          "precision_metros": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 10000
+          },
+          "altitud_metros": {
+            "type": "number",
+            "minimum": -1000,
+            "maximum": 10000
+          },
+          "fuente": {
+            "type": "string",
+            "enum": [
+              "GPS",
+              "RED",
+              "MANUAL"
+            ]
+          },
+          "registrada_en": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "latitud",
+          "longitud"
+        ]
+      },
+      "UbicacionRespuestaDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "adulto_id": {
+            "type": "string"
+          },
+          "dispositivo_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "latitud": {
+            "type": "number"
+          },
+          "longitud": {
+            "type": "number"
+          },
+          "precision_metros": {
+            "type": "number",
+            "nullable": true
+          },
+          "altitud_metros": {
+            "type": "number",
+            "nullable": true
+          },
+          "fuente": {
+            "type": "string",
+            "enum": [
+              "GPS",
+              "RED",
+              "MANUAL",
+              "OTRA"
+            ]
+          },
+          "registrada_en": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "adulto_id",
+          "latitud",
+          "longitud",
+          "fuente",
+          "registrada_en"
+        ]
+      },
+      "CrearLoteUbicacionesDto": {
+        "type": "object",
+        "properties": {
+          "reportes": {
+            "minItems": 1,
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateUbicacionDto"
+            }
+          }
+        },
+        "required": [
+          "reportes"
+        ]
+      },
+      "LoteUbicacionesRespuestaDto": {
+        "type": "object",
+        "properties": {
+          "insertados": {
+            "type": "number",
+            "description": "Reportes insertados en la base."
+          },
+          "ultima_reporte": {
+            "$ref": "#/components/schemas/UbicacionRespuestaDto"
+          }
+        },
+        "required": [
+          "insertados",
+          "ultima_reporte"
+        ]
+      },
+      "CreateAlertaDto": {
+        "type": "object",
+        "properties": {
+          "adulto_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "dispositivo_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "SOS",
+              "OTRA",
+              "MEDICAMENTO",
+              "CAIDA",
+              "ZONA_SEGURA",
+              "INACTIVIDAD",
+              "SISTEMA"
+            ]
+          },
+          "severidad": {
+            "type": "string",
+            "enum": [
+              "BAJA",
+              "MEDIA",
+              "ALTA",
+              "CRITICA"
+            ]
+          },
+          "titulo": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 120
+          },
+          "descripcion": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "latitud": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90
+          },
+          "longitud": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180
+          }
+        },
+        "required": [
+          "tipo",
+          "titulo"
+        ]
+      },
+      "AlertaRespuestaDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "adulto_id": {
+            "type": "string"
+          },
+          "dispositivo_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "CAIDA",
+              "SOS",
+              "SALIDA_ZONA"
+            ]
+          },
+          "severidad": {
+            "type": "string",
+            "enum": [
+              "BAJA",
+              "MEDIA",
+              "ALTA",
+              "CRITICA"
+            ]
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "ABIERTA",
+              "EN_ATENCION",
+              "RESUELTA",
+              "CANCELADA"
+            ]
+          },
+          "titulo": {
+            "type": "string"
+          },
+          "descripcion": {
+            "type": "string",
+            "nullable": true
+          },
+          "latitud": {
+            "type": "number",
+            "nullable": true
+          },
+          "longitud": {
+            "type": "number",
+            "nullable": true
+          },
+          "ocurrida_en": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "atendida_por": {
+            "type": "string",
+            "nullable": true
+          },
+          "atendida_en": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "cerrada_en": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "adulto_id",
+          "tipo",
+          "severidad",
+          "estado",
+          "titulo",
+          "ocurrida_en",
+          "created_at"
+        ]
+      },
+      "IntervaloUbicacionRespuestaDto": {
+        "type": "object",
+        "properties": {
+          "intervalo_segundos": {
+            "type": "number",
+            "description": "Segundos recomendados entre reportes."
+          }
+        },
+        "required": [
+          "intervalo_segundos"
+        ]
+      },
+      "ResolverAlertaDto": {
+        "type": "object",
+        "properties": {
+          "estado": {
+            "type": "string",
+            "enum": [
+              "CANCELADA",
+              "EN_ATENCION",
+              "RESUELTA"
+            ]
+          },
+          "detalle": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "estado"
+        ]
+      },
+      "CreateDispositivoDto": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "plataforma": {
+            "type": "string",
+            "enum": [
+              "WEB",
+              "ANDROID",
+              "IOS"
+            ]
+          },
+          "identificador": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 255
+          },
+          "push_token": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "version_app": {
+            "type": "string",
+            "maxLength": 30
+          }
+        },
+        "required": [
+          "nombre",
+          "plataforma"
+        ]
+      },
+      "DispositivoRespuestaDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "usuario_id": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "plataforma": {
+            "type": "string",
+            "enum": [
+              "ANDROID",
+              "WEB",
+              "OTRO"
+            ]
+          },
+          "version_app": {
+            "type": "string",
+            "nullable": true
+          },
+          "ultimo_contacto_en": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "activo": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "usuario_id",
+          "nombre",
+          "plataforma",
+          "activo",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "UpdateDispositivoDto": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "push_token": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "version_app": {
+            "type": "string",
+            "maxLength": 30
+          }
+        }
+      },
+      "PermisoRespuestaDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "codigo": {
+            "type": "string"
+          },
+          "recurso": {
+            "type": "string"
+          },
+          "accion": {
+            "type": "string"
+          },
+          "descripcion": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "codigo",
+          "recurso",
+          "accion"
+        ]
+      },
+      "RolRespuestaDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "codigo": {
+            "type": "string",
+            "enum": [
+              "ADULTO_MAYOR",
+              "FAMILIAR_ENCARGADO",
+              "ADMINISTRADOR"
+            ]
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "descripcion": {
+            "type": "string",
+            "nullable": true
+          },
+          "activo": {
+            "type": "boolean"
+          },
+          "permisos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PermisoRespuestaDto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "codigo",
+          "nombre",
+          "activo",
+          "permisos"
+        ]
+      },
+      "UpdateRolDto": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "descripcion": {
+            "type": "string",
+            "maxLength": 250
+          },
+          "activo": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AsignarPermisosDto": {
+        "type": "object",
+        "properties": {
+          "permisos": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 100
+            }
+          }
+        },
+        "required": [
+          "permisos"
+        ]
+      },
+      "ActorAuditoriaDto": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string"
+          },
+          "apellido": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "nombre",
+          "apellido",
+          "email"
+        ]
+      },
+      "EventoAuditoriaRespuestaDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "actor_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "accion": {
+            "type": "string"
+          },
+          "entidad": {
+            "type": "string"
+          },
+          "entidad_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "ip": {
+            "type": "string",
+            "nullable": true
+          },
+          "user_agent": {
+            "type": "string",
+            "nullable": true
+          },
+          "datos_despues": {
+            "type": "object",
+            "nullable": true,
+            "description": "Cambios aplicados (JSON)."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "actor": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ActorAuditoriaDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "accion",
+          "entidad",
+          "created_at"
+        ]
+      }
+    }
+  }
+}

@@ -11,13 +11,14 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 
 import { JwtAuthGuard } from '../auth/gurads/jwt-auth.guard.js';
 
 import { CreateContactoDto } from './dto/create-contacto.dto.js';
 import { UpdateContactoDto } from './dto/update-contacto.dto.js';
+import { ContactoRespuestaDto } from './dto/contacto-respuesta.dto.js';
 import { ContactosService } from './contactos.service.js';
 
 interface AuthenticatedRequest extends Request {
@@ -34,6 +35,7 @@ export class ContactosController {
   constructor(private readonly contactosService: ContactosService) {}
 
   @Post()
+  @ApiCreatedResponse({ type: ContactoRespuestaDto })
   create(
     @Req() request: AuthenticatedRequest,
     @Body() dto: CreateContactoDto,
@@ -42,6 +44,7 @@ export class ContactosController {
   }
 
   @Get()
+  @ApiOkResponse({ type: [ContactoRespuestaDto] })
   findAll(
     @Req() request: AuthenticatedRequest,
     @Query('soloActivos') soloActivos?: string,
@@ -51,6 +54,7 @@ export class ContactosController {
   }
 
   @Get(':id')
+  @ApiOkResponse({ type: ContactoRespuestaDto })
   findOne(
     @Req() request: AuthenticatedRequest,
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -59,6 +63,7 @@ export class ContactosController {
   }
 
   @Patch(':id')
+  @ApiOkResponse({ type: ContactoRespuestaDto })
   update(
     @Req() request: AuthenticatedRequest,
     @Param('id', new ParseUUIDPipe()) id: string,

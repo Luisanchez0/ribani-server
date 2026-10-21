@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -23,6 +24,11 @@ const SELECT_HORARIO = {
 } as const;
 
 const HORA_REGEX = /^([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?$/;
+
+/** "1970-01-01T08:30:00.000Z" → "08:30" (la hora se guarda anclada en UTC). */
+function formatearHora(horaLocal: Date): string {
+  return horaLocal.toISOString().slice(11, 16);
+}
 
 @Injectable()
 export class HorariosService {
@@ -190,6 +196,89 @@ export class HorariosService {
    * Soft delete: tomas_medicamento puede referenciar este horario,
    * por lo que NO se elimina físicamente.
    */
+  /**
+   * Listado plano de horarios para la app móvil:
+   * `GET /horarios?adultoId=&medicamentoId=&soloActivos=`.
+   * Reutiliza la autorización de medicamentos (adulto autenticado,
+   * familiares vinculados con gestión o ADMINISTRADOR).
+   */
+  async findAllDelUsuario(
+    usuarioId: string,
+    options: { adultoId?: string; medicamentoId?: string; soloActivos: boolean },
+  ) {
+    const { adultoId, medicamentoId, soloActivos } = options;
+
+    let whereMedicamentos: { id?: string; adulto_id?: { in: string[] } } = {};
+
+    if (medicamentoId) {
+      const medicamento = await this.resolverMedicamento(
+        usuarioId,
+        medicamentoId,
+      );
+
+      if (adultoId && medicamento.adulto_id !== adultoId) {
+        throw new BadRequestException(
+          'El medicamento no pertenece al adulto mayor indicado.',
+        );
+      }
+
+      whereMedicamentos = { id: medicamentoId };
+    } else {
+      const adultosAccesibles =
+        await this.medicamentosService.obtenerAdultosAccesibles(usuarioId);
+
+      let adultosIds = adultosAccesibles;
+
+      if (adultoId) {
+        if (!adultosAccesibles.includes(adultoId)) {
+          throw new ForbiddenException(
+            'No tienes acceso a los horarios de este adulto mayor.',
+          );
+        }
+        adultosIds = [adultoId];
+      }
+
+      whereMedicamentos = { adulto_id: { in: adultosIds } };
+    }
+
+    const medicamentos = await this.prisma.medicamentos.findMany({
+      where: {
+        ...whereMedicamentos,
+        horarios_medicamento: {
+          some: soloActivos ? { activo: true } : {},
+        },
+      },
+      select: {
+        id: true,
+        adulto_id: true,
+        nombre: true,
+        horarios_medicamento: {
+          where: soloActivos ? { activo: true } : {},
+          select: SELECT_HORARIO,
+          orderBy: [{ hora_local: 'asc' }, { created_at: 'asc' }],
+        },
+      },
+      orderBy: [{ adulto_id: 'asc' }, { nombre: 'asc' }],
+    });
+
+    return medicamentos.flatMap((medicamento) =>
+      medicamento.horarios_medicamento.map((horario) => ({
+        id: horario.id,
+        medicamento_id: medicamento.id,
+        medicamento_nombre: medicamento.nombre,
+        adulto_id: medicamento.adulto_id,
+        /** Hora pura "HH:MM" anclada en UTC (espejo del Time(6)). */
+        hora: formatearHora(horario.hora_local),
+        hora_local: horario.hora_local,
+        dias_semana: horario.dias_semana,
+        intervalo_minutos: horario.intervalo_minutos,
+        ventana_minutos: horario.ventana_minutos,
+        activo: horario.activo,
+        created_at: horario.created_at,
+      })),
+    );
+  }
+
   async remove(usuarioId: string, medicamentoId: string, id: string) {
     await this.findOne(usuarioId, medicamentoId, id);
 

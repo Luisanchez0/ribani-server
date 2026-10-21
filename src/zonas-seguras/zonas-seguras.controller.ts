@@ -11,13 +11,14 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 
 import { JwtAuthGuard } from '../auth/gurads/jwt-auth.guard.js';
 
 import { CreateZonaSeguraDto } from './dto/create-zona-segura.dto.js';
 import { UpdateZonaSeguraDto } from './dto/update-zona-segura.dto.js';
+import { ZonaSeguraRespuestaDto } from './dto/zona-segura-respuesta.dto.js';
 import { ZonasSegurasService } from './zonas-seguras.service.js';
 
 interface AuthenticatedRequest extends Request {
@@ -34,6 +35,7 @@ export class ZonasSegurasController {
   constructor(private readonly zonasSegurasService: ZonasSegurasService) {}
 
   @Post()
+  @ApiCreatedResponse({ type: ZonaSeguraRespuestaDto })
   create(
     @Req() request: AuthenticatedRequest,
     @Body() dto: CreateZonaSeguraDto,
@@ -43,6 +45,7 @@ export class ZonasSegurasController {
 
 
   @Get()
+  @ApiOkResponse({ type: [ZonaSeguraRespuestaDto] })
   findAll(
     @Req() request: AuthenticatedRequest,
     @Query('adultoId') adultoId?: string,
@@ -56,6 +59,7 @@ export class ZonasSegurasController {
   }
 
   @Get(':id')
+  @ApiOkResponse({ type: ZonaSeguraRespuestaDto })
   findOne(
     @Req() request: AuthenticatedRequest,
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -64,6 +68,7 @@ export class ZonasSegurasController {
   }
 
   @Patch(':id')
+  @ApiOkResponse({ type: ZonaSeguraRespuestaDto })
   update(
     @Req() request: AuthenticatedRequest,
     @Param('id', new ParseUUIDPipe()) id: string,

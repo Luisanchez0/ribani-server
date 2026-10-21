@@ -11,13 +11,14 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 
 import { JwtAuthGuard } from '../auth/gurads/jwt-auth.guard.js';
 
 import { CreateMedicamentoDto } from './dto/create-medicamento.dto.js';
 import { UpdateMedicamentoDto } from './dto/update-medicamento.dto.js';
+import { MedicamentoRespuestaDto } from './dto/medicamento-respuesta.dto.js';
 import { MedicamentosService } from './medicamentos.service.js';
 
 interface AuthenticatedRequest extends Request {
@@ -34,6 +35,7 @@ export class MedicamentosController {
   constructor(private readonly medicamentosService: MedicamentosService) {}
 
   @Post()
+  @ApiCreatedResponse({ type: MedicamentoRespuestaDto })
   create(
     @Req() request: AuthenticatedRequest,
     @Body() dto: CreateMedicamentoDto,
@@ -42,6 +44,7 @@ export class MedicamentosController {
   }
 
   @Get()
+  @ApiOkResponse({ type: [MedicamentoRespuestaDto] })
   findAll(
     @Req() request: AuthenticatedRequest,
     @Query('soloActivos') soloActivos?: string,
@@ -55,6 +58,7 @@ export class MedicamentosController {
   }
 
   @Get(':id')
+  @ApiOkResponse({ type: MedicamentoRespuestaDto })
   findOne(
     @Req() request: AuthenticatedRequest,
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -63,6 +67,7 @@ export class MedicamentosController {
   }
 
   @Patch(':id')
+  @ApiOkResponse({ type: MedicamentoRespuestaDto })
   update(
     @Req() request: AuthenticatedRequest,
     @Param('id', new ParseUUIDPipe()) id: string,

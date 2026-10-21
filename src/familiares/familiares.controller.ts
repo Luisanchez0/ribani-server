@@ -10,7 +10,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 
 import { JwtAuthGuard } from '../auth/gurads/jwt-auth.guard.js';
@@ -19,6 +19,10 @@ import { RequirePermissions } from '../authorization/decorators/permissions.deco
 
 import { CreateFamiliarDto } from './dto/create-familiar.dto.js';
 import { UpdateFamiliarDto } from './dto/update-familiar.dto.js';
+import {
+  AdultoVinculadoRespuestaDto,
+  VinculoFamiliarRespuestaDto,
+} from './dto/familiares-respuesta.dto.js';
 import { FamiliaresService } from './familiares.service.js';
 
 interface AuthenticatedRequest extends Request {
@@ -39,6 +43,7 @@ export class FamiliaresController {
 
   /** Vincular familiar con adulto mayor. */
   @Post()
+  @ApiCreatedResponse({ type: VinculoFamiliarRespuestaDto })
   @RequirePermissions('relaciones.administrar')
   create(@Body() dto: CreateFamiliarDto) {
     return this.familiaresService.create(dto);
@@ -46,23 +51,27 @@ export class FamiliaresController {
 
 
   @Get()
+  @ApiOkResponse({ type: [VinculoFamiliarRespuestaDto] })
   @RequirePermissions('relaciones.leer')
   findAll(@Req() request: AuthenticatedRequest) {
     return this.familiaresService.findAll(request.user.id, request.user.rol.codigo);
   }
 
   @Get('mis-adultos')
+  @ApiOkResponse({ type: [AdultoVinculadoRespuestaDto] })
   @RequirePermissions('relaciones.leer')
   misAdultos(@Req() request: AuthenticatedRequest) {
     return this.familiaresService.misAdultos(request.user.id);
   }
 
   @Get('mis-familiares')
+  @ApiOkResponse({ type: [VinculoFamiliarRespuestaDto] })
   misFamiliares(@Req() request: AuthenticatedRequest) {
     return this.familiaresService.misFamiliares(request.user.id);
   }
 
   @Get(':id')
+  @ApiOkResponse({ type: VinculoFamiliarRespuestaDto })
   @RequirePermissions('relaciones.leer')
   findOne(
     @Req() request: AuthenticatedRequest,
@@ -72,6 +81,7 @@ export class FamiliaresController {
   }
 
   @Patch(':id')
+  @ApiOkResponse({ type: VinculoFamiliarRespuestaDto })
   @RequirePermissions('relaciones.administrar')
   update(
     @Req() request: AuthenticatedRequest,
@@ -87,6 +97,7 @@ export class FamiliaresController {
   }
 
   @Delete(':id')
+  @ApiOkResponse({ type: VinculoFamiliarRespuestaDto })
   // El familiar del vínculo también puede revocarlo; la validación fina
   // (dueño del vínculo vs admin) vive en el service.
   @RequirePermissions('relaciones.leer')

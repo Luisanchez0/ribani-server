@@ -12,6 +12,11 @@ import { PrismaService } from '../prisma/prisma.service.js';
 
 import { CreateTomaDto } from './dto/create-toma.dto.js';
 import { UpdateTomaDto } from './dto/update-toma.dto.js';
+import {
+  ESTADOS_PENDIENTES,
+  MINUTOS_POSPONER,
+  recordarEn,
+} from './toma-pendiente.js';
 
 const SELECT_TOMA = {
   id: true,
@@ -28,7 +33,13 @@ const SELECT_TOMA = {
   updated_at: true,
 } as const;
 
-const ESTADOS_VALIDOS = ['PENDIENTE', 'TOMADA', 'OMITIDA'] as const;
+const ESTADOS_VALIDOS = [
+  'PENDIENTE',
+  'POSPUESTA',
+  'TOMADA',
+  'OMITIDA',
+  'CANCELADA',
+] as const;
 
 const DIAS_SEMANA: Record<string, number> = {
   Mon: 1,
@@ -239,7 +250,7 @@ export class TomasService {
       }
     }
 
-    return this.prisma.tomas_medicamento.create({
+    const creada = await this.prisma.tomas_medicamento.create({
       data: {
         medicamento_id: medicamento.id,
         adulto_id: medicamento.adulto_id,
@@ -249,12 +260,15 @@ export class TomasService {
       },
       select: SELECT_TOMA,
     });
+    return { ...creada, recordar_en: recordarEn(creada) };
   }
 
   private async obtenerAdultosAccesibles(usuarioId: string): Promise<string[]> {
     const vinculos = await this.prisma.adulto_familiares.findMany({
       where: {
         familiar_id: usuarioId,
+        estado: 'ACTIVA',
+        puede_gestionar_medicamentos: true,
       },
       select: {
         adulto_id: true,
@@ -276,6 +290,8 @@ export class TomasService {
       where: {
         adulto_id: adultoId,
         familiar_id: usuarioId,
+        estado: 'ACTIVA',
+        puede_gestionar_medicamentos: true,
       },
       select: { id: true },
     });
@@ -328,11 +344,16 @@ export class TomasService {
       ? [adultoId]
       : await this.obtenerAdultosAccesibles(usuarioId);
 
-    return this.prisma.tomas_medicamento.findMany({
+    const filas = await this.prisma.tomas_medicamento.findMany({
       where: {
         adulto_id: { in: adultosIds },
         ...(medicamentoId ? { medicamento_id: medicamentoId } : {}),
-        ...(estado ? { estado } : {}),
+        ...(estado
+          ? {
+              estado:
+                estado === 'PENDIENTE' ? { in: ESTADOS_PENDIENTES } : estado,
+            }
+          : {}),
         ...(desdeFecha || hastaFecha
           ? {
               programada_para: {
@@ -345,6 +366,7 @@ export class TomasService {
       select: SELECT_TOMA,
       orderBy: [{ programada_para: 'desc' }],
     });
+    return filas.map((t) => ({ ...t, recordar_en: recordarEn(t) }));
   }
 
   async findOne(usuarioId: string, id: string) {
@@ -360,13 +382,53 @@ export class TomasService {
     // La autorización depende del medicamento al que pertenece la toma.
     await this.resolverMedicamento(usuarioId, toma.medicamento_id);
 
-    return toma;
+    return { ...toma, recordar_en: recordarEn(toma) };
+  }
+
+  async posponer(usuarioId: string, id: string) {
+    const toma = await this.findOne(usuarioId, id);
+    if (toma.estado !== 'PENDIENTE')
+      throw new ConflictException(
+        'Solo puedes posponer una vez una toma pendiente.',
+      );
+    const medicamento = await this.resolverMedicamento(
+      usuarioId,
+      toma.medicamento_id,
+    );
+    if (!medicamento.activo)
+      throw new BadRequestException('El medicamento está inactivo.');
+    const horario = toma.horario_id
+      ? await this.prisma.horarios_medicamento.findUnique({
+          where: { id: toma.horario_id },
+          select: { ventana_minutos: true },
+        })
+      : null;
+    const ahora = new Date();
+    this.validarVentana(
+      horario?.ventana_minutos ?? 60,
+      toma.programada_para,
+      ahora,
+    );
+    this.validarVentana(
+      horario?.ventana_minutos ?? 60,
+      toma.programada_para,
+      new Date(ahora.getTime() + MINUTOS_POSPONER * MS_POR_MINUTO),
+    );
+    const r = await this.prisma.tomas_medicamento.updateMany({
+      where: { id, estado: 'PENDIENTE' },
+      data: { estado: 'POSPUESTA', updated_at: ahora },
+    });
+    if (r.count !== 1)
+      throw new ConflictException(
+        'La toma cambió mientras se intentaba posponer. Actualiza los datos.',
+      );
+    return this.findOne(usuarioId, id);
   }
 
   async update(usuarioId: string, id: string, dto: UpdateTomaDto) {
     const toma = await this.findOne(usuarioId, id);
 
-    if (toma.estado !== 'PENDIENTE') {
+    if (!ESTADOS_PENDIENTES.includes(toma.estado)) {
       throw new ConflictException(
         `La toma ya fue registrada con estado ${toma.estado} y no puede modificarse.`,
       );
@@ -374,14 +436,15 @@ export class TomasService {
 
     // Solo actualizar nota
     if (!dto.estado) {
-      return this.prisma.tomas_medicamento.update({
-        where: { id },
-        data: {
-          ...(dto.nota !== undefined ? { nota: dto.nota?.trim() || null } : {}),
-          updated_at: new Date(),
-        },
-        select: SELECT_TOMA,
+      if (toma.estado === 'POSPUESTA')
+        throw new ConflictException(
+          'Registra la toma antes de editar su nota; el aplazamiento conserva su hora.',
+        );
+      await this.actualizarPendiente(id, toma.estado, {
+        ...(dto.nota !== undefined ? { nota: dto.nota?.trim() || null } : {}),
+        updated_at: new Date(),
       });
+      return this.findOne(usuarioId, id);
     }
 
     const medicamento = await this.resolverMedicamento(
@@ -390,6 +453,10 @@ export class TomasService {
     );
 
     if (dto.estado === 'TOMADA') {
+      if (!medicamento.activo)
+        throw new BadRequestException(
+          'No puedes registrar una toma de un medicamento inactivo.',
+        );
       const tomadaEn = dto.tomada_en ? new Date(dto.tomada_en) : new Date();
 
       if (Number.isNaN(tomadaEn.getTime())) {
@@ -404,35 +471,46 @@ export class TomasService {
 
         // La ventana existe siempre (default 60), pero se verifica por si acaso.
         if (horario?.ventana_minutos != null) {
-          this.validarVentana(horario.ventana_minutos, toma.programada_para, tomadaEn);
+          this.validarVentana(
+            horario.ventana_minutos,
+            toma.programada_para,
+            tomadaEn,
+          );
         }
       }
 
-      return this.prisma.tomas_medicamento.update({
-        where: { id },
-        data: {
-          estado: 'TOMADA',
-          tomada_en: tomadaEn,
-          dosis_tomada: dto.dosis_tomada ?? medicamento.dosis,
-          registrada_por: usuarioId,
-          ...(dto.nota !== undefined ? { nota: dto.nota?.trim() || null } : {}),
-          updated_at: new Date(),
-        },
-        select: SELECT_TOMA,
-      });
-    }
-
-    // OMITIDA: se puede omitir en cualquier momento (sin ventana).
-    return this.prisma.tomas_medicamento.update({
-      where: { id },
-      data: {
-        estado: 'OMITIDA',
+      await this.actualizarPendiente(id, toma.estado, {
+        estado: 'TOMADA',
+        tomada_en: tomadaEn,
+        dosis_tomada: dto.dosis_tomada ?? medicamento.dosis,
         registrada_por: usuarioId,
         ...(dto.nota !== undefined ? { nota: dto.nota?.trim() || null } : {}),
         updated_at: new Date(),
-      },
-      select: SELECT_TOMA,
+      });
+      return this.findOne(usuarioId, id);
+    }
+
+    // OMITIDA: se puede omitir en cualquier momento (sin ventana).
+    await this.actualizarPendiente(id, toma.estado, {
+      estado: 'OMITIDA',
+      registrada_por: usuarioId,
+      ...(dto.nota !== undefined ? { nota: dto.nota?.trim() || null } : {}),
+      updated_at: new Date(),
     });
+    return this.findOne(usuarioId, id);
+  }
+
+  private async actualizarPendiente(
+    id: string,
+    estado: string,
+    data: Prisma.tomas_medicamentoUncheckedUpdateManyInput,
+  ) {
+    const r = await this.prisma.tomas_medicamento.updateMany({
+      where: { id, estado },
+      data,
+    });
+    if (r.count !== 1)
+      throw new ConflictException('La toma ya cambió. Actualiza los datos.');
   }
 
   /**

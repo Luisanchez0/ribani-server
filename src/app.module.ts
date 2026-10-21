@@ -19,6 +19,8 @@ import { AUDITORIA_INTERCEPTOR } from './auditoria/auditoria.interceptor.js';
 import { AuthorizationModule } from './authorization/authorization.module.js';
 import { MailModule } from './mail/mail.module.js';
 import { InvitacionesAbrirController } from './invitaciones-abrir.controller.js';
+import { WhatsappModule } from './whatsapp/whatsapp.module.js';
+import { ConfiguracionModule } from './configuracion/configuracion.module.js';
 
 
 @Module({
@@ -28,6 +30,8 @@ import { InvitacionesAbrirController } from './invitaciones-abrir.controller.js'
     AuthModule,
     AuthorizationModule,
     MailModule,
+    WhatsappModule,
+    ConfiguracionModule,
     ContactosModule,
     MedicamentosModule,
     HorariosModule,

@@ -1,0 +1,90 @@
+# Blueprint de Render para el backend RIBANI (ribani-server).
+#
+# Cómo usarlo:
+#   1. Commit de este archivo en el repo y conectar el repo en Render
+#      (Dashboard → "New +" → Blueprint). Render detecta render.yaml.
+#   2. Antes del primer deploy, en la página del Blueprint Render pedirá
+#      los valores de las variables marcadas con `sync: false`
+#      (credenciales/secretos: no se versionan nunca).
+#   3. Apunta Supabase como base de datos: copia las dos URLs de conexión
+#      de Supabase (pooler 6543 para DATABASE_URL y directa 5432 para
+#      DIRECT_URL). No hay migraciones en el deploy: la base ya está
+#      creada y poblada; `npm run build` solo hace `prisma generate`.
+#   4. Health check del servicio: GET / (HTTP 200).
+#
+# Nota sobre el plan: `free` se apaga tras inactividad (cron y SSE dejan
+# de funcionar mientras duerme). Para que el generador nocturno de tomas
+# y los workers funcionen siempre, usa un plan always-on (starter o más).
+
+services:
+  - type: web
+    name: ribani-server
+    runtime: node
+    plan: free
+    rootDir: ribani-server
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start:prod
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      # Versión de Node (Render no la deduce de los archivos del repo).
+      - key: NODE_VERSION
+        value: "24"
+      - key: PORT
+        value: "3000"
+      # Base de datos Supabase (copy desde el dashboard de Supabase).
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      # Firma JWT y duraciones en segundos.
+      - key: JWT_ACCESS_SECRET
+        sync: false
+      - key: JWT_ACCESS_EXPIRES_IN_SECONDS
+        value: "900"
+      - key: JWT_REFRESH_EXPIRES_IN_SECONDS
+        value: "604800"
+      # Cifrado AES-256-GCM de secretos TOTP (2FA), 32 bytes en base64url.
+      - key: TWO_FACTOR_ENCRYPTION_KEY
+        sync: false
+      # Correo transaccional (Resend). Obligatoria para iniciar MailModule.
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_TEMPLATE_INVITACION_ID
+        value: ""
+      - key: RESEND_TEMPLATE_BIENVENIDA_ID
+        value: ""
+      # Orígenes web permitidos (panel de ribani-web en Render). Setéalo
+      # al crear el servicio web; separa varios con coma.
+      - key: CORS_ORIGINS
+        sync: false
+      # WhatsApp apagado hasta tener cuenta Meta, número y plantillas.
+      # El worker y los recordatorios NO hacen nada mientras estén false.
+      - key: WHATSAPP_ENABLED
+        value: "false"
+      - key: WHATSAPP_WORKER_ENABLED
+        value: "false"
+      - key: WHATSAPP_REMINDERS_ENABLED
+        value: "false"
+      - key: WHATSAPP_ACCESS_TOKEN
+        value: ""
+      - key: WHATSAPP_PHONE_NUMBER_ID
+        value: ""
+      - key: WHATSAPP_BUSINESS_ACCOUNT_ID
+        value: ""
+      - key: WHATSAPP_API_VERSION
+        value: ""
+      - key: META_APP_SECRET
+        value: ""
+      - key: WHATSAPP_WEBHOOK_VERIFY_TOKEN
+        value: ""
+      - key: WHATSAPP_TEST_TEMPLATE
+        value: ""
+      - key: WHATSAPP_ALERT_TEMPLATE
+        value: ""
+      - key: WHATSAPP_REMINDER_TEMPLATE
+        value: ""
+      - key: WHATSAPP_TEMPLATE_LANGUAGE
+        value: "es_MX"
+      # La API no necesita secretos adicionales: el resto de la
+      # configuración ya vive en Supabase (roles, permisos, usuarios).

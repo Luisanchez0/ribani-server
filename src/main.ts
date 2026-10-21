@@ -1,10 +1,11 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { SwaggerModule } from '@nestjs/swagger';
+import { crearDocumentoOpenApi } from './openapi.js';
 
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { rawBody: true });
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -26,18 +27,7 @@ async function bootstrap(): Promise<void> {
     allowedHeaders: ['Authorization', 'Content-Type'],
   });
 
-  const config = new DocumentBuilder()
-    .setTitle('RIBANI API')
-    .setDescription(
-      'API del sistema RIBANI — cuidado de adultos mayores que viven solos.\n\n' +
-        'Autenticación: JWT Bearer. Haga login en POST /auth/login y use el ' +
-        'accessToken en el header "Authorization: Bearer <token>".',
-    )
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
-
-  const document = SwaggerModule.createDocument(app, config);
+  const document = crearDocumentoOpenApi(app);
   SwaggerModule.setup('api', app, document);
 
   await app.listen(process.env.PORT ?? 3000);
