@@ -1,3 +1,6 @@
+import { PermissionsGuard } from '../authorization/guards/permissions.guard.js';
+import { RequirePermissions } from '../authorization/decorators/permissions.decorator.js';
+import { ApiListQuery, ListQueryPipe, type ListQuery } from '../common/pipes/list-query.pipe.js';
 import {
   Body,
   Controller,
@@ -30,11 +33,12 @@ interface AuthenticatedRequest extends Request {
 @ApiTags('medicamentos')
 @ApiBearerAuth()
 @Controller('medicamentos')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class MedicamentosController {
   constructor(private readonly medicamentosService: MedicamentosService) {}
 
   @Post()
+  @RequirePermissions('medicamentos.crear')
   @ApiCreatedResponse({ type: MedicamentoRespuestaDto })
   create(
     @Req() request: AuthenticatedRequest,
@@ -43,21 +47,19 @@ export class MedicamentosController {
     return this.medicamentosService.create(request.user.id, dto);
   }
 
+  @ApiListQuery({ adultoId: 'uuid', soloActivos: 'boolean' })
   @Get()
+  @RequirePermissions('medicamentos.leer')
   @ApiOkResponse({ type: [MedicamentoRespuestaDto] })
   findAll(
     @Req() request: AuthenticatedRequest,
-    @Query('soloActivos') soloActivos?: string,
-    @Query('adultoId') adultoId?: string,
+    @Query(new ListQueryPipe({ adultoId: 'uuid', soloActivos: 'boolean' })) query: ListQuery,
   ) {
-    const soloActivosFlag = soloActivos !== 'false';
-    return this.medicamentosService.findAll(request.user.id, {
-      adultoId,
-      soloActivos: soloActivosFlag,
-    });
+    return this.medicamentosService.findAll(request.user.id, { adultoId: query.adultoId, soloActivos: query.soloActivos ?? true, limite: query.limite });
   }
 
   @Get(':id')
+  @RequirePermissions('medicamentos.leer')
   @ApiOkResponse({ type: MedicamentoRespuestaDto })
   findOne(
     @Req() request: AuthenticatedRequest,
@@ -67,6 +69,7 @@ export class MedicamentosController {
   }
 
   @Patch(':id')
+  @RequirePermissions('medicamentos.actualizar')
   @ApiOkResponse({ type: MedicamentoRespuestaDto })
   update(
     @Req() request: AuthenticatedRequest,
@@ -77,6 +80,7 @@ export class MedicamentosController {
   }
 
   @Delete(':id')
+  @RequirePermissions('medicamentos.actualizar')
   remove(
     @Req() request: AuthenticatedRequest,
     @Param('id', new ParseUUIDPipe()) id: string,

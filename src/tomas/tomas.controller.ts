@@ -1,3 +1,6 @@
+import { PermissionsGuard } from '../authorization/guards/permissions.guard.js';
+import { RequirePermissions } from '../authorization/decorators/permissions.decorator.js';
+import { ApiListQuery, ListQueryPipe, type ListQuery } from '../common/pipes/list-query.pipe.js';
 import {
   Body,
   Controller,
@@ -35,36 +38,30 @@ interface AuthenticatedRequest extends Request {
 @ApiTags('tomas')
 @ApiBearerAuth()
 @Controller('tomas')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class TomasController {
   constructor(private readonly tomasService: TomasService) {}
 
   @Post()
+  @RequirePermissions('tomas.actualizar')
   @ApiCreatedResponse({ type: TomaRespuestaDto })
   create(@Req() request: AuthenticatedRequest, @Body() dto: CreateTomaDto) {
     return this.tomasService.create(request.user.id, dto);
   }
 
+  @ApiListQuery({ adultoId: 'uuid', medicamentoId: 'uuid', estado: ['PENDIENTE', 'POSPUESTA', 'TOMADA', 'OMITIDA', 'CANCELADA'], desde: 'date', hasta: 'date', incluirCanceladas: 'boolean' })
   @Get()
+  @RequirePermissions('tomas.leer')
   @ApiOkResponse({ type: [TomaRespuestaDto] })
   findAll(
     @Req() request: AuthenticatedRequest,
-    @Query('adultoId') adultoId?: string,
-    @Query('medicamentoId') medicamentoId?: string,
-    @Query('estado') estado?: string,
-    @Query('desde') desde?: string,
-    @Query('hasta') hasta?: string,
+    @Query(new ListQueryPipe({ adultoId: 'uuid', medicamentoId: 'uuid', estado: ['PENDIENTE', 'POSPUESTA', 'TOMADA', 'OMITIDA', 'CANCELADA'], desde: 'date', hasta: 'date', incluirCanceladas: 'boolean' })) query: ListQuery,
   ) {
-    return this.tomasService.findAll(request.user.id, {
-      adultoId,
-      medicamentoId,
-      estado,
-      desde,
-      hasta,
-    });
+    return this.tomasService.findAll(request.user.id, query);
   }
 
   @Get(':id')
+  @RequirePermissions('tomas.leer')
   @ApiOkResponse({ type: TomaRespuestaDto })
   findOne(
     @Req() request: AuthenticatedRequest,
@@ -74,6 +71,7 @@ export class TomasController {
   }
 
   @Patch(':id')
+  @RequirePermissions('tomas.actualizar')
   @ApiOkResponse({ type: TomaRespuestaDto })
   update(
     @Req() request: AuthenticatedRequest,
@@ -83,8 +81,13 @@ export class TomasController {
     return this.tomasService.update(request.user.id, id, dto);
   }
 
+  /**
+   * Baja lógica del historial: la toma pasa a CANCELADA y deja de listarse.
+   * La fila se conserva para auditoría.
+   */
   @Delete(':id')
-  // Conserva el contrato de baja existente; POSPUESTA se registra, no se borra.
+  @RequirePermissions('tomas.actualizar')
+  @ApiOkResponse({ description: 'Toma eliminada del historial (baja lógica).' })
   remove(
     @Req() request: AuthenticatedRequest,
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -93,6 +96,7 @@ export class TomasController {
   }
 
   @Post(':id/posponer')
+  @RequirePermissions('tomas.actualizar')
   @ApiCreatedResponse({
     type: TomaRespuestaDto,
     description: 'Una vez, diez minutos, dentro de la ventana original.',

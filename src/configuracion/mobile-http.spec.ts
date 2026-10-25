@@ -30,6 +30,7 @@ describe('Contratos móviles y validación HTTP', () => {
         canActivate(c: ExecutionContext) {
           c.switchToHttp().getRequest<{ user?: unknown }>().user = {
             id: 'propio',
+            permisos: ['tomas.actualizar'],
           };
           return true;
         },

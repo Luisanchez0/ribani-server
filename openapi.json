@@ -805,6 +805,117 @@
         ]
       }
     },
+    "/auth/web/login": {
+      "post": {
+        "operationId": "WebAuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/TokensWebRespuestaDto"
+                    },
+                    {
+                      "$ref": "#/components/schemas/DesafioDosPasosDto"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth-web"
+        ]
+      }
+    },
+    "/auth/web/2fa/login": {
+      "post": {
+        "operationId": "WebAuthController_loginWithTwoFactor",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TwoFactorLoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokensWebRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth-web"
+        ]
+      }
+    },
+    "/auth/web/refresh": {
+      "post": {
+        "operationId": "WebAuthController_refresh",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokensWebRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth-web"
+        ]
+      }
+    },
+    "/auth/web/logout": {
+      "post": {
+        "operationId": "WebAuthController_logout",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MensajeRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth-web"
+        ]
+      }
+    },
     "/whatsapp/integracion": {
       "get": {
         "operationId": "WhatsappController_integracion",
@@ -1213,7 +1324,19 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "boolean",
+              "default": true
+            }
+          },
+          {
+            "name": "limite",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 100
             }
           }
         ],
@@ -1385,19 +1508,32 @@
         "operationId": "MedicamentosController_findAll",
         "parameters": [
           {
-            "name": "soloActivos",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "adultoId",
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "soloActivos",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          {
+            "name": "limite",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 100
             }
           }
         ],
@@ -1539,7 +1675,8 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           },
           {
@@ -1547,7 +1684,8 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           },
           {
@@ -1555,7 +1693,19 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "boolean",
+              "default": true
+            }
+          },
+          {
+            "name": "limite",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 100
             }
           }
         ],
@@ -1644,7 +1794,19 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "boolean",
+              "default": true
+            }
+          },
+          {
+            "name": "limite",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 100
             }
           }
         ],
@@ -1844,7 +2006,8 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           },
           {
@@ -1852,7 +2015,8 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           },
           {
@@ -1860,7 +2024,14 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "PENDIENTE",
+                "POSPUESTA",
+                "TOMADA",
+                "OMITIDA",
+                "CANCELADA"
+              ]
             }
           },
           {
@@ -1868,7 +2039,8 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "description": "Fecha ISO 8601 válida; desde debe ser anterior o igual a hasta."
             }
           },
           {
@@ -1876,7 +2048,28 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "description": "Fecha ISO 8601 válida; desde debe ser anterior o igual a hasta."
+            }
+          },
+          {
+            "name": "incluirCanceladas",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          {
+            "name": "limite",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 100
             }
           }
         ],
@@ -1996,7 +2189,7 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Toma eliminada del historial (baja lógica)."
           }
         },
         "security": [
@@ -2081,7 +2274,19 @@
       },
       "get": {
         "operationId": "FamiliaresController_findAll",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "limite",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 100
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -2110,7 +2315,19 @@
     "/familiares/mis-adultos": {
       "get": {
         "operationId": "FamiliaresController_misAdultos",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "limite",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 100
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -2139,7 +2356,19 @@
     "/familiares/mis-familiares": {
       "get": {
         "operationId": "FamiliaresController_misFamiliares",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "limite",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 100
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -2490,7 +2719,8 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           },
           {
@@ -2498,7 +2728,19 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "boolean",
+              "default": true
+            }
+          },
+          {
+            "name": "limite",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 100
             }
           }
         ],
@@ -2618,7 +2860,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2703,6 +2952,35 @@
         ]
       }
     },
+    "/ubicaciones/ultimas": {
+      "get": {
+        "operationId": "UbicacionesController_ultimas",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UbicacionAdultoResumenDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "ubicaciones"
+        ]
+      }
+    },
     "/ubicaciones/actual": {
       "get": {
         "operationId": "UbicacionesController_actual",
@@ -2744,10 +3022,11 @@
         "parameters": [
           {
             "name": "adultoId",
-            "required": true,
+            "required": false,
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           },
           {
@@ -2755,7 +3034,8 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "description": "Fecha ISO 8601 válida; desde debe ser anterior o igual a hasta."
             }
           },
           {
@@ -2763,7 +3043,8 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "description": "Fecha ISO 8601 válida; desde debe ser anterior o igual a hasta."
             }
           },
           {
@@ -2771,7 +3052,10 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 100
             }
           }
         ],
@@ -2878,7 +3162,8 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           },
           {
@@ -2886,7 +3171,22 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "ABIERTA",
+                "EN_ATENCION",
+                "RESUELTA",
+                "CANCELADA"
+              ]
+            }
+          },
+          {
+            "name": "incluirCanceladas",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": true
             }
           },
           {
@@ -2894,7 +3194,10 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 100
             }
           }
         ],
@@ -3018,6 +3321,39 @@
           "alertas"
         ]
       },
+      "delete": {
+        "operationId": "AlertasController_eliminar",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Alerta eliminada del historial (baja lógica).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertaRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "alertas"
+        ]
+      },
       "patch": {
         "operationId": "AlertasController_actualizar",
         "parameters": [
@@ -3105,7 +3441,8 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           },
           {
@@ -3113,7 +3450,19 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "boolean",
+              "default": true
+            }
+          },
+          {
+            "name": "limite",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 100
             }
           }
         ],
@@ -3504,7 +3853,8 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           },
           {
@@ -3512,7 +3862,8 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "maxLength": 200
             }
           },
           {
@@ -3520,7 +3871,8 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "maxLength": 200
             }
           },
           {
@@ -3528,7 +3880,8 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "maxLength": 200
             }
           },
           {
@@ -3536,7 +3889,8 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "description": "Fecha ISO 8601 válida; desde debe ser anterior o igual a hasta."
             }
           },
           {
@@ -3544,7 +3898,8 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "description": "Fecha ISO 8601 válida; desde debe ser anterior o igual a hasta."
             }
           },
           {
@@ -3552,7 +3907,10 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50
             }
           }
         ],
@@ -3628,6 +3986,10 @@
             "nullable": true,
             "format": "date-time"
           },
+          "two_factor_enabled": {
+            "type": "boolean",
+            "description": "Segundo factor TOTP activo; nunca expone el secreto."
+          },
           "activo": {
             "type": "boolean"
           },
@@ -3653,6 +4015,7 @@
           "email",
           "telefono",
           "email_verificado_en",
+          "two_factor_enabled",
           "activo",
           "ultimo_acceso_en",
           "created_at",
@@ -4222,6 +4585,32 @@
           "rol",
           "permisos",
           "ultimoAcceso"
+        ]
+      },
+      "TokensWebRespuestaDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "tokenType": {
+            "type": "string",
+            "enum": [
+              "Bearer"
+            ]
+          },
+          "expiresIn": {
+            "type": "number"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UsuarioSesionDto"
+          }
+        },
+        "required": [
+          "accessToken",
+          "tokenType",
+          "expiresIn",
+          "user"
         ]
       },
       "IntegracionWhatsappDto": {
@@ -5729,6 +6118,53 @@
         "required": [
           "insertados",
           "ultima_reporte"
+        ]
+      },
+      "UbicacionAdultoResumenDto": {
+        "type": "object",
+        "properties": {
+          "adulto_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "apellido": {
+            "type": "string"
+          },
+          "latitud": {
+            "type": "number"
+          },
+          "longitud": {
+            "type": "number"
+          },
+          "precision_metros": {
+            "type": "number",
+            "nullable": true
+          },
+          "fuente": {
+            "type": "string",
+            "enum": [
+              "GPS",
+              "RED",
+              "MANUAL",
+              "OTRA"
+            ]
+          },
+          "registrada_en": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "adulto_id",
+          "nombre",
+          "apellido",
+          "latitud",
+          "longitud",
+          "fuente",
+          "registrada_en"
         ]
       },
       "CreateAlertaDto": {

@@ -32,6 +32,10 @@ services:
         value: "24"
       - key: PORT
         value: "3000"
+      - key: NODE_ENV
+        value: "production"
+      - key: TRUST_PROXY_HOPS
+        value: "1"
       # Base de datos Supabase (copy desde el dashboard de Supabase).
       - key: DATABASE_URL
         sync: false

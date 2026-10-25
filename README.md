@@ -6,6 +6,9 @@ La consumen la aplicación Android y `ribani-web`.
 NestJS 12, TypeScript, Prisma 7.10, PostgreSQL en Supabase, JWT, TOTP 2FA y npm.
 La autorización y la lógica de negocio pertenecen al backend.
 
+Las correcciones de autenticación, cookies, permisos, auditoría y configuración
+HTTP local/HTTPS Render están documentadas en [Seguridad](docs/seguridad.md).
+
 ## Preparación
 
 Usar Node 24 LTS y npm. Desde `ribani-server`:
@@ -102,15 +105,36 @@ Después de exportar, ejecutar `npm run api:types` en `ribani-web`, sustituir lo
 tipos HTTP manuales de los dominios documentados y comprobar TypeScript.
 Nunca editar manualmente `src/types/api.d.ts`.
 
+## Historial y supervisión
+
+`DELETE /tomas/:id` y `DELETE /alertas/:id` son bajas lógicas: la fila pasa a
+`CANCELADA`, se conserva para auditoría y desaparece de los listados por defecto.
+`GET /tomas` y `GET /alertas` aceptan `incluirCanceladas=true` para volver a
+verlas. Ambas bajas cancelan las notificaciones WhatsApp pendientes del registro;
+`DELETE /tomas/:id` ya no se limita a las tomas `PENDIENTE`.
+
+`GET /ubicaciones/ultimas` devuelve la última ubicación de todos los adultos
+activos en una sola consulta y exige `ubicaciones.leer` más rol `ADMINISTRADOR`:
+es el mapa completo del panel sin pedir `/ubicaciones/actual` adulto por adulto.
+
+No se añadieron permisos ni migraciones: se reutilizan `tomas.actualizar` y
+`alertas.actualizar`, y el estado `CANCELADA` que ya permiten las restricciones
+de Supabase. Contrato, parámetros y ejemplos en [endpoints de historial](docs/api.md).
+
 ## Estado de verificación
 
-Verificado con Node 22.23.2 y npm 12.1.0:
+Revisión de seguridad verificada con Node 24.22.1:
 
-- `npm test`: 101 pruebas aprobadas (30 del flujo WhatsApp).
-- `npm run lint`: código de salida 0, con 11 advertencias previas no bloqueantes.
-- `npm run openapi:export`: build, generación Prisma y exportación aprobados.
-- `npm run start:dev`: compilación sin errores y aplicación iniciada.
-- `GET /api-json`: HTTP 200.
+- Backend: 221 pruebas aprobadas con Vitest, incluidos tests HTTP con BD simulada.
+- Web: 27 pruebas aprobadas; TypeScript, ESLint y build correctos.
+- TypeScript del backend y lint: salida 0; quedan advertencias previas.
+- Prisma 7.10: esquema válido y cliente generado sin cambios de esquema.
+- Compilación Nest, exportación OpenAPI y tipos web regenerados correctamente.
+- Conexión a Supabase verificada con TLS 1.3 y certificado autorizado.
+
+Se ejecutaron las herramientas de los scripts con el runtime Node disponible.
+No se inició el backend completo ni se ejecutó el seed durante esta revisión,
+para evitar que cron, workers o pruebas alterasen datos reales.
 
 No se ejecutaron las pruebas e2e heredadas contra la base real. Los flujos con
 cuentas reales siguen requiriendo comprobación en navegador antes de desplegar.

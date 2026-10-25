@@ -1,6 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-/** Proyección pública utilizada por usuarios y perfil; excluye hashes y 2FA. */
+/**
+ * Proyección pública utilizada por usuarios y perfil; excluye hashes y el
+ * secreto TOTP. Solo expone si el 2FA está activo (columna del panel admin).
+ */
 export class UsuarioRespuestaDto {
   @ApiProperty({ format: 'uuid' }) id!: string;
   @ApiProperty() rol_id!: number;
@@ -9,6 +12,7 @@ export class UsuarioRespuestaDto {
   @ApiProperty({ format: 'email' }) email!: string;
   @ApiProperty({ type: String, nullable: true }) telefono!: string | null;
   @ApiProperty({ type: String, format: 'date-time', nullable: true }) email_verificado_en!: string | null;
+  @ApiProperty({ description: 'Segundo factor TOTP activo; nunca expone el secreto.' }) two_factor_enabled!: boolean;
   @ApiProperty() activo!: boolean;
   @ApiProperty({ type: String, format: 'date-time', nullable: true }) ultimo_acceso_en!: string | null;
   @ApiProperty({ format: 'date-time' }) created_at!: string;

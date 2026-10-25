@@ -1,3 +1,4 @@
+import { ApiListQuery, ListQueryPipe, type ListQuery } from '../common/pipes/list-query.pipe.js';
 import {
   Body,
   Controller,
@@ -43,14 +44,14 @@ export class ContactosController {
     return this.contactosService.create(request.user.id, dto);
   }
 
+  @ApiListQuery({ soloActivos: 'boolean' })
   @Get()
   @ApiOkResponse({ type: [ContactoRespuestaDto] })
   findAll(
     @Req() request: AuthenticatedRequest,
-    @Query('soloActivos') soloActivos?: string,
+    @Query(new ListQueryPipe({ soloActivos: 'boolean' })) query: ListQuery,
   ) {
-    const soloActivosFlag = soloActivos !== 'false';
-    return this.contactosService.findAll(request.user.id, soloActivosFlag);
+    return this.contactosService.findAll(request.user.id, query.soloActivos ?? true, query.limite);
   }
 
   @Get(':id')

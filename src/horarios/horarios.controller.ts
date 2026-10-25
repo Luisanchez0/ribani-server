@@ -1,3 +1,6 @@
+import { PermissionsGuard } from '../authorization/guards/permissions.guard.js';
+import { RequirePermissions } from '../authorization/decorators/permissions.decorator.js';
+import { ApiListQuery, ListQueryPipe, type ListQuery } from '../common/pipes/list-query.pipe.js';
 import {
   Body,
   Controller,
@@ -30,7 +33,7 @@ interface AuthenticatedRequest extends Request {
 @ApiTags('horarios')
 @ApiBearerAuth()
 @Controller('horarios')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class HorariosListaController {
   constructor(private readonly horariosService: HorariosService) {}
 
@@ -41,25 +44,19 @@ export class HorariosListaController {
    *
    * GET /horarios?adultoId=&medicamentoId=&soloActivos=true
    */
+  @ApiListQuery({ adultoId: 'uuid', medicamentoId: 'uuid', soloActivos: 'boolean' })
   @Get()
+  @RequirePermissions('medicamentos.leer')
   @ApiOkResponse({ type: [HorarioRespuestaDto] })
   findAll(
     @Req() request: AuthenticatedRequest,
-    @Query('adultoId') adultoId?: string,
-    @Query('medicamentoId') medicamentoId?: string,
-    @Query('soloActivos') soloActivos?: string,
+    @Query(new ListQueryPipe({ adultoId: 'uuid', medicamentoId: 'uuid', soloActivos: 'boolean' })) query: ListQuery,
   ) {
-    const soloActivosFlag = soloActivos !== 'false';
-
-    const medicamentoIdFiltrado =
-      medicamentoId == null || medicamentoId === ''
-        ? undefined
-        : medicamentoId;
-
     return this.horariosService.findAllDelUsuario(request.user.id, {
-      adultoId: adultoId || undefined,
-      medicamentoId: medicamentoIdFiltrado,
-      soloActivos: soloActivosFlag,
+      adultoId: query.adultoId,
+      medicamentoId: query.medicamentoId,
+      soloActivos: query.soloActivos ?? true,
+      limite: query.limite,
     });
   }
 }
@@ -67,11 +64,12 @@ export class HorariosListaController {
 @ApiTags('horarios')
 @ApiBearerAuth()
 @Controller('medicamentos/:medicamentoId/horarios')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class HorariosController {
   constructor(private readonly horariosService: HorariosService) {}
 
   @Post()
+  @RequirePermissions('medicamentos.crear')
   @ApiCreatedResponse({ type: HorarioRespuestaDto })
   create(
     @Req() request: AuthenticatedRequest,
@@ -81,22 +79,25 @@ export class HorariosController {
     return this.horariosService.create(request.user.id, medicamentoId, dto);
   }
 
+  @ApiListQuery({ soloActivos: 'boolean' })
   @Get()
+  @RequirePermissions('medicamentos.leer')
   @ApiOkResponse({ type: [HorarioRespuestaDto] })
   findAll(
     @Req() request: AuthenticatedRequest,
     @Param('medicamentoId', new ParseUUIDPipe()) medicamentoId: string,
-    @Query('soloActivos') soloActivos?: string,
+    @Query(new ListQueryPipe({ soloActivos: 'boolean' })) query: ListQuery,
   ) {
-    const soloActivosFlag = soloActivos !== 'false';
     return this.horariosService.findAll(
       request.user.id,
       medicamentoId,
-      soloActivosFlag,
+      query.soloActivos ?? true,
+      query.limite,
     );
   }
 
   @Get(':id')
+  @RequirePermissions('medicamentos.leer')
   @ApiOkResponse({ type: HorarioRespuestaDto })
   findOne(
     @Req() request: AuthenticatedRequest,
@@ -107,6 +108,7 @@ export class HorariosController {
   }
 
   @Patch(':id')
+  @RequirePermissions('medicamentos.actualizar')
   @ApiOkResponse({ type: HorarioRespuestaDto })
   update(
     @Req() request: AuthenticatedRequest,
@@ -123,6 +125,7 @@ export class HorariosController {
   }
 
   @Delete(':id')
+  @RequirePermissions('medicamentos.actualizar')
   remove(
     @Req() request: AuthenticatedRequest,
     @Param('medicamentoId', new ParseUUIDPipe()) medicamentoId: string,

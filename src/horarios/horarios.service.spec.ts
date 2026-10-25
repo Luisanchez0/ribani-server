@@ -51,24 +51,49 @@ describe('HorariosService.findAllDelUsuario', () => {
     );
   });
 
-  it('devuelve horarios planos con adulto_id, medicamento y hora HH:MM', async () => {
-    prismaMock.medicamentos.findMany.mockResolvedValue([
-      {
+  it('limita las filas de horarios consultadas sin expandir medicamentos anidados', async () => {
+    const filas = ['h-1', 'h-2', 'h-3'].map((id) => ({
+      id,
+      medicamento_id: MEDICAMENTO_ID,
+      hora_local: new Date('1970-01-01T08:30:00Z'),
+      medicamentos: {
         id: MEDICAMENTO_ID,
         adulto_id: ADULTO_ID,
         nombre: 'Enalapril',
-        horarios_medicamento: [
-          {
-            id: 'h-1',
-            medicamento_id: MEDICAMENTO_ID,
-            hora_local: new Date('1970-01-01T08:30:00Z'),
-            dias_semana: [1, 2],
-            intervalo_minutos: 0,
-            ventana_minutos: 60,
-            activo: true,
-            created_at: new Date('2026-01-01T00:00:00Z'),
-          },
-        ],
+      },
+    }));
+    prismaMock.horarios_medicamento.findMany.mockImplementation(
+      async ({ take }) => filas.slice(0, take),
+    );
+    const resultado = await service.findAllDelUsuario(USUARIO_ID, {
+      soloActivos: true,
+      limite: 2,
+    });
+    expect(resultado).toHaveLength(2);
+    expect(resultado[0]).toMatchObject({
+      id: 'h-1',
+      medicamento_nombre: 'Enalapril',
+      adulto_id: ADULTO_ID,
+    });
+    expect(prismaMock.medicamentos.findMany).not.toHaveBeenCalled();
+  });
+
+  it('devuelve horarios planos con adulto_id, medicamento y hora HH:MM', async () => {
+    prismaMock.horarios_medicamento.findMany.mockResolvedValue([
+      {
+        id: 'h-1',
+        medicamento_id: MEDICAMENTO_ID,
+        hora_local: new Date('1970-01-01T08:30:00Z'),
+        dias_semana: [1, 2],
+        intervalo_minutos: 0,
+        ventana_minutos: 60,
+        activo: true,
+        created_at: new Date('2026-01-01T00:00:00Z'),
+        medicamentos: {
+          id: MEDICAMENTO_ID,
+          adulto_id: ADULTO_ID,
+          nombre: 'Enalapril',
+        },
       },
     ]);
 
@@ -87,9 +112,10 @@ describe('HorariosService.findAllDelUsuario', () => {
       }),
     ]);
 
-    const where = prismaMock.medicamentos.findMany.mock.calls[0][0].where;
-    expect(where.adulto_id).toEqual({ in: [ADULTO_ID] });
-    expect(where.horarios_medicamento).toEqual({ some: { activo: true } });
+    const where =
+      prismaMock.horarios_medicamento.findMany.mock.calls[0][0].where;
+    expect(where.medicamentos.adulto_id).toEqual({ in: [ADULTO_ID] });
+    expect(where.activo).toBe(true);
   });
 
   it('filtra por adultoId y lanza 403 si el usuario no tiene acceso', async () => {
@@ -97,7 +123,10 @@ describe('HorariosService.findAllDelUsuario', () => {
 
     const ajeno = 'adulto-ajeno';
     await expect(
-      service.findAllDelUsuario(USUARIO_ID, { soloActivos: false, adultoId: ajeno }),
+      service.findAllDelUsuario(USUARIO_ID, {
+        soloActivos: false,
+        adultoId: ajeno,
+      }),
     ).rejects.toMatchObject({
       constructor: ForbiddenException,
     });
@@ -145,8 +174,9 @@ describe('HorariosService.findAllDelUsuario', () => {
       MEDICAMENTO_ID,
     );
 
-    const where = prismaMock.medicamentos.findMany.mock.calls[0][0].where;
-    expect(where.id).toBe(MEDICAMENTO_ID);
+    const where =
+      prismaMock.horarios_medicamento.findMany.mock.calls[0][0].where;
+    expect(where.medicamentos.id).toBe(MEDICAMENTO_ID);
     // Con medicamentoId explícito no se consultan los adultos accesibles.
     expect(medicamentosMock.obtenerAdultosAccesibles).not.toHaveBeenCalled();
   });

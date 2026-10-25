@@ -1,13 +1,11 @@
+import { ApiListQuery, ListQueryPipe, type ListQuery } from '../common/pipes/list-query.pipe.js';
 import {
   Controller,
   Get,
   Query,
-  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { ParseUUIDPipe } from '@nestjs/common';
-import type { Request } from 'express';
 
 import { JwtAuthGuard } from '../auth/gurads/jwt-auth.guard.js';
 import { PermissionsGuard } from '../authorization/guards/permissions.guard.js';
@@ -24,26 +22,13 @@ export class AuditoriaController {
   constructor(private readonly auditoriaService: AuditoriaService) {}
 
 
+  @ApiListQuery({ actorId: 'uuid', entidad: 'text', entidadId: 'text', accion: 'text', desde: 'date', hasta: 'date' }, 200, 50)
   @Get()
   @ApiOkResponse({ type: [EventoAuditoriaRespuestaDto] })
   @RequirePermissions('auditoria.leer')
   listar(
-    @Query('actorId', new ParseUUIDPipe({ optional: true })) actorId?: string,
-    @Query('entidad') entidad?: string,
-    @Query('entidadId') entidadId?: string,
-    @Query('accion') accion?: string,
-    @Query('desde') desde?: string,
-    @Query('hasta') hasta?: string,
-    @Query('limite') limite?: string,
+    @Query(new ListQueryPipe({ actorId: 'uuid', entidad: 'text', entidadId: 'text', accion: 'text', desde: 'date', hasta: 'date' }, 200, 50)) query: ListQuery,
   ) {
-    return this.auditoriaService.listar({
-      actorId,
-      entidad,
-      entidadId,
-      accion,
-      desde,
-      hasta,
-      limite: limite ? Number(limite) : undefined,
-    });
+    return this.auditoriaService.listar(query);
   }
 }

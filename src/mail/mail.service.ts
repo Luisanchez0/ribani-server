@@ -1,16 +1,15 @@
 import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
 import { Resend } from 'resend';
 
-const REMITENTE = 'Invitaciones RIBANI <onboarding@resend.dev>';
+
+const REMITENTE = 'Invitaciones RIBANI <notifications@ribani.lat>';
 
 
 
 const PLANTILLA_INVITACION_ID =
-  process.env.RESEND_TEMPLATE_INVITACION_ID ||
-  'ee11cd7e-48f3-4598-801d-f22cc34a5cba'; // supervisor-invitation
+  process.env.RESEND_TEMPLATE_INVITACION_ID; // supervisor-invitation
 const PLANTILLA_BIENVENIDA_ID =
-  process.env.RESEND_TEMPLATE_BIENVENIDA_ID ||
-  'a0d77949-f31b-4b29-80fe-6934e3153f9a'; // welcome-email
+  process.env.RESEND_TEMPLATE_BIENVENIDA_ID; // welcome-email
 // Opcional: id de la plantilla "reset-password" en Resend; si no existe
 // se usa el HTML inline con el código (el flujo funciona igual).
 
@@ -199,10 +198,16 @@ export class MailService {
         from: REMITENTE,
         to: [emailAdulto],
         subject: 'Bienvenido a RIBANI',
-        template: {
-          id: PLANTILLA_BIENVENIDA_ID,
-          variables: { name: nombre },
-        },
+        ...(PLANTILLA_BIENVENIDA_ID
+          ? {
+              template: {
+                id: PLANTILLA_BIENVENIDA_ID,
+                variables: { name: nombre },
+              },
+            }
+          : {
+              html: `<div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;"><h2>Hola ${nombre},</h2><p>Te damos la bienvenida a RIBANI.</p></div>`,
+            }),
       });
 
       if (error) {

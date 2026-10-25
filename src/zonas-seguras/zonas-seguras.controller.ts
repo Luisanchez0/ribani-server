@@ -1,3 +1,4 @@
+import { ApiListQuery, ListQueryPipe, type ListQuery } from '../common/pipes/list-query.pipe.js';
 import {
   Body,
   Controller,
@@ -44,17 +45,15 @@ export class ZonasSegurasController {
   }
 
 
+  @ApiListQuery({ adultoId: 'uuid', soloActivas: 'boolean' })
   @Get()
   @ApiOkResponse({ type: [ZonaSeguraRespuestaDto] })
   findAll(
     @Req() request: AuthenticatedRequest,
-    @Query('adultoId') adultoId?: string,
-    @Query('soloActivas') soloActivas?: string,
+    @Query(new ListQueryPipe({ adultoId: 'uuid', soloActivas: 'boolean' })) query: ListQuery,
   ) {
-    const soloActivasFlag = soloActivas !== 'false';
     return this.zonasSegurasService.findAll(request.user.id, {
-      adultoId,
-      soloActivas: soloActivasFlag,
+      adultoId: query.adultoId, soloActivas: query.soloActivas ?? true, limite: query.limite,
     });
   }
 

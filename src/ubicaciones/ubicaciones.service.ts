@@ -1,3 +1,4 @@
+import { sessionStream, type StreamIdentity } from '../auth/session-stream.js';
 import {
   BadRequestException,
   ForbiddenException,
@@ -122,6 +123,61 @@ export class UbicacionesService {
     }
 
     return this.serializar(ubicacion);
+  }
+
+  /**
+   * Última ubicación conocida de cada adulto mayor activo (panel admin).
+   * Una sola consulta con DISTINCT ON para pintar todos los marcadores.
+   * Solo administradores: el familiar sigue usando `ultima`/`historial`.
+   */
+  async ultimas(usuarioId: string) {
+    const usuario = await this.prisma.usuarios.findUnique({
+      where: { id: usuarioId },
+      select: { roles: { select: { codigo: true } } },
+    });
+
+    if (usuario?.roles.codigo !== 'ADMINISTRADOR') {
+      throw new ForbiddenException(
+        'Solo un administrador puede ver las ubicaciones de todos los adultos.',
+      );
+    }
+
+    const filas = await this.prisma.$queryRaw<
+      {
+        adulto_id: string;
+        nombre: string;
+        apellido: string;
+        latitud: unknown;
+        longitud: unknown;
+        precision_metros: unknown;
+        fuente: string;
+        registrada_en: Date;
+      }[]
+    >`
+      SELECT * FROM (
+        SELECT DISTINCT ON (u.adulto_id)
+          u.adulto_id, us.nombre, us.apellido, u.latitud, u.longitud,
+          u.precision_metros, u.fuente, u.registrada_en
+        FROM ubicaciones u
+        JOIN usuarios us ON us.id = u.adulto_id
+        JOIN roles r ON r.id = us.rol_id
+        WHERE r.codigo = 'ADULTO_MAYOR' AND us.activo
+        ORDER BY u.adulto_id, u.registrada_en DESC
+      ) ultimas
+      ORDER BY registrada_en DESC
+    `;
+
+    return filas.map((fila) => ({
+      adulto_id: fila.adulto_id,
+      nombre: fila.nombre,
+      apellido: fila.apellido,
+      latitud: Number(fila.latitud),
+      longitud: Number(fila.longitud),
+      precision_metros:
+        fila.precision_metros === null ? null : Number(fila.precision_metros),
+      fuente: fila.fuente,
+      registrada_en: fila.registrada_en,
+    }));
   }
 
   async historial(
@@ -253,7 +309,12 @@ export class UbicacionesService {
     };
   }
 
-  stream(usuarioId: string, adultoId: string): Observable<MessageEvent> {
+  stream(usuarioId: string, adultoId: string, identity: StreamIdentity) {
+    return sessionStream(this.streamCanal(usuarioId, adultoId), this.prisma, identity, 'ubicaciones.leer',
+      async () => this.verificarAcceso(usuarioId, adultoId));
+  }
+
+  private streamCanal(usuarioId: string, adultoId: string): Observable<MessageEvent> {
     const canal = this.obtenerOCrearCanal(adultoId);
 
     return new Observable<MessageEvent>((suscriptor) => {

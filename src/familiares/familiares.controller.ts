@@ -7,6 +7,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -24,6 +25,7 @@ import {
   VinculoFamiliarRespuestaDto,
 } from './dto/familiares-respuesta.dto.js';
 import { FamiliaresService } from './familiares.service.js';
+import { ApiListQuery, ListQueryPipe, type ListQuery } from '../common/pipes/list-query.pipe.js';
 
 interface AuthenticatedRequest extends Request {
   user: {
@@ -50,24 +52,27 @@ export class FamiliaresController {
   }
 
 
+  @ApiListQuery({})
   @Get()
   @ApiOkResponse({ type: [VinculoFamiliarRespuestaDto] })
   @RequirePermissions('relaciones.leer')
-  findAll(@Req() request: AuthenticatedRequest) {
-    return this.familiaresService.findAll(request.user.id, request.user.rol.codigo);
+  findAll(@Req() request: AuthenticatedRequest, @Query(new ListQueryPipe({})) query: ListQuery) {
+    return this.familiaresService.findAll(request.user.id, request.user.rol.codigo, query.limite);
   }
 
+  @ApiListQuery({})
   @Get('mis-adultos')
   @ApiOkResponse({ type: [AdultoVinculadoRespuestaDto] })
   @RequirePermissions('relaciones.leer')
-  misAdultos(@Req() request: AuthenticatedRequest) {
-    return this.familiaresService.misAdultos(request.user.id);
+  misAdultos(@Req() request: AuthenticatedRequest, @Query(new ListQueryPipe({})) query: ListQuery) {
+    return this.familiaresService.misAdultos(request.user.id, query.limite);
   }
 
+  @ApiListQuery({})
   @Get('mis-familiares')
   @ApiOkResponse({ type: [VinculoFamiliarRespuestaDto] })
-  misFamiliares(@Req() request: AuthenticatedRequest) {
-    return this.familiaresService.misFamiliares(request.user.id);
+  misFamiliares(@Req() request: AuthenticatedRequest, @Query(new ListQueryPipe({})) query: ListQuery) {
+    return this.familiaresService.misFamiliares(request.user.id, query.limite);
   }
 
   @Get(':id')

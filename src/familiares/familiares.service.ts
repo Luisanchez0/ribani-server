@@ -529,7 +529,7 @@ export class FamiliaresService {
   }
 
 
-  async findAll(usuarioId: string, rolCodigo: string) {
+  async findAll(usuarioId: string, rolCodigo: string, limite = 100) {
     const esAdmin = rolCodigo === 'ADMINISTRADOR';
 
     return this.prisma.adulto_familiares.findMany({
@@ -565,12 +565,13 @@ export class FamiliaresService {
             }
           : {}),
       },
+      take: limite,
       orderBy: [{ estado: 'asc' }, { created_at: 'desc' }],
     });
   }
 
 
-  async misAdultos(usuarioId: string) {
+  async misAdultos(usuarioId: string, limite = 100) {
     const usuario = await this.prisma.usuarios.findUnique({
       where: { id: usuarioId },
       select: { roles: { select: { codigo: true } } },
@@ -587,7 +588,8 @@ export class FamiliaresService {
           telefono: true,
           activo: true,
         },
-        orderBy: [{ nombre: 'asc' }, { apellido: 'asc' }],
+        take: limite,
+      orderBy: [{ nombre: 'asc' }, { apellido: 'asc' }],
       });
 
       return adultos.map((adulto) => ({
@@ -619,11 +621,12 @@ export class FamiliaresService {
           },
         },
       },
+      take: limite,
       orderBy: [{ estado: 'asc' }, { created_at: 'desc' }],
     });
   }
 
-  async invitacionesPendientes(adultoId: string) {
+  async invitacionesPendientes(adultoId: string, limite = 100) {
     return this.prisma.adulto_familiares.findMany({
       where: { adulto_id: adultoId, estado: 'PENDIENTE' },
       select: {
@@ -639,11 +642,12 @@ export class FamiliaresService {
           },
         },
       },
+      take: limite,
       orderBy: { created_at: 'desc' },
     });
   }
 
-  async misFamiliares(adultoId: string) {
+  async misFamiliares(adultoId: string, limite = 100) {
     return this.prisma.adulto_familiares.findMany({
       where: { adulto_id: adultoId },
       select: {
@@ -659,6 +663,7 @@ export class FamiliaresService {
           },
         },
       },
+      take: limite,
       orderBy: [{ estado: 'asc' }, { created_at: 'desc' }],
     });
   }

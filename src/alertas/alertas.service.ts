@@ -1,3 +1,4 @@
+import { sessionStream, type StreamIdentity } from '../auth/session-stream.js';
 import {
   BadRequestException,
   ConflictException,
@@ -128,7 +129,12 @@ export class AlertasService {
   async listar(
     usuarioId: string,
     esAdmin: boolean,
-    options: { adultoId?: string; estado?: string; limite?: number },
+    options: {
+      adultoId?: string;
+      estado?: string;
+      limite?: number;
+      incluirCanceladas?: boolean;
+    },
   ) {
     const { adultoId, estado, limite } = options;
     const limiteSeguro = Math.min(Math.max(limite ?? 100, 1), 500);
@@ -159,7 +165,13 @@ export class AlertasService {
     return this.prisma.alertas.findMany({
       where: {
         ...(adultos ? { adulto_id: { in: adultos } } : {}),
-        ...(estado ? { estado } : {}),
+        ...(estado
+          ? { estado }
+          : // Las alertas eliminadas del historial (CANCELADA) solo vuelven
+            // si el cliente las pide explícitamente con estado=CANCELADA.
+            options.incluirCanceladas
+            ? {}
+            : { estado: { not: 'CANCELADA' } }),
       },
       select: SELECT_ALERTA,
       orderBy: { ocurrida_en: 'desc' },
@@ -271,10 +283,86 @@ export class AlertasService {
   }
 
   /**
+   * Elimina la alerta del historial de forma lógica: pasa a CANCELADA, se
+   * cierra y se cancelan las notificaciones WhatsApp en cola. La fila y su
+   * bitácora se conservan para auditoría. Es idempotente.
+   */
+  async eliminar(usuarioId: string, esAdmin: boolean, alertaId: string) {
+    const alerta = await this.prisma.alertas.findUnique({
+      where: { id: alertaId },
+      select: {
+        id: true,
+        adulto_id: true,
+        estado: true,
+        atendida_por: true,
+      },
+    });
+
+    if (!alerta) {
+      throw new NotFoundException('Alerta no encontrada.');
+    }
+
+    await this.assertPuedeVer(usuarioId, esAdmin, alerta.adulto_id);
+
+    if (alerta.estado === 'CANCELADA') {
+      return this.prisma.alertas.findUniqueOrThrow({
+        where: { id: alertaId },
+        select: SELECT_ALERTA,
+      });
+    }
+
+    const ahora = new Date();
+    const [actualizada] = await this.prisma.$transaction([
+      this.prisma.alertas.update({
+        where: { id: alertaId },
+        data: {
+          estado: 'CANCELADA',
+          cerrada_en: ahora,
+          ...(alerta.atendida_por
+            ? {}
+            : { atendida_por: usuarioId, atendida_en: ahora }),
+        },
+        select: SELECT_ALERTA,
+      }),
+      this.prisma.notificaciones_whatsapp.updateMany({
+        where: {
+          alerta_id: alertaId,
+          estado: { in: ['EN_COLA', 'FALLIDA'] },
+          proveedor_message_id: null,
+        },
+        data: {
+          estado: 'CANCELADA',
+          siguiente_intento_en: null,
+          updated_at: ahora,
+        },
+      }),
+    ]);
+
+    await this.registrarEvento({
+      alertaId,
+      usuarioId,
+      evento: 'CANCELADA',
+      detalle: 'Alerta eliminada del historial por el usuario.',
+    });
+
+    this.emitir(
+      alerta.adulto_id,
+      actualizada as unknown as Record<string, unknown>,
+    );
+
+    return actualizada;
+  }
+
+  /**
    * Stream SSE en tiempo real: el panel se conecta una vez y recibe las
    * alertas abiertas del adulto y cada nueva alerta/cambio en vivo.
    */
-  stream(adultoId: string): Observable<MessageEvent> {
+  stream(adultoId: string, identity: StreamIdentity) {
+    return sessionStream(this.streamCanal(adultoId), this.prisma, identity, 'alertas.leer',
+      async (role) => this.verificarAcceso(identity.id, role === 'ADMINISTRADOR', adultoId));
+  }
+
+  private streamCanal(adultoId: string): Observable<MessageEvent> {
     const canal = this.obtenerOCrearCanal(adultoId);
 
     return new Observable<MessageEvent>((suscriptor) => {

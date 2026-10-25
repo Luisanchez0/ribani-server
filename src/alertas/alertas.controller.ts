@@ -1,6 +1,8 @@
+import { ApiListQuery, ListQueryPipe, type ListQuery } from '../common/pipes/list-query.pipe.js';
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseUUIDPipe,
@@ -29,6 +31,8 @@ import {
 interface AuthenticatedRequest extends Request {
   user: {
     id: string;
+    sessionId: string;
+    accessExpiresAt: number;
     rol: {
       codigo: string;
     };
@@ -57,24 +61,17 @@ export class AlertasController {
     return this.alertasService.intervaloReporteUbicacion(request.user.id);
   }
 
+  @ApiListQuery({ adultoId: 'uuid', estado: ['ABIERTA', 'EN_ATENCION', 'RESUELTA', 'CANCELADA'], incluirCanceladas: 'boolean' })
   @Get()
   @ApiOkResponse({ type: [AlertaRespuestaDto] })
   @RequirePermissions('alertas.leer')
   listar(
     @Req() request: AuthenticatedRequest,
-    @Query('adultoId') adultoId?: string,
-    @Query('estado') estado?: string,
-    @Query('limite') limite?: string,
+    @Query(new ListQueryPipe({ adultoId: 'uuid', estado: ['ABIERTA', 'EN_ATENCION', 'RESUELTA', 'CANCELADA'], incluirCanceladas: 'boolean' })) query: ListQuery,
   ) {
     const esAdmin = request.user.rol?.codigo === 'ADMINISTRADOR';
-
-    return this.alertasService.listar(request.user.id, esAdmin, {
-      adultoId,
-      estado,
-      limite: limite ? Number(limite) : undefined,
-    });
+    return this.alertasService.listar(request.user.id, esAdmin, query);
   }
-
 
   @Sse('stream')
   @RequirePermissions('alertas.leer')
@@ -90,7 +87,7 @@ export class AlertasController {
       adultoId,
     );
 
-    return this.alertasService.stream(adultoId);
+    return this.alertasService.stream(adultoId, request.user);
   }
 
   @Get(':id')
@@ -103,6 +100,22 @@ export class AlertasController {
     const esAdmin = request.user.rol?.codigo === 'ADMINISTRADOR';
 
     return this.alertasService.obtener(request.user.id, esAdmin, id);
+  }
+
+  /**
+   * Elimina la alerta del historial (baja lógica: estado CANCELADA). Aplica
+   * al adulto propio, al familiar con vínculo ACTIVA y al administrador.
+   */
+  @Delete(':id')
+  @ApiOkResponse({ type: AlertaRespuestaDto, description: 'Alerta eliminada del historial (baja lógica).' })
+  @RequirePermissions('alertas.actualizar')
+  eliminar(
+    @Req() request: AuthenticatedRequest,
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ) {
+    const esAdmin = request.user.rol?.codigo === 'ADMINISTRADOR';
+
+    return this.alertasService.eliminar(request.user.id, esAdmin, id);
   }
 
   @Patch(':id')

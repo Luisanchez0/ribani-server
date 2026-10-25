@@ -76,7 +76,7 @@ export class DispositivosService {
   async listar(
     usuarioId: string,
     esAdmin: boolean,
-    options: { usuarioId?: string; soloActivas?: boolean },
+    options: { usuarioId?: string; soloActivas?: boolean; limite?: number },
   ) {
     const { usuarioId: filtroUsuarioId, soloActivas = true } = options;
 
@@ -87,6 +87,7 @@ export class DispositivosService {
           ...(soloActivas ? { activo: true } : {}),
         },
         select: SELECT_DISPOSITIVO,
+        take: options.limite ?? 100,
         orderBy: { created_at: 'desc' },
       });
     }
@@ -97,6 +98,7 @@ export class DispositivosService {
         ...(soloActivas ? { activo: true } : {}),
       },
       select: SELECT_DISPOSITIVO,
+      take: options.limite ?? 100,
       orderBy: { created_at: 'desc' },
     });
   }

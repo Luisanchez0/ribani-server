@@ -1,3 +1,4 @@
+import { ApiListQuery, ListQueryPipe, type ListQuery } from '../common/pipes/list-query.pipe.js';
 import {
   Body,
   Controller,
@@ -47,18 +48,18 @@ export class DispositivosController {
   }
 
 
+  @ApiListQuery({ usuarioId: 'uuid', soloActivas: 'boolean' })
   @Get()
   @ApiOkResponse({ type: [DispositivoRespuestaDto] })
   listar(
     @Req() request: AuthenticatedRequest,
-    @Query('usuarioId') usuarioId?: string,
-    @Query('soloActivas') soloActivas?: string,
+    @Query(new ListQueryPipe({ usuarioId: 'uuid', soloActivas: 'boolean' })) query: ListQuery,
   ) {
     const esAdmin = request.user.rol?.codigo === 'ADMINISTRADOR';
-
     return this.dispositivosService.listar(request.user.id, esAdmin, {
-      usuarioId: esAdmin ? usuarioId : undefined,
-      soloActivas: soloActivas !== 'false',
+      usuarioId: esAdmin ? query.usuarioId : undefined,
+      soloActivas: query.soloActivas ?? true,
+      limite: query.limite,
     });
   }
 

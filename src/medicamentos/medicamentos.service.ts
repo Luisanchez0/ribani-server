@@ -40,6 +40,13 @@ export class MedicamentosService {
       return;
     }
 
+    // La autenticacion HTTP y los permisos del dominio se comprueban antes de este ambito de objetos.
+    const usuario = await this.prisma.usuarios.findUnique({
+      where: { id: usuarioId },
+      select: { roles: { select: { codigo: true } } },
+    });
+    if (usuario?.roles.codigo === 'ADMINISTRADOR') return;
+
     const vinculo = await this.prisma.adulto_familiares.findFirst({
       where: {
         adulto_id: adultoId,
@@ -103,7 +110,7 @@ export class MedicamentosService {
 
   async findAll(
     usuarioId: string,
-    options: { adultoId?: string; soloActivos: boolean },
+    options: { adultoId?: string; soloActivos: boolean; limite?: number },
   ) {
     const { adultoId, soloActivos } = options;
 
@@ -121,6 +128,7 @@ export class MedicamentosService {
         ...(soloActivos ? { activo: true } : {}),
       },
       select: SELECT_MEDICAMENTO,
+      take: options.limite ?? 100,
       orderBy: [{ adulto_id: 'asc' }, { fecha_inicio: 'desc' }, { nombre: 'asc' }],
     });
   }
