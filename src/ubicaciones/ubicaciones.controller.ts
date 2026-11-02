@@ -1,4 +1,8 @@
+import { PermissionsGuard } from '../authorization/guards/permissions.guard.js';
+import { RequirePermissions } from '../authorization/decorators/permissions.decorator.js';
+import { ApiListQuery, ListQueryPipe, type ListQuery } from '../common/pipes/list-query.pipe.js';
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -19,6 +23,7 @@ import { CreateUbicacionDto } from './dto/create-ubicacion.dto.js';
 import { CrearLoteUbicacionesDto } from './dto/crear-lote-ubicaciones.dto.js';
 import {
   LoteUbicacionesRespuestaDto,
+  UbicacionAdultoResumenDto,
   UbicacionRespuestaDto,
 } from './dto/ubicacion-respuesta.dto.js';
 import { UbicacionesService } from './ubicaciones.service.js';
@@ -26,13 +31,15 @@ import { UbicacionesService } from './ubicaciones.service.js';
 interface AuthenticatedRequest extends Request {
   user: {
     id: string;
+    sessionId: string;
+    accessExpiresAt: number;
   };
 }
 
 @ApiTags('ubicaciones')
 @ApiBearerAuth()
 @Controller('ubicaciones')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class UbicacionesController {
   constructor(private readonly ubicacionesService: UbicacionesService) {}
 
@@ -60,7 +67,19 @@ export class UbicacionesController {
     return this.ubicacionesService.reportarLote(request.user.id, dto);
   }
 
+  /**
+   * Última ubicación de todos los adultos activos en una sola respuesta, para
+   * el mapa del panel administrador. Solo administradores.
+   */
+  @Get('ultimas')
+  @RequirePermissions('ubicaciones.leer')
+  @ApiOkResponse({ type: [UbicacionAdultoResumenDto] })
+  ultimas(@Req() request: AuthenticatedRequest) {
+    return this.ubicacionesService.ultimas(request.user.id);
+  }
+
   @Get('actual')
+  @RequirePermissions('ubicaciones.leer')
   @ApiOkResponse({ type: UbicacionRespuestaDto })
   actual(
     @Req() request: AuthenticatedRequest,
@@ -69,23 +88,20 @@ export class UbicacionesController {
     return this.ubicacionesService.ultima(request.user.id, adultoId);
   }
 
+  @ApiListQuery({ adultoId: 'uuid', desde: 'date', hasta: 'date' })
   @Get('historial')
+  @RequirePermissions('ubicaciones.leer')
   @ApiOkResponse({ type: [UbicacionRespuestaDto] })
   historial(
     @Req() request: AuthenticatedRequest,
-    @Query('adultoId', new ParseUUIDPipe()) adultoId: string,
-    @Query('desde') desde?: string,
-    @Query('hasta') hasta?: string,
-    @Query('limite') limite?: string,
+    @Query(new ListQueryPipe({ adultoId: 'uuid', desde: 'date', hasta: 'date' })) query: ListQuery,
   ) {
-    return this.ubicacionesService.historial(request.user.id, adultoId, {
-      desde,
-      hasta,
-      limite: limite ? Number(limite) : undefined,
-    });
+    if (!query.adultoId) throw new BadRequestException('adultoId es obligatorio.');
+    return this.ubicacionesService.historial(request.user.id, query.adultoId, query);
   }
 
   @Sse('stream')
+  @RequirePermissions('ubicaciones.leer')
   async stream(
     @Req() request: AuthenticatedRequest,
     @Query('adultoId', new ParseUUIDPipe()) adultoId: string,
@@ -93,6 +109,6 @@ export class UbicacionesController {
     // Autorización antes de abrir la conexión (403 si no procede).
     await this.ubicacionesService.verificarAcceso(request.user.id, adultoId);
 
-    return this.ubicacionesService.stream(request.user.id, adultoId);
+    return this.ubicacionesService.stream(request.user.id, adultoId, request.user);
   }
 }

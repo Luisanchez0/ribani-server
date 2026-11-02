@@ -39,10 +39,11 @@ function createUsuarioFixture(overrides: Record<string, unknown> = {}) {
 }
 
 function createPrismaMock() {
-  return {
+  const prisma = {
     usuarios: {
       findUnique: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn().mockResolvedValue({ count: 1 }),
       create: vi.fn(),
     },
     roles: {
@@ -52,8 +53,10 @@ function createPrismaMock() {
       findUnique: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn().mockResolvedValue({count:1}),
       deleteMany: vi.fn(),
     },
+    auditoria: {create:vi.fn().mockResolvedValue({})},
     sesiones: {
       create: vi.fn(),
     },
@@ -62,6 +65,9 @@ function createPrismaMock() {
     },
     $transaction: vi.fn(),
   };
+  prisma.$transaction.mockImplementation(async (work: unknown) =>
+    typeof work === 'function' ? work(prisma) : Promise.all(work as Promise<unknown>[]));
+  return prisma;
 }
 
 function createJwtMock() {
@@ -91,9 +97,10 @@ describe('AuthService', () => {
           expira_en: new Date(Date.now() + 60_000), usuarios: usuario,
         }),
         update: vi.fn().mockResolvedValue({}),
+        updateMany: vi.fn().mockResolvedValue({count:1}),
       },
     };
-    const auth = new AuthService(prisma as never, createJwtMock() as never);
+    const auth = new AuthService(prisma as never, createJwtMock() as never, {} as never);
     const respuesta = await auth.refresh({ refreshToken: 'token-de-prueba' });
     expect(respuesta.user.twoFactorEnabled).toBe(true);
   });
@@ -104,6 +111,7 @@ describe('AuthService', () => {
     service = new AuthService(
       prismaMock as never,
       jwtMock as never,
+      {} as never,
     );
   });
 
@@ -118,7 +126,6 @@ describe('AuthService', () => {
       );
       prismaMock.sesiones.create.mockResolvedValue({});
       prismaMock.usuarios.update.mockResolvedValue({});
-      prismaMock.$transaction.mockResolvedValue([]);
 
       const result = await service.login(
         { email: 'ana@ribani.test', password: TEST_PASSWORD },
@@ -257,7 +264,6 @@ describe('AuthService', () => {
       );
       prismaMock.sesiones.create.mockResolvedValue({});
       prismaMock.usuarios.update.mockResolvedValue({});
-      prismaMock.$transaction.mockResolvedValue([]);
       return challenge;
     }
 
@@ -274,12 +280,42 @@ describe('AuthService', () => {
       );
 
       expect(result).toHaveProperty('accessToken', 'access-token');
-      expect(prismaMock.codigos_2fa.update).toHaveBeenCalledWith(
+      expect(prismaMock.codigos_2fa.updateMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { id: '22222222-2222-2222-2222-222222222222' },
+          where: expect.objectContaining({ id: '22222222-2222-2222-2222-222222222222', usado_en: null }),
           data: { usado_en: expect.any(Date) },
         }),
       );
+    });
+
+    it('acepta el código del periodo anterior: se tarda en teclearlo', async () => {
+      arrangeChallenge();
+      const code = generateSync({
+        secret: TEST_TOTP_SECRET,
+        epoch: Math.floor(Date.now() / 1000) - 30,
+      });
+
+      const result = await service.loginWithTwoFactor(
+        { challengeToken: 'challenge-token-raw-value-000', code },
+        {},
+      );
+
+      expect(result).toHaveProperty('accessToken', 'access-token');
+    });
+
+    it('rechaza un código de hace más de un periodo', async () => {
+      arrangeChallenge();
+      const code = generateSync({
+        secret: TEST_TOTP_SECRET,
+        epoch: Math.floor(Date.now() / 1000) - 90,
+      });
+
+      await expect(
+        service.loginWithTwoFactor(
+          { challengeToken: 'challenge-token-raw-value-000', code },
+          {},
+        ),
+      ).rejects.toThrow(UnauthorizedException);
     });
 
     it('rechaza un código incorrecto e incrementa los intentos', async () => {

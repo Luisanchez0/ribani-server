@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 
+import { AppController } from './app.controller.js';
+import { AppService } from './app.service.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { UsuariosModule } from './usuarios/usuario.module.js';
 import { AuthModule } from './auth/auth.module.js';
@@ -44,7 +46,8 @@ import { ConfiguracionModule } from './configuracion/configuracion.module.js';
     RolesModule,
     AuditoriaModule
   ],
-  controllers: [InvitacionesAbrirController],
-  providers: [AUDITORIA_INTERCEPTOR],
+  controllers: [AppController, InvitacionesAbrirController],
+  // `GET /` es el health check del despliegue (Docker y Render).
+  providers: [AppService, AUDITORIA_INTERCEPTOR],
 })
 export class AppModule {}

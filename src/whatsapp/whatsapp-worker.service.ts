@@ -1,9 +1,16 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { MetaError, MetaWhatsappService } from './meta-whatsapp.service.js';
+import {
+  EnvioError,
+  WHATSAPP_TRANSPORTE,
+  type TransporteWhatsapp,
+} from './whatsapp-transporte.js';
 import { WhatsappService } from './whatsapp.service.js';
 import { ESTADOS_PENDIENTES, recordarEn } from '../tomas/toma-pendiente.js';
+
+const ALERTA_VIGENTE = ['ABIERTA', 'EN_ATENCION'];
+const ESPERA_TOKEN_MS = 5 * 60_000;
 
 @Injectable()
 export class WhatsappWorkerService {
@@ -12,7 +19,8 @@ export class WhatsappWorkerService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly whatsapp: WhatsappService,
-    private readonly meta: MetaWhatsappService,
+    @Inject(WHATSAPP_TRANSPORTE)
+    private readonly transporte: TransporteWhatsapp,
   ) {}
 
   @Cron('*/15 * * * * *')
@@ -20,22 +28,22 @@ export class WhatsappWorkerService {
     if (
       this.ejecutando ||
       process.env.WHATSAPP_WORKER_ENABLED !== 'true' ||
-      !this.meta.disponible()
+      !this.transporte.disponible()
     )
       return;
     this.ejecutando = true;
     try {
-      // Un proceso puede morir después de que Meta acepte el mensaje. No reenviarlo.
+      // Un proceso puede morir después de que el proveedor acepte el mensaje. No reenviarlo.
       await this.prisma.notificaciones_whatsapp.updateMany({
         where: {
-          proveedor: 'META_CLOUD_API',
+          proveedor: this.transporte.proveedor,
           estado: 'PROCESANDO',
           updated_at: { lt: new Date(Date.now() - 300_000) },
         },
         data: {
           estado: 'FALLIDA',
           codigo_error: 'RESULTADO_DESCONOCIDO',
-          detalle_error: 'Revisar en Meta antes de cualquier reenvío.',
+          detalle_error: 'Revisar en el proveedor antes de cualquier reenvío.',
           fallida_en: new Date(),
           siguiente_intento_en: null,
           updated_at: new Date(),
@@ -45,7 +53,7 @@ export class WhatsappWorkerService {
         const filas = await this.prisma.$queryRaw<{ id: string }[]>`
           UPDATE notificaciones_whatsapp SET estado = 'PROCESANDO', intentos = intentos + 1, updated_at = now(), siguiente_intento_en = NULL
           WHERE id = (SELECT id FROM notificaciones_whatsapp
-            WHERE proveedor = 'META_CLOUD_API' AND proveedor_message_id IS NULL AND intentos < 3
+            WHERE proveedor = ${this.transporte.proveedor} AND proveedor_message_id IS NULL AND intentos < 3
             AND programada_para <= now() AND (estado = 'EN_COLA' OR (estado = 'FALLIDA' AND siguiente_intento_en IS NOT NULL AND siguiente_intento_en <= now()))
             ORDER BY programada_para, created_at FOR UPDATE SKIP LOCKED LIMIT 1) RETURNING id`;
         if (!filas.length) break;
@@ -91,6 +99,7 @@ export class WhatsappWorkerService {
           where: { id: n.destinatario_id },
         });
         if (!d) return;
+        let motivoCancelacion = 'DESTINO_NO_HABILITADO';
         let permitido =
           d.activo &&
           d.consentimiento === 'ACEPTADO' &&
@@ -108,13 +117,20 @@ export class WhatsappWorkerService {
             permitido &&
             Boolean(adulto?.activo) &&
             c?.notificaciones_habilitadas !== false;
-          if (n.alerta_id)
+          if (n.alerta_id) {
+            // Una alerta cerrada mientras esperaba en cola ya no es una emergencia:
+            // avisarla después generaría una falsa alarma.
+            if (n.alertas && !ALERTA_VIGENTE.includes(n.alertas.estado)) {
+              permitido = false;
+              motivoCancelacion = 'ALERTA_CERRADA';
+            }
             permitido =
               permitido &&
               Boolean(n.alertas) &&
               (await this.whatsapp.destinatariosAlerta(adultoId)).some(
                 (dest) => dest.id === d.id,
               );
+          }
           if (n.toma_id) {
             const toma = n.tomas_medicamento;
             const ventana =
@@ -147,7 +163,7 @@ export class WhatsappWorkerService {
             where: { id, estado: 'PROCESANDO' },
             data: {
               estado: 'CANCELADA',
-              codigo_error: 'DESTINO_NO_HABILITADO',
+              codigo_error: motivoCancelacion,
               updated_at: new Date(),
             },
           });
@@ -178,24 +194,46 @@ export class WhatsappWorkerService {
         }
         let messageId: string;
         try {
-          messageId = await this.meta.enviar(
+          messageId = await this.transporte.enviar(
             d.telefono_e164,
             n.plantilla,
             n.idioma,
             n.parametros as string[],
+            n.tipo,
           );
         } catch (error) {
           const codigo =
-            error instanceof MetaError ? error.codigo : 'CONFIGURACION';
+            error instanceof EnvioError ? error.codigo : 'CONFIGURACION';
+          // Token caducado: seguro que no se envió, así que no hay riesgo de duplicar.
+          // Un SOS no debe perderse por ello: espera sin gastar intentos a que se
+          // renueve. Si la alerta se cierra antes, se cancela arriba.
+          if (error instanceof EnvioError && error.credencialInvalida) {
+            this.logger.error(
+              `El proveedor rechazó el token de WhatsApp (${codigo}): renuévalo. Avisos en espera.`,
+            );
+            await tx.notificaciones_whatsapp.updateMany({
+              where: { id, estado: 'PROCESANDO' },
+              data: {
+                estado: 'FALLIDA',
+                codigo_error: codigo,
+                detalle_error: 'Token rechazado; se reintenta hasta que se renueve.',
+                fallida_en: new Date(),
+                intentos: n.intentos - 1,
+                siguiente_intento_en: new Date(Date.now() + ESPERA_TOKEN_MS),
+                updated_at: new Date(),
+              },
+            });
+            return;
+          }
           const reintentar =
-            error instanceof MetaError && error.reintentable && n.intentos < 3;
+            error instanceof EnvioError && error.reintentable && n.intentos < 3;
           await tx.notificaciones_whatsapp.updateMany({
             where: { id, estado: 'PROCESANDO' },
             data: {
               estado: 'FALLIDA',
               codigo_error: codigo,
               detalle_error:
-                'Consulta el código en Meta; el contenido del proveedor no se almacena.',
+                'Consulta el código en el proveedor; su contenido no se almacena.',
               fallida_en: new Date(),
               siguiente_intento_en: reintentar
                 ? new Date(Date.now() + 60_000 * 2 ** n.intentos)

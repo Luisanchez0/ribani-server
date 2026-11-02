@@ -1,5 +1,7 @@
 # Blueprint de Render para el backend RIBANI (ribani-server).
 #
+# Alternativa: servidor propio con Docker y Caddy (docs/despliegue-vps.md).
+#
 # Cómo usarlo:
 #   1. Commit de este archivo en el repo y conectar el repo en Render
 #      (Dashboard → "New +" → Blueprint). Render detecta render.yaml.
@@ -32,6 +34,10 @@ services:
         value: "24"
       - key: PORT
         value: "3000"
+      - key: NODE_ENV
+        value: "production"
+      - key: TRUST_PROXY_HOPS
+        value: "1"
       # Base de datos Supabase (copy desde el dashboard de Supabase).
       - key: DATABASE_URL
         sync: false
@@ -53,6 +59,8 @@ services:
       - key: RESEND_TEMPLATE_INVITACION_ID
         value: ""
       - key: RESEND_TEMPLATE_BIENVENIDA_ID
+        value: ""
+      - key: RESEND_TEMPLATE_RESET_ID
         value: ""
       # Orígenes web permitidos (panel de ribani-web en Render). Setéalo
       # al crear el servicio web; separa varios con coma.

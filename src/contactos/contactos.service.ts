@@ -40,6 +40,13 @@ export class ContactosService {
       return;
     }
 
+    // La autenticacion HTTP y los permisos del dominio se comprueban antes de este ambito de objetos.
+    const usuario = await this.prisma.usuarios.findUnique({
+      where: { id: usuarioId },
+      select: { roles: { select: { codigo: true } } },
+    });
+    if (usuario?.roles.codigo === 'ADMINISTRADOR') return;
+
     const vinculo = await this.prisma.adulto_familiares.findFirst({
       where: {
         adulto_id: adultoId,
@@ -115,7 +122,7 @@ export class ContactosService {
     });
   }
 
-  async findAll(usuarioId: string, soloActivos: boolean) {
+  async findAll(usuarioId: string, soloActivos: boolean, limite = 100) {
     // El administrador supervisa los contactos de todos los adultos.
     const usuario = await this.prisma.usuarios.findUnique({
       where: { id: usuarioId },
@@ -152,6 +159,7 @@ export class ContactosService {
         ...(soloActivos ? { activo: true } : {}),
       },
       select: SELECT_CONTACTO,
+      take: limite,
       orderBy: [{ adulto_id: 'asc' }, { prioridad: 'asc' }],
     });
   }

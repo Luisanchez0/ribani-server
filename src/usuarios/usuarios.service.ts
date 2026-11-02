@@ -44,6 +44,7 @@ export class UsuariosService {
         email: true,
         telefono: true,
         email_verificado_en: true,
+        two_factor_enabled: true,
         activo: true,
         ultimo_acceso_en: true,
         created_at: true,
@@ -68,6 +69,7 @@ export class UsuariosService {
         email: true,
         telefono: true,
         email_verificado_en: true,
+        two_factor_enabled: true,
         activo: true,
         ultimo_acceso_en: true,
         created_at: true,
@@ -76,17 +78,13 @@ export class UsuariosService {
     });
 
     if (!usuario) {
-      throw new NotFoundException(
-        `No se encontró el usuario con ID ${id}`,
-      );
+      throw new NotFoundException(`No se encontró el usuario con ID ${id}`);
     }
 
     return usuario;
   }
 
-  private async resolveRoleId(
-    rolCodigo: string,
-  ): Promise<number> {
+  private async resolveRoleId(rolCodigo: string): Promise<number> {
     const rol = await this.prisma.roles.findUnique({
       where: {
         codigo: rolCodigo,
@@ -119,14 +117,9 @@ export class UsuariosService {
       );
     }
 
-    const rolId = await this.resolveRoleId(
-      createUsuarioDto.rol_codigo,
-    );
+    const rolId = await this.resolveRoleId(createUsuarioDto.rol_codigo);
 
-    const passwordHash = await bcrypt.hash(
-      createUsuarioDto.password,
-      12,
-    );
+    const passwordHash = await bcrypt.hash(createUsuarioDto.password, 12);
 
     return this.prisma.usuarios.create({
       data: {
@@ -146,6 +139,7 @@ export class UsuariosService {
         email: true,
         telefono: true,
         email_verificado_en: true,
+        two_factor_enabled: true,
         activo: true,
         ultimo_acceso_en: true,
         created_at: true,
@@ -184,7 +178,12 @@ export class UsuariosService {
           : {}),
         // Enviarlo vacío limpia el teléfono (columna nullable).
         ...(updatePerfilDto.telefono !== undefined
-          ? { telefono: updatePerfilDto.telefono === '' ? null : updatePerfilDto.telefono }
+          ? {
+              telefono:
+                updatePerfilDto.telefono === ''
+                  ? null
+                  : updatePerfilDto.telefono,
+            }
           : {}),
       },
       select: {
@@ -195,6 +194,7 @@ export class UsuariosService {
         email: true,
         telefono: true,
         email_verificado_en: true,
+        two_factor_enabled: true,
         activo: true,
         ultimo_acceso_en: true,
         created_at: true,
@@ -225,9 +225,7 @@ export class UsuariosService {
     });
 
     if (!usuario) {
-      throw new NotFoundException(
-        `No se encontró el usuario con ID ${id}`,
-      );
+      throw new NotFoundException(`No se encontró el usuario con ID ${id}`);
     }
 
     const actualValida = await bcrypt.compare(
@@ -236,33 +234,35 @@ export class UsuariosService {
     );
 
     if (!actualValida) {
-      throw new UnauthorizedException(
-        'La contraseña actual es incorrecta.',
-      );
+      throw new UnauthorizedException('La contraseña actual es incorrecta.');
     }
 
-    const passwordHash = await bcrypt.hash(
-      cambiarPasswordDto.password,
-      12,
-    );
+    const passwordHash = await bcrypt.hash(cambiarPasswordDto.password, 12);
 
-    await this.prisma.usuarios.update({
-      where: {
-        id,
-      },
-      data: {
-        password_hash: passwordHash,
-      },
-      // Nada útil que devolver: la fila no cambia salvo el hash.
-      select: {
-        id: true,
-      },
+    await this.prisma.$transaction(async (tx) => {
+      const updated = await tx.usuarios.updateMany({
+        where: { id, password_hash: usuario.password_hash, activo: true },
+        data: { password_hash: passwordHash },
+      });
+      if (updated.count !== 1)
+        throw new UnauthorizedException(
+          'Las credenciales cambiaron. Inicia sesión nuevamente.',
+        );
+      await tx.sesiones.updateMany({
+        where: { usuario_id: id, revocada_en: null },
+        data: { revocada_en: new Date() },
+      });
+      await tx.codigos_2fa.updateMany({
+        where: { usuario_id: id, usado_en: null },
+        data: { usado_en: new Date() },
+      });
     });
 
     return { id, password_actualizada: true };
   }
 
-  async update(id: string, updateUsuarioDto: UpdateUsuarioDto) {    await this.findOne(id);
+  async update(id: string, updateUsuarioDto: UpdateUsuarioDto) {
+    await this.findOne(id);
 
     if (updateUsuarioDto.email) {
       const existingUser = await this.prisma.usuarios.findFirst({
@@ -289,72 +289,113 @@ export class UsuariosService {
       ? await this.resolveRoleId(updateUsuarioDto.rol_codigo)
       : undefined;
 
-    return this.prisma.usuarios.update({
-      where: {
-        id,
-      },
-      data: {
-        rol_id: rolId,
-        nombre: updateUsuarioDto.nombre,
-        apellido: updateUsuarioDto.apellido,
-        email: updateUsuarioDto.email,
-        telefono: updateUsuarioDto.telefono,
-        password_hash: passwordHash,
-        activo: updateUsuarioDto.activo,
-      },
-      select: {
-        id: true,
-        rol_id: true,
-        nombre: true,
-        apellido: true,
-        email: true,
-        telefono: true,
-        email_verificado_en: true,
-        activo: true,
-        ultimo_acceso_en: true,
-        created_at: true,
-        updated_at: true,
-      },
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.usuarios.update({
+        where: {
+          id,
+        },
+        data: {
+          rol_id: rolId,
+          nombre: updateUsuarioDto.nombre,
+          apellido: updateUsuarioDto.apellido,
+          email: updateUsuarioDto.email,
+          telefono: updateUsuarioDto.telefono,
+          password_hash: passwordHash,
+          activo: updateUsuarioDto.activo,
+        },
+        select: {
+          id: true,
+          rol_id: true,
+          nombre: true,
+          apellido: true,
+          email: true,
+          telefono: true,
+          email_verificado_en: true,
+          two_factor_enabled: true,
+          activo: true,
+          ultimo_acceso_en: true,
+          created_at: true,
+          updated_at: true,
+        },
+      });
+      if (passwordHash || updateUsuarioDto.activo === false) {
+        await tx.sesiones.updateMany({
+          where: { usuario_id: id, revocada_en: null },
+          data: { revocada_en: new Date() },
+        });
+        await tx.codigos_2fa.updateMany({
+          where: { usuario_id: id, usado_en: null },
+          data: { usado_en: new Date() },
+        });
+      }
+      return updated;
     });
   }
 
   async deactivate(id: string) {
     await this.findOne(id);
 
-    return this.prisma.usuarios.update({
-      where: {
-        id,
-      },
-      data: {
-        activo: false,
-      },
-      select: {
-        id: true,
-        rol_id: true,
-        nombre: true,
-        apellido: true,
-        email: true,
-        telefono: true,
-        email_verificado_en: true,
-        activo: true,
-        ultimo_acceso_en: true,
-        created_at: true,
-        updated_at: true,
-      },
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.usuarios.update({
+        where: {
+          id,
+        },
+        data: {
+          activo: false,
+        },
+        select: {
+          id: true,
+          rol_id: true,
+          nombre: true,
+          apellido: true,
+          email: true,
+          telefono: true,
+          email_verificado_en: true,
+          two_factor_enabled: true,
+          activo: true,
+          ultimo_acceso_en: true,
+          created_at: true,
+          updated_at: true,
+        },
+      });
+      await tx.sesiones.updateMany({
+        where: { usuario_id: id, revocada_en: null },
+        data: { revocada_en: new Date() },
+      });
+      await tx.codigos_2fa.updateMany({
+        where: { usuario_id: id, usado_en: null },
+        data: { usado_en: new Date() },
+      });
+      return updated;
     });
   }
 
   async remove(id: string) {
     await this.findOne(id);
 
-    return this.prisma.usuarios.delete({
-      where: {
-        id,
-      },
-      // Para DELETE no hay nada útil que proyectar: la fila desaparece.
-      select: {
-        id: true,
-      },
+    return this.prisma.$transaction(async (tx) => {
+      // Bloquear primero al propietario impide nuevos orígenes por sus FK.
+      // Después, bloquear sus orígenes impide nuevas notificaciones mientras
+      // se limpia y se ejecutan las cascadas. Mantener este orden y ordenar ID.
+      await tx.$queryRaw`SELECT id FROM usuarios WHERE id = ${id}::uuid FOR UPDATE`;
+      await tx.$queryRaw`SELECT id FROM alertas WHERE adulto_id = ${id}::uuid ORDER BY id FOR UPDATE`;
+      await tx.$queryRaw`SELECT id FROM tomas_medicamento WHERE adulto_id = ${id}::uuid ORDER BY id FOR UPDATE`;
+
+      // Las cascadas eliminan alertas/tomas, pero sus FK de WhatsApp usan
+      // SET NULL. Sin limpiar sus notificaciones, el CHECK de origen falla.
+      await tx.notificaciones_whatsapp.deleteMany({
+        where: {
+          OR: [
+            { alertas: { adulto_id: id } },
+            { tomas_medicamento: { adulto_id: id } },
+          ],
+        },
+      });
+
+      return tx.usuarios.delete({
+        where: { id },
+        select: { id: true },
+      });
     });
   }
 
@@ -376,6 +417,7 @@ export class UsuariosService {
         email: true,
         telefono: true,
         email_verificado_en: true,
+        two_factor_enabled: true,
         activo: true,
         ultimo_acceso_en: true,
         created_at: true,

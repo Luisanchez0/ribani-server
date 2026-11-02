@@ -4,9 +4,34 @@ import type { INestApplication } from '@nestjs/common';
 import type { OpenAPIObject, SchemaObject } from '@nestjs/swagger';
 import { AuthController } from './auth/auth.controller.js';
 import { AuthService } from './auth/auth.service.js';
+import { AuthAttemptsService } from './auth/auth-attempts.service.js';
+import { WebAuthController } from './auth/web-auth.controller.js';
 import { UsuariosController } from './usuarios/usuarios.controller.js';
 import { UsuariosService } from './usuarios/usuarios.service.js';
-import { crearDocumentoOpenApi } from './openapi.js';
+import { crearDocumentoOpenApi, swaggerHabilitado } from './openapi.js';
+
+describe('Publicación de Swagger', () => {
+  it('queda disponible fuera de producción', () => {
+    expect(swaggerHabilitado({ NODE_ENV: 'development' })).toBe(true);
+    expect(swaggerHabilitado({})).toBe(true);
+  });
+
+  it('queda oculto en producción por defecto', () => {
+    expect(swaggerHabilitado({ NODE_ENV: 'production' })).toBe(false);
+    expect(
+      swaggerHabilitado({ NODE_ENV: 'production', SWAGGER_ENABLED: 'false' }),
+    ).toBe(false);
+    expect(
+      swaggerHabilitado({ NODE_ENV: 'production', SWAGGER_ENABLED: '1' }),
+    ).toBe(false);
+  });
+
+  it('solo se publica en producción con SWAGGER_ENABLED=true explícito', () => {
+    expect(
+      swaggerHabilitado({ NODE_ENV: 'production', SWAGGER_ENABLED: 'true' }),
+    ).toBe(true);
+  });
+});
 
 describe('Contrato OpenAPI de autenticación y perfil', () => {
   let app: INestApplication;
@@ -14,8 +39,9 @@ describe('Contrato OpenAPI de autenticación y perfil', () => {
 
   beforeAll(async () => {
     const module = await Test.createTestingModule({
-      controllers: [AuthController, UsuariosController],
+      controllers: [AuthController, WebAuthController, UsuariosController],
       providers: [
+        AuthAttemptsService,
         { provide: AuthService, useValue: {} },
         { provide: UsuariosService, useValue: {} },
       ],
@@ -54,5 +80,13 @@ describe('Contrato OpenAPI de autenticación y perfil', () => {
       expect(schema.properties).not.toHaveProperty('two_factor_secret');
       expect(schema.properties).not.toHaveProperty('password');
     }
+  });
+
+  it('documenta el refresh web sin refreshToken en el cuerpo ni en su respuesta', () => {
+    expect(documento.paths['/auth/web/refresh']?.post).toBeDefined();
+    expect(documento.paths['/auth/web/refresh'].post).not.toHaveProperty('requestBody');
+    const schema = documento.components?.schemas?.TokensWebRespuestaDto as SchemaObject;
+    expect(schema.properties).toHaveProperty('accessToken');
+    expect(schema.properties).not.toHaveProperty('refreshToken');
   });
 });

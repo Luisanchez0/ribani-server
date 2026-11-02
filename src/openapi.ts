@@ -1,6 +1,16 @@
 import type { INestApplication } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
+/**
+ * Swagger describe toda la superficie de la API: en producción solo se publica
+ * con una activación explícita. `npm run openapi:export` no depende de esto.
+ */
+export function swaggerHabilitado(
+  env: Record<string, string | undefined> = process.env,
+): boolean {
+  return env.NODE_ENV !== 'production' || env.SWAGGER_ENABLED === 'true';
+}
+
 export function crearDocumentoOpenApi(app: INestApplication) {
   const config = new DocumentBuilder()
     .setTitle('RIBANI API')

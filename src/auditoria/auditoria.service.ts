@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { isIP } from 'node:net';
 
 import { PrismaService } from '../prisma/prisma.service.js';
 
@@ -16,25 +17,22 @@ export interface RegistrarAuditoriaInput {
 export class AuditoriaService {
   constructor(private readonly prisma: PrismaService) {}
 
-
   async registrar(input: RegistrarAuditoriaInput): Promise<void> {
-    try {
-      await this.prisma.auditoria.create({
-        data: {
-          ...(input.actorId ? { actor_id: input.actorId } : {}),
-          accion: input.accion,
-          entidad: input.entidad,
-          ...(input.entidadId ? { entidad_id: input.entidadId } : {}),
-          ...(input.ip ? { ip: input.ip } : {}),
-          ...(input.userAgent ? { user_agent: input.userAgent } : {}),
-          ...(input.datosDespues !== undefined
-            ? { datos_despues: input.datosDespues as object }
-            : {}),
-        },
-      });
-    } catch (error) {
-      console.error('No se pudo registrar la auditoria:', String(error));
-    }
+    await this.prisma.auditoria.create({
+      data: {
+        ...(input.actorId ? { actor_id: input.actorId } : {}),
+        accion: input.accion,
+        entidad: input.entidad,
+        ...(input.entidadId ? { entidad_id: input.entidadId } : {}),
+        ...(input.ip && isIP(input.ip) ? { ip: input.ip } : {}),
+        ...(input.userAgent
+          ? { user_agent: input.userAgent.slice(0, 500) }
+          : {}),
+        ...(input.datosDespues !== undefined
+          ? { datos_despues: input.datosDespues as object }
+          : {}),
+      },
+    });
   }
 
   async listar(options: {
@@ -98,7 +96,11 @@ export class AuditoriaService {
       datos_despues: e.datos_despues,
       created_at: e.created_at,
       actor: e.usuarios
-        ? { nombre: e.usuarios.nombre, apellido: e.usuarios.apellido, email: e.usuarios.email }
+        ? {
+            nombre: e.usuarios.nombre,
+            apellido: e.usuarios.apellido,
+            email: e.usuarios.email,
+          }
         : null,
     }));
   }

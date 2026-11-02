@@ -101,6 +101,8 @@ export class ConfiguracionWhatsappDto extends PreferenciasWhatsappDto {
   @ApiProperty() adulto_id: string;
 }
 export class IntegracionWhatsappDto {
+  @ApiProperty({ enum: ['META_CLOUD_API', 'EVOLUTION_API'] })
+  proveedor: string;
   @ApiProperty() habilitada: boolean;
   @ApiProperty() procesador_habilitado: boolean;
   @ApiProperty() recordatorios_habilitados: boolean;

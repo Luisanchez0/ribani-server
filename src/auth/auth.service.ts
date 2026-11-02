@@ -12,10 +12,15 @@ import {
   createCipheriv,
   createDecipheriv,
   createHash,
+  createHmac,
+  randomUUID,
   randomBytes,
   randomInt,
+  timingSafeEqual,
 } from 'node:crypto';
 import { generateSecret, generateURI, verifySync } from 'otplib';
+import { isIP } from 'node:net';
+import { AuthAttemptsService } from './auth-attempts.service.js';
 
 import { MailService } from '../mail/mail.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
@@ -34,11 +39,36 @@ interface RequestMetadata {
   userAgent?: string;
 }
 
+export interface TokensRenovados {
+  accessToken: string;
+  refreshToken: string;
+  tokenType: string;
+  expiresIn: number;
+  user: {
+    id: string;
+    nombre: string;
+    apellido: string;
+    email: string;
+    telefono: string | null;
+    emailVerificado: boolean;
+    twoFactorEnabled: boolean;
+    rol: { id: number; codigo: string; nombre: string };
+    permisos: string[];
+  };
+}
+
+interface RotacionReciente {
+  userAgent?: string;
+  vigenteHasta: number;
+  resultado: Promise<TokensRenovados>;
+}
+
 interface UsuarioConRoles {
   id: string;
   nombre: string;
   apellido: string;
   email: string;
+  password_hash: string;
   telefono: string | null;
   email_verificado_en: Date | null;
   two_factor_enabled: boolean;
@@ -57,6 +87,15 @@ interface UsuarioConRoles {
 
 @Injectable()
 export class AuthService {
+  /** Margen corto para recuperar una respuesta de refresh que no llegó al cliente. */
+  private static readonly refreshReentregaMs = 30_000;
+
+  /**
+   * Solo en memoria y por poco tiempo: tras un reinicio, o con varias instancias,
+   * el reenvío se rechaza como cualquier token usado, sin debilitar la seguridad.
+   */
+  private readonly rotacionesRecientes = new Map<string, RotacionReciente>();
+
   private readonly accessTokenExpirationSeconds = Number(
     process.env.JWT_ACCESS_EXPIRES_IN_SECONDS ?? 900,
   );
@@ -69,10 +108,17 @@ export class AuthService {
 
   private static readonly maxChallengeAttempts = 5;
 
+  /**
+   * Un periodo de margen (RFC 6238): sin él se rechaza un código tecleado justo
+   * al cambiar de periodo, muy probable en un adulto mayor.
+   */
+  private static readonly totpToleranciaSegundos = 30;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
+    private readonly attempts: AuthAttemptsService = new AuthAttemptsService(),
   ) {}
 
   async register(dto: RegisterDto) {
@@ -88,7 +134,8 @@ export class AuthService {
       throw new ConflictException(
         'Ya existe un usuario con ese correo electrónico.',
       );
-    }    const rolCodigo = dto.rolCodigo ?? 'ADULTO_MAYOR';
+    }
+    const rolCodigo = dto.rolCodigo ?? 'ADULTO_MAYOR';
 
     const role = await this.prisma.roles.findUnique({
       where: {
@@ -97,9 +144,7 @@ export class AuthService {
     });
 
     if (!role || !role.activo) {
-      throw new ConflictException(
-        `El rol ${rolCodigo} no está disponible.`,
-      );
+      throw new ConflictException(`El rol ${rolCodigo} no está disponible.`);
     }
 
     const passwordHash = await bcrypt.hash(dto.password, 12);
@@ -135,80 +180,136 @@ export class AuthService {
     };
   }
 
-  async login(
-    dto: LoginDto,
-    metadata: RequestMetadata = {},
-  ) {
+  async login(dto: LoginDto, metadata: RequestMetadata = {}) {
     const email = dto.email.trim().toLowerCase();
 
-    const usuario = await this.prisma.usuarios.findUnique({
-      where: {
-        email,
-      },
-      include: {
-        roles: {
-          include: {
-            rol_permisos: {
-              include: {
-                permisos: true,
+    const key = `login:${email}`;
+    let actorId: string | undefined;
+    try {
+      this.attempts.consume(key, 5, 15 * 60_000);
+      const usuario = await this.prisma.usuarios.findUnique({
+        where: {
+          email,
+        },
+        include: {
+          roles: {
+            include: {
+              rol_permisos: {
+                include: {
+                  permisos: true,
+                },
               },
             },
           },
         },
-      },
-    });
+      });
 
-    if (!usuario) {
-      throw new UnauthorizedException(
-        'Correo o contraseña incorrectos.',
+      actorId = usuario?.id;
+      if (!usuario) {
+        throw new UnauthorizedException('Correo o contraseña incorrectos.');
+      }
+
+      if (!usuario.activo) {
+        throw new UnauthorizedException('Correo o contraseña incorrectos.');
+      }
+
+      if (!usuario.roles.activo) {
+        throw new UnauthorizedException('Correo o contraseña incorrectos.');
+      }
+
+      const passwordValid = await bcrypt.compare(
+        dto.password,
+        usuario.password_hash,
       );
+
+      if (!passwordValid) {
+        throw new UnauthorizedException('Correo o contraseña incorrectos.');
+      }
+
+      this.attempts.reset(key);
+      if (usuario.two_factor_enabled && usuario.two_factor_secret) {
+        const challengeToken = await this.signChallengeToken(
+          usuario.id,
+          usuario.password_hash,
+        );
+
+        return {
+          twoFactorRequired: true,
+          challengeToken,
+          expiresIn: AuthService.challengeExpirationSeconds,
+        };
+      }
+
+      return await this.issueTokens(usuario, metadata);
+    } catch (error) {
+      await this.recordAuth('LOGIN_FALLIDO', actorId, metadata);
+      throw error;
     }
-
-    if (!usuario.activo) {
-      throw new UnauthorizedException(
-        'La cuenta se encuentra desactivada.',
-      );
-    }
-
-    if (!usuario.roles.activo) {
-      throw new UnauthorizedException(
-        'El rol del usuario se encuentra desactivado.',
-      );
-    }
-
-    const passwordValid = await bcrypt.compare(
-      dto.password,
-      usuario.password_hash,
-    );
-
-    if (!passwordValid) {
-      throw new UnauthorizedException(
-        'Correo o contraseña incorrectos.',
-      );
-    }
-
-    if (usuario.two_factor_enabled && usuario.two_factor_secret) {
-      const challengeToken =
-        await this.signChallengeToken(usuario.id);
-
-      return {
-        twoFactorRequired: true,
-        challengeToken,
-        expiresIn:
-          AuthService.challengeExpirationSeconds,
-      };
-    }
-
-    return this.issueTokens(usuario, metadata);
   }
 
-  async refresh(
-    dto: RefreshTokenDto,
-    metadata: RequestMetadata = {},
+  /**
+   * La rotación es de un solo uso, pero una respuesta puede perderse tras rotar
+   * (recarga del navegador, red móvil): el cliente conserva el token anterior.
+   * Reenviarlo poco después devuelve el mismo resultado en lugar de cerrar la
+   * sesión; las renovaciones simultáneas comparten una sola rotación.
+   */
+  async refresh(dto: RefreshTokenDto, metadata: RequestMetadata = {}) {
+    const refreshTokenHash = this.hashToken(dto.refreshToken);
+    const ahora = Date.now();
+    for (const [hash, rotacion] of this.rotacionesRecientes) {
+      if (rotacion.vigenteHasta <= ahora) this.rotacionesRecientes.delete(hash);
+    }
+
+    const previa = this.rotacionesRecientes.get(refreshTokenHash);
+    if (previa) return this.reentregarRotacion(previa, metadata);
+
+    const rotacion: RotacionReciente = {
+      userAgent: metadata.userAgent,
+      vigenteHasta: ahora + AuthService.refreshReentregaMs,
+      resultado: this.rotarRefresh(dto, refreshTokenHash, metadata),
+    };
+    this.rotacionesRecientes.set(refreshTokenHash, rotacion);
+    try {
+      const resultado = await rotacion.resultado;
+      rotacion.vigenteHasta = Date.now() + AuthService.refreshReentregaMs;
+      return resultado;
+    } catch (error) {
+      this.rotacionesRecientes.delete(refreshTokenHash);
+      throw error;
+    }
+  }
+
+  private async reentregarRotacion(
+    rotacion: RotacionReciente,
+    metadata: RequestMetadata,
   ) {
-    const refreshTokenHash = this.hashToken(
-      dto.refreshToken,
-    );
+    const resultado = await rotacion.resultado;
+    const rechazo = () =>
+      new UnauthorizedException('Refresh token inválido o utilizado.');
+    if (rotacion.userAgent !== metadata.userAgent) throw rechazo();
+
+    // Buscar por el token nuevo: si ya se usó, se revocó o caducó, no se reentrega.
+    const sesion = await this.prisma.sesiones.findUnique({
+      where: { refresh_token_hash: this.hashToken(resultado.refreshToken) },
+      include: { usuarios: { include: { roles: true } } },
+    });
+    if (
+      !sesion ||
+      sesion.revocada_en ||
+      sesion.expira_en <= new Date() ||
+      !sesion.usuarios.activo ||
+      !sesion.usuarios.roles.activo
+    ) {
+      throw rechazo();
+    }
+    return resultado;
+  }
+
+  private async rotarRefresh(
+    dto: RefreshTokenDto,
+    refreshTokenHash: string,
+    metadata: RequestMetadata,
+  ) {
 
     const session = await this.prisma.sesiones.findUnique({
       where: {
@@ -232,15 +333,11 @@ export class AuthService {
     });
 
     if (!session) {
-      throw new UnauthorizedException(
-        'Refresh token inválido.',
-      );
+      throw new UnauthorizedException('Refresh token inválido.');
     }
 
     if (session.revocada_en) {
-      throw new UnauthorizedException(
-        'La sesión ha sido revocada.',
-      );
+      throw new UnauthorizedException('La sesión ha sido revocada.');
     }
 
     if (session.expira_en <= new Date()) {
@@ -253,17 +350,13 @@ export class AuthService {
         },
       });
 
-      throw new UnauthorizedException(
-        'La sesión ha expirado.',
-      );
+      throw new UnauthorizedException('La sesión ha expirado.');
     }
 
     const usuario = session.usuarios;
 
     if (!usuario.activo) {
-      throw new UnauthorizedException(
-        'La cuenta se encuentra desactivada.',
-      );
+      throw new UnauthorizedException('La cuenta se encuentra desactivada.');
     }
 
     if (!usuario.roles.activo) {
@@ -278,33 +371,36 @@ export class AuthService {
 
     const payload: JwtPayload = {
       sub: usuario.id,
+      sid: session.id,
       email: usuario.email,
       role: usuario.roles.codigo,
     };
 
-    const accessToken = await this.jwtService.signAsync(payload);
-
-    const newRefreshToken = this.generateRefreshToken();
-    const newRefreshTokenHash =
-      this.hashToken(newRefreshToken);
+    const newRefreshToken = this.generateRefreshToken(session.id);
+    const newRefreshTokenHash = this.hashToken(newRefreshToken);
 
     const newExpiration = new Date(
-      Date.now() +
-        this.refreshTokenExpirationSeconds * 1000,
+      Date.now() + this.refreshTokenExpirationSeconds * 1000,
     );
 
-    await this.prisma.sesiones.update({
+    const rotated = await this.prisma.sesiones.updateMany({
       where: {
         id: session.id,
+        refresh_token_hash: refreshTokenHash,
+        revocada_en: null,
+        expira_en: { gt: new Date() },
       },
       data: {
         refresh_token_hash: newRefreshTokenHash,
         expira_en: newExpiration,
         ip: metadata.ip ?? session.ip,
-        user_agent:
-          metadata.userAgent ?? session.user_agent,
+        user_agent: metadata.userAgent ?? session.user_agent,
       },
     });
+
+    if (rotated.count !== 1)
+      throw new UnauthorizedException('Refresh token inválido o utilizado.');
+    const accessToken = await this.jwtService.signAsync(payload);
 
     return {
       accessToken,
@@ -318,8 +414,7 @@ export class AuthService {
         apellido: usuario.apellido,
         email: usuario.email,
         telefono: usuario.telefono,
-        emailVerificado:
-          usuario.email_verificado_en !== null,
+        emailVerificado: usuario.email_verificado_en !== null,
         twoFactorEnabled: usuario.two_factor_enabled,
         rol: {
           id: usuario.roles.id,
@@ -331,16 +426,25 @@ export class AuthService {
     };
   }
 
-  async logout(dto: RefreshTokenDto) {
-    const refreshTokenHash = this.hashToken(
-      dto.refreshToken,
-    );
+  async logout(dto: RefreshTokenDto, metadata: RequestMetadata = {}) {
+    const refreshTokenHash = this.hashToken(dto.refreshToken);
 
-    const session = await this.prisma.sesiones.findUnique({
+    let session = await this.prisma.sesiones.findUnique({
       where: {
         refresh_token_hash: refreshTokenHash,
       },
     });
+
+    if (!session) {
+      // Otra pestaña puede haber rotado el token antes de recibir este logout.
+      // La firma permite únicamente revocar la misma sesión; refresh continúa
+      // exigiendo el hash vigente y nunca acepta esta prueba de un token viejo.
+      const sessionId = this.sessionIdForRevocation(dto.refreshToken);
+      if (sessionId)
+        session = await this.prisma.sesiones.findUnique({
+          where: { id: sessionId },
+        });
+    }
 
     if (!session) {
       return {
@@ -358,6 +462,7 @@ export class AuthService {
         },
       });
     }
+    await this.recordAuth('LOGOUT', session.usuario_id, metadata);
 
     return {
       message: 'Sesión cerrada correctamente.',
@@ -383,9 +488,7 @@ export class AuthService {
     });
 
     if (!usuario || !usuario.activo) {
-      throw new UnauthorizedException(
-        'Usuario no encontrado o inactivo.',
-      );
+      throw new UnauthorizedException('Usuario no encontrado o inactivo.');
     }
 
     return {
@@ -394,8 +497,7 @@ export class AuthService {
       apellido: usuario.apellido,
       email: usuario.email,
       telefono: usuario.telefono,
-      emailVerificado:
-        usuario.email_verificado_en !== null,
+      emailVerificado: usuario.email_verificado_en !== null,
       twoFactorEnabled: usuario.two_factor_enabled,
       ultimoAcceso: usuario.ultimo_acceso_en,
 
@@ -411,14 +513,38 @@ export class AuthService {
     };
   }
 
-  private generateRefreshToken(): string {
-    return randomBytes(64).toString('base64url');
+  private generateRefreshToken(sessionId: string): string {
+    const value = `${sessionId}.${randomBytes(64).toString('base64url')}`;
+    return `${value}.${this.refreshRevocationSignature(value).toString('base64url')}`;
+  }
+
+  private refreshRevocationSignature(value: string): Buffer {
+    const secret = process.env.JWT_ACCESS_SECRET;
+    if (!secret) throw new Error('JWT_ACCESS_SECRET is required.');
+    return createHmac('sha256', secret)
+      .update(`ribani-refresh-revocation:v1:${value}`)
+      .digest();
+  }
+
+  private sessionIdForRevocation(token: string): string | null {
+    const match =
+      /^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\.([A-Za-z0-9_-]{86})\.([A-Za-z0-9_-]{43})$/i.exec(
+        token,
+      );
+    if (!match) return null;
+    const [, sessionId, nonce, signature] = match;
+    const received = Buffer.from(signature!, 'base64url');
+    const expected = this.refreshRevocationSignature(`${sessionId}.${nonce}`);
+    if (
+      received.length !== expected.length ||
+      !timingSafeEqual(received, expected)
+    )
+      return null;
+    return sessionId!;
   }
 
   private hashToken(token: string): string {
-    return createHash('sha256')
-      .update(token)
-      .digest('hex');
+    return createHash('sha256').update(token).digest('hex');
   }
 
   // ----- Recuperación de contraseña (código de 6 dígitos por correo) -----
@@ -432,13 +558,17 @@ export class AuthService {
    * Responde SIEMPRE con un mensaje genérico para no revelar si el email
    * existe en la base (enumeración de cuentas).
    */
-  async solicitarResetPassword(dto: SolicitarResetPasswordDto) {
+  async solicitarResetPassword(
+    dto: SolicitarResetPasswordDto,
+    metadata: RequestMetadata = {},
+  ) {
     const email = dto.email.trim().toLowerCase();
     const usuario = await this.prisma.usuarios.findUnique({
       where: { email },
       select: { id: true, nombre: true, activo: true },
     });
 
+    this.attempts.consume(`forgot:${email}`, 3, 10 * 60_000);
     if (usuario && usuario.activo) {
       const codigo = String(randomInt(0, 1_000_000)).padStart(6, '0');
       const expiraEn = new Date(
@@ -454,7 +584,7 @@ export class AuthService {
         this.prisma.password_reset_tokens.create({
           data: {
             usuario_id: usuario.id,
-            token_hash: this.hashToken(codigo),
+            token_hash: this.hashResetCode(usuario.id, codigo),
             expira_en: expiraEn,
           },
         }),
@@ -466,6 +596,11 @@ export class AuthService {
         .enviarResetPassword(email, usuario.nombre, codigo)
         .catch(() => undefined);
     }
+    await this.recordAuth(
+      'PASSWORD_RECUPERACION_SOLICITADA',
+      usuario?.id,
+      metadata,
+    );
 
     return {
       mensaje:
@@ -478,8 +613,9 @@ export class AuthService {
    * actualiza la contraseña con bcrypt y cierra todas las sesiones
    * activas de la cuenta (todos los dispositivos vuelven al login).
    */
-  async resetPassword(dto: ResetPasswordDto) {
+  async resetPassword(dto: ResetPasswordDto, metadata: RequestMetadata = {}) {
     const email = dto.email.trim().toLowerCase();
+    this.attempts.consume(`reset:${email}`, 5, 10 * 60_000);
     const usuario = await this.prisma.usuarios.findUnique({
       where: { email },
       select: { id: true },
@@ -489,7 +625,7 @@ export class AuthService {
       throw new BadRequestException('Código inválido o expirado.');
     }
 
-    const tokenHash = this.hashToken(dto.codigo.trim());
+    const tokenHash = this.hashResetCode(usuario.id, dto.codigo.trim());
     const token = await this.prisma.password_reset_tokens.findUnique({
       where: { token_hash: tokenHash },
       select: { id: true, usuario_id: true, expira_en: true, usado_en: true },
@@ -504,25 +640,35 @@ export class AuthService {
 
     const passwordHash = await bcrypt.hash(dto.password, 12);
 
-    await this.prisma.$transaction([
-      this.prisma.password_reset_tokens.update({
-        where: { id: token.id },
+    await this.prisma.$transaction(async (tx) => {
+      const consumed = await tx.password_reset_tokens.updateMany({
+        where: {
+          id: token.id,
+          usuario_id: usuario.id,
+          usado_en: null,
+          expira_en: { gt: new Date() },
+        },
         data: { usado_en: new Date() },
-      }),
-      this.prisma.usuarios.update({
+      });
+      if (consumed.count !== 1)
+        throw new BadRequestException('Código inválido o expirado.');
+      await tx.usuarios.update({
         where: { id: usuario.id },
         data: { password_hash: passwordHash },
-      }),
-      // Revoca TODAS las sesiones: nadie queda logueado con la antigua.
-      this.prisma.sesiones.updateMany({
+      });
+      await tx.sesiones.updateMany({
         where: { usuario_id: usuario.id, revocada_en: null },
         data: { revocada_en: new Date() },
-      }),
-    ]);
+      });
+      await tx.codigos_2fa.updateMany({
+        where: { usuario_id: usuario.id, usado_en: null },
+        data: { usado_en: new Date() },
+      });
+    });
+    await this.recordAuth('PASSWORD_RESTABLECIDA', usuario.id, metadata);
 
     return {
-      mensaje:
-        'Contraseña actualizada. Ya puedes iniciar sesión con la nueva.',
+      mensaje: 'Contraseña actualizada. Ya puedes iniciar sesión con la nueva.',
     };
   }
 
@@ -530,111 +676,115 @@ export class AuthService {
     dto: TwoFactorLoginDto,
     metadata: RequestMetadata = {},
   ) {
-    const tokenHash = this.hashToken(dto.challengeToken);
+    let actorId: string | undefined;
+    try {
+      const tokenHash = this.hashToken(dto.challengeToken);
 
-    const challenge = await this.prisma.codigos_2fa.findUnique({
-      where: {
-        token_hash: tokenHash,
-      },
-    });
-
-    if (!challenge || challenge.usado_en) {
-      throw new UnauthorizedException(
-        'Desafío 2FA inválido.',
-      );
-    }
-
-    if (challenge.expira_en <= new Date()) {
-      throw new UnauthorizedException(
-        'El desafío 2FA ha expirado. Inicia sesión nuevamente.',
-      );
-    }
-
-    if (
-      challenge.intentos >=
-      AuthService.maxChallengeAttempts
-    ) {
-      await this.prisma.codigos_2fa.update({
+      const challenge = await this.prisma.codigos_2fa.findUnique({
         where: {
-          id: challenge.id,
-        },
-        data: {
-          usado_en: new Date(),
+          token_hash: tokenHash,
         },
       });
+      actorId = challenge?.usuario_id;
 
-      throw new UnauthorizedException(
-        'Demasiados intentos. Inicia sesión nuevamente.',
-      );
-    }
+      if (!challenge || challenge.usado_en) {
+        throw new UnauthorizedException('Desafío 2FA inválido.');
+      }
 
-    const usuario = await this.prisma.usuarios.findUnique({
-      where: {
-        id: challenge.usuario_id,
-      },
-      include: {
-        roles: {
-          include: {
-            rol_permisos: {
-              include: {
-                permisos: true,
+      if (challenge.expira_en <= new Date()) {
+        throw new UnauthorizedException(
+          'El desafío 2FA ha expirado. Inicia sesión nuevamente.',
+        );
+      }
+
+      if (challenge.intentos >= AuthService.maxChallengeAttempts) {
+        await this.prisma.codigos_2fa.update({
+          where: {
+            id: challenge.id,
+          },
+          data: {
+            usado_en: new Date(),
+          },
+        });
+
+        throw new UnauthorizedException(
+          'Demasiados intentos. Inicia sesión nuevamente.',
+        );
+      }
+
+      this.attempts.consume(`totp:${challenge.usuario_id}`, 5, 5 * 60_000);
+      const usuario = await this.prisma.usuarios.findUnique({
+        where: {
+          id: challenge.usuario_id,
+        },
+        include: {
+          roles: {
+            include: {
+              rol_permisos: {
+                include: {
+                  permisos: true,
+                },
               },
             },
           },
         },
-      },
-    });
-
-    if (
-      !usuario ||
-      !usuario.activo ||
-      !usuario.two_factor_enabled ||
-      !usuario.two_factor_secret
-    ) {
-      throw new UnauthorizedException(
-        'Desafío 2FA inválido.',
-      );
-    }
-
-    const secret = this.decryptSecret(
-      usuario.two_factor_secret,
-    );
-
-    const { valid } = verifySync({
-      secret,
-      token: dto.code,
-    });
-
-    if (!valid) {
-      await this.prisma.codigos_2fa.update({
-        where: {
-          id: challenge.id,
-        },
-        data: {
-          intentos: {
-            increment: 1,
-          },
-        },
       });
 
-      throw new UnauthorizedException(
-        'Código 2FA incorrecto.',
-      );
+      if (
+        !usuario ||
+        !usuario.activo ||
+        !usuario.roles.activo ||
+        !usuario.two_factor_enabled ||
+        !usuario.two_factor_secret
+      ) {
+        throw new UnauthorizedException('Desafío 2FA inválido.');
+      }
+
+      const secret = this.decryptSecret(usuario.two_factor_secret);
+
+      const { valid } = verifySync({
+        secret,
+        token: dto.code,
+        epochTolerance: AuthService.totpToleranciaSegundos,
+      });
+
+      if (!valid) {
+        await this.prisma.codigos_2fa.update({
+          where: {
+            id: challenge.id,
+          },
+          data: {
+            intentos: {
+              increment: 1,
+            },
+          },
+        });
+
+        throw new UnauthorizedException('Código 2FA incorrecto.');
+      }
+
+      const consumed = await this.prisma.codigos_2fa.updateMany({
+        where: {
+          id: challenge.id,
+          usado_en: null,
+          expira_en: { gt: new Date() },
+          intentos: { lt: AuthService.maxChallengeAttempts },
+        },
+        data: { usado_en: new Date() },
+      });
+      if (consumed.count !== 1)
+        throw new UnauthorizedException('Desafío 2FA inválido o utilizado.');
+      this.attempts.reset(`totp:${challenge.usuario_id}`);
+
+      return await this.issueTokens(usuario, metadata);
+    } catch (error) {
+      await this.recordAuth('LOGIN_2FA_FALLIDO', actorId, metadata);
+      throw error;
     }
-
-    await this.prisma.codigos_2fa.update({
-      where: {
-        id: challenge.id,
-      },
-      data: {
-        usado_en: new Date(),
-      },
-    });
-
-    return this.issueTokens(usuario, metadata);
   }
 
   async setupTwoFactor(userId: string) {
+    this.attempts.consume(`setupTwoFactor:${userId}`, 5, 5 * 60_000);
     const usuario = await this.prisma.usuarios.findUnique({
       where: {
         id: userId,
@@ -642,15 +792,11 @@ export class AuthService {
     });
 
     if (!usuario || !usuario.activo) {
-      throw new UnauthorizedException(
-        'Usuario no encontrado o inactivo.',
-      );
+      throw new UnauthorizedException('Usuario no encontrado o inactivo.');
     }
 
     if (usuario.two_factor_enabled) {
-      throw new ConflictException(
-        'El 2FA ya está habilitado en esta cuenta.',
-      );
+      throw new ConflictException('El 2FA ya está habilitado en esta cuenta.');
     }
 
     const secret = generateSecret();
@@ -679,10 +825,8 @@ export class AuthService {
     };
   }
 
-  async verifyTwoFactor(
-    userId: string,
-    dto: VerifyTwoFactorDto,
-  ) {
+  async verifyTwoFactor(userId: string, dto: VerifyTwoFactorDto) {
+    this.attempts.consume(`verifyTwoFactor:${userId}`, 5, 5 * 60_000);
     const usuario = await this.prisma.usuarios.findUnique({
       where: {
         id: userId,
@@ -690,9 +834,7 @@ export class AuthService {
     });
 
     if (!usuario || !usuario.activo) {
-      throw new UnauthorizedException(
-        'Usuario no encontrado o inactivo.',
-      );
+      throw new UnauthorizedException('Usuario no encontrado o inactivo.');
     }
 
     if (!usuario.two_factor_secret) {
@@ -702,18 +844,15 @@ export class AuthService {
     }
 
     if (usuario.two_factor_enabled) {
-      throw new ConflictException(
-        'El 2FA ya está habilitado en esta cuenta.',
-      );
+      throw new ConflictException('El 2FA ya está habilitado en esta cuenta.');
     }
 
-    const secret = this.decryptSecret(
-      usuario.two_factor_secret,
-    );
+    const secret = this.decryptSecret(usuario.two_factor_secret);
 
     const { valid } = verifySync({
       secret,
       token: dto.code,
+      epochTolerance: AuthService.totpToleranciaSegundos,
     });
 
     if (!valid) {
@@ -737,10 +876,8 @@ export class AuthService {
     };
   }
 
-  async disableTwoFactor(
-    userId: string,
-    dto: DisableTwoFactorDto,
-  ) {
+  async disableTwoFactor(userId: string, dto: DisableTwoFactorDto) {
+    this.attempts.consume(`disableTwoFactor:${userId}`, 5, 5 * 60_000);
     const usuario = await this.prisma.usuarios.findUnique({
       where: {
         id: userId,
@@ -748,9 +885,7 @@ export class AuthService {
     });
 
     if (!usuario || !usuario.activo) {
-      throw new UnauthorizedException(
-        'Usuario no encontrado o inactivo.',
-      );
+      throw new UnauthorizedException('Usuario no encontrado o inactivo.');
     }
 
     if (!usuario.two_factor_enabled) {
@@ -765,9 +900,7 @@ export class AuthService {
     );
 
     if (!passwordValid) {
-      throw new UnauthorizedException(
-        'Contraseña incorrecta.',
-      );
+      throw new UnauthorizedException('Contraseña incorrecta.');
     }
 
     await this.prisma.usuarios.update({
@@ -797,15 +930,10 @@ export class AuthService {
     caller: { id: string; rolCodigo: string },
     targetId: string,
   ) {
-    const target = await this.assertCanAssistTwoFactor(
-      caller,
-      targetId,
-    );
+    const target = await this.assertCanAssistTwoFactor(caller, targetId);
 
     if (target.two_factor_enabled) {
-      throw new ConflictException(
-        'El 2FA ya está habilitado en esta cuenta.',
-      );
+      throw new ConflictException('El 2FA ya está habilitado en esta cuenta.');
     }
 
     const secret = generateSecret();
@@ -839,10 +967,7 @@ export class AuthService {
     targetId: string,
     dto: VerifyTwoFactorDto,
   ) {
-    const target = await this.assertCanAssistTwoFactor(
-      caller,
-      targetId,
-    );
+    const target = await this.assertCanAssistTwoFactor(caller, targetId);
 
     if (!target.two_factor_secret) {
       throw new BadRequestException(
@@ -851,18 +976,15 @@ export class AuthService {
     }
 
     if (target.two_factor_enabled) {
-      throw new ConflictException(
-        'El 2FA ya está habilitado en esta cuenta.',
-      );
+      throw new ConflictException('El 2FA ya está habilitado en esta cuenta.');
     }
 
-    const secret = this.decryptSecret(
-      target.two_factor_secret,
-    );
+    const secret = this.decryptSecret(target.two_factor_secret);
 
     const { valid } = verifySync({
       secret,
       token: dto.code,
+      epochTolerance: AuthService.totpToleranciaSegundos,
     });
 
     if (!valid) {
@@ -882,8 +1004,7 @@ export class AuthService {
 
     return {
       twoFactorEnabled: true,
-      mensaje:
-        '2FA habilitado correctamente para el adulto mayor.',
+      mensaje: '2FA habilitado correctamente para el adulto mayor.',
     };
   }
 
@@ -901,9 +1022,7 @@ export class AuthService {
     });
 
     if (!target || !target.activo) {
-      throw new NotFoundException(
-        'Usuario no encontrado o inactivo.',
-      );
+      throw new NotFoundException('Usuario no encontrado o inactivo.');
     }
 
     if (target.roles.codigo !== 'ADULTO_MAYOR') {
@@ -913,14 +1032,13 @@ export class AuthService {
     }
 
     if (caller.rolCodigo !== 'ADMINISTRADOR') {
-      const vinculo =
-        await this.prisma.adulto_familiares.findFirst({
-          where: {
-            adulto_id: targetId,
-            familiar_id: caller.id,
-            estado: 'ACTIVA',
-          },
-        });
+      const vinculo = await this.prisma.adulto_familiares.findFirst({
+        where: {
+          adulto_id: targetId,
+          familiar_id: caller.id,
+          estado: 'ACTIVA',
+        },
+      });
 
       if (!vinculo) {
         throw new ForbiddenException(
@@ -940,42 +1058,53 @@ export class AuthService {
       ({ permisos }) => permisos.codigo,
     );
 
+    const sessionId = randomUUID();
     const payload: JwtPayload = {
       sub: usuario.id,
+      sid: sessionId,
       email: usuario.email,
       role: usuario.roles.codigo,
     };
 
     const accessToken = await this.jwtService.signAsync(payload);
 
-    const refreshToken = this.generateRefreshToken();
+    const refreshToken = this.generateRefreshToken(sessionId);
     const refreshTokenHash = this.hashToken(refreshToken);
 
     const expiraEn = new Date(
-      Date.now() +
-        this.refreshTokenExpirationSeconds * 1000,
+      Date.now() + this.refreshTokenExpirationSeconds * 1000,
     );
 
-    await this.prisma.$transaction([
-      this.prisma.sesiones.create({
-        data: {
-          usuario_id: usuario.id,
-          refresh_token_hash: refreshTokenHash,
-          ip: metadata.ip ?? null,
-          user_agent: metadata.userAgent ?? null,
-          expira_en: expiraEn,
-        },
-      }),
-
-      this.prisma.usuarios.update({
+    await this.prisma.$transaction(async (tx) => {
+      // El UPDATE bloquea la misma fila que cambio/reset de contraseña. Si ese
+      // cambio terminó antes, el hash ya no coincide; si termina después,
+      // deberá esperar y revocará también la sesión creada aquí.
+      const current = await tx.usuarios.updateMany({
         where: {
           id: usuario.id,
+          password_hash: usuario.password_hash,
+          activo: true,
         },
+        data: { ultimo_acceso_en: new Date() },
+      });
+      if (current.count !== 1)
+        throw new UnauthorizedException(
+          'Las credenciales cambiaron. Inicia sesión nuevamente.',
+        );
+      await tx.sesiones.create({
         data: {
-          ultimo_acceso_en: new Date(),
+          id: sessionId,
+          usuario_id: usuario.id,
+          refresh_token_hash: refreshTokenHash,
+          ip: metadata.ip && isIP(metadata.ip) ? metadata.ip : null,
+          user_agent: metadata.userAgent?.slice(0, 500) ?? null,
+          expira_en: expiraEn,
         },
-      }),
-    ]);
+      });
+      await tx.auditoria.create({
+        data: this.authAuditData('LOGIN_EXITOSO', usuario.id, metadata),
+      });
+    });
 
     return {
       accessToken,
@@ -1003,31 +1132,79 @@ export class AuthService {
 
   private async signChallengeToken(
     userId: string,
+    expectedPasswordHash: string,
   ): Promise<string> {
     const rawToken = randomBytes(32).toString('base64url');
 
-    await this.prisma.codigos_2fa.create({
-      data: {
-        usuario_id: userId,
-        token_hash: this.hashToken(rawToken),
-        tipo: 'LOGIN',
-        expira_en: new Date(
-          Date.now() +
-            AuthService.challengeExpirationSeconds * 1000,
-        ),
-      },
+    await this.prisma.$transaction(async (tx) => {
+      // Bloquear sin cambiar la contraseña ni marcar un login aún incompleto.
+      // El reset debe invalidar también este desafío si se ejecuta después.
+      const current = await tx.usuarios.updateMany({
+        where: {
+          id: userId,
+          password_hash: expectedPasswordHash,
+          activo: true,
+        },
+        data: { password_hash: expectedPasswordHash },
+      });
+      if (current.count !== 1)
+        throw new UnauthorizedException(
+          'Las credenciales cambiaron. Inicia sesión nuevamente.',
+        );
+      await tx.codigos_2fa.create({
+        data: {
+          usuario_id: userId,
+          token_hash: this.hashToken(rawToken),
+          tipo: 'LOGIN',
+          expira_en: new Date(
+            Date.now() + AuthService.challengeExpirationSeconds * 1000,
+          ),
+        },
+      });
     });
 
     return rawToken;
+  }
+
+  private hashResetCode(userId: string, code: string): string {
+    const secret = process.env.JWT_ACCESS_SECRET;
+    if (!secret) throw new Error('JWT_ACCESS_SECRET is required.');
+    return createHmac('sha256', secret)
+      .update(`${userId}:${code}`)
+      .digest('hex');
+  }
+
+  private authAuditData(
+    action: string,
+    actorId?: string,
+    metadata: RequestMetadata = {},
+  ) {
+    return {
+      ...(actorId ? { actor_id: actorId } : {}),
+      accion: action,
+      entidad: 'auth',
+      ...(metadata.ip && isIP(metadata.ip) ? { ip: metadata.ip } : {}),
+      ...(metadata.userAgent
+        ? { user_agent: metadata.userAgent.slice(0, 500) }
+        : {}),
+    };
+  }
+
+  private async recordAuth(
+    action: string,
+    actorId?: string,
+    metadata: RequestMetadata = {},
+  ) {
+    await this.prisma.auditoria.create({
+      data: this.authAuditData(action, actorId, metadata),
+    });
   }
 
   private get twoFactorEncryptionKey(): string {
     const secret = process.env.TWO_FACTOR_ENCRYPTION_KEY;
 
     if (!secret) {
-      throw new Error(
-        'TWO_FACTOR_ENCRYPTION_KEY is required.',
-      );
+      throw new Error('TWO_FACTOR_ENCRYPTION_KEY is required.');
     }
 
     return secret;

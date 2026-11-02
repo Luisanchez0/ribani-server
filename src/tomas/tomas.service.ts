@@ -264,18 +264,7 @@ export class TomasService {
   }
 
   private async obtenerAdultosAccesibles(usuarioId: string): Promise<string[]> {
-    const vinculos = await this.prisma.adulto_familiares.findMany({
-      where: {
-        familiar_id: usuarioId,
-        estado: 'ACTIVA',
-        puede_gestionar_medicamentos: true,
-      },
-      select: {
-        adulto_id: true,
-      },
-    });
-
-    return [...vinculos.map((v) => v.adulto_id), usuarioId];
+    return this.medicamentosService.obtenerAdultosAccesibles(usuarioId);
   }
 
   private async assertPuedeVerAdulto(
@@ -285,6 +274,13 @@ export class TomasService {
     if (usuarioId === adultoId) {
       return;
     }
+
+    // La autenticacion HTTP y los permisos del dominio se comprueban antes de este ambito de objetos.
+    const usuario = await this.prisma.usuarios.findUnique({
+      where: { id: usuarioId },
+      select: { roles: { select: { codigo: true } } },
+    });
+    if (usuario?.roles.codigo === 'ADMINISTRADOR') return;
 
     const vinculo = await this.prisma.adulto_familiares.findFirst({
       where: {
@@ -311,6 +307,8 @@ export class TomasService {
       estado?: string;
       desde?: string;
       hasta?: string;
+      limite?: number;
+      incluirCanceladas?: boolean;
     },
   ) {
     const { adultoId, medicamentoId, estado, desde, hasta } = filtros;
@@ -353,7 +351,11 @@ export class TomasService {
               estado:
                 estado === 'PENDIENTE' ? { in: ESTADOS_PENDIENTES } : estado,
             }
-          : {}),
+          : // Las tomas dadas de baja (historial eliminado) no se listan salvo
+            // que el cliente las pida explícitamente con estado=CANCELADA.
+            filtros.incluirCanceladas
+            ? {}
+            : { estado: { not: 'CANCELADA' } }),
         ...(desdeFecha || hastaFecha
           ? {
               programada_para: {
@@ -364,6 +366,7 @@ export class TomasService {
           : {}),
       },
       select: SELECT_TOMA,
+      take: filtros.limite ?? 100,
       orderBy: [{ programada_para: 'desc' }],
     });
     return filas.map((t) => ({ ...t, recordar_en: recordarEn(t) }));
@@ -514,36 +517,39 @@ export class TomasService {
   }
 
   /**
-   * Solo se eliminan tomas PENDIENTE (las registradas quedan como historial).
-   * Si la toma ya tiene notificaciones asociadas se rechaza el borrado físico.
+   * Baja lógica del historial: la fila no se borra, pasa a CANCELADA para
+   * conservar la auditoría y deja de aparecer en los listados por defecto.
+   * Las notificaciones WhatsApp aún en cola se cancelan para no avisar de una
+   * toma que el usuario acaba de quitar de su historial.
    */
   async remove(usuarioId: string, id: string) {
     const toma = await this.findOne(usuarioId, id);
 
-    if (toma.estado !== 'PENDIENTE') {
-      throw new ConflictException(
-        'Solo se pueden eliminar tomas pendientes. Usa PATCH con estado OMITIDA para cancelar una toma registrada.',
-      );
-    }
-
-    try {
-      await this.prisma.tomas_medicamento.delete({
-        where: { id },
-        select: SELECT_TOMA,
-      });
-
+    if (toma.estado === 'CANCELADA') {
       return { id, eliminado: true as const };
-    } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2003'
-      ) {
-        throw new ConflictException(
-          'La toma tiene notificaciones asociadas y no puede eliminarse.',
-        );
-      }
-
-      throw error;
     }
+
+    const ahora = new Date();
+    await this.prisma.$transaction([
+      this.prisma.tomas_medicamento.update({
+        where: { id },
+        data: { estado: 'CANCELADA', updated_at: ahora },
+        select: { id: true },
+      }),
+      this.prisma.notificaciones_whatsapp.updateMany({
+        where: {
+          toma_id: id,
+          estado: { in: ['EN_COLA', 'FALLIDA'] },
+          proveedor_message_id: null,
+        },
+        data: {
+          estado: 'CANCELADA',
+          siguiente_intento_en: null,
+          updated_at: ahora,
+        },
+      }),
+    ]);
+
+    return { id, eliminado: true as const };
   }
 }

@@ -59,10 +59,7 @@ export class HorariosService {
    * Reutiliza la autorización de medicamentos: 404 si no existe,
    * 403 si el usuario no es el adulto ni un familiar vinculado.
    */
-  private async resolverMedicamento(
-    usuarioId: string,
-    medicamentoId: string,
-  ) {
+  private async resolverMedicamento(usuarioId: string, medicamentoId: string) {
     return this.medicamentosService.findOne(usuarioId, medicamentoId);
   }
 
@@ -93,7 +90,10 @@ export class HorariosService {
     medicamentoId: string,
     dto: CreateHorarioDto,
   ) {
-    const medicamento = await this.resolverMedicamento(usuarioId, medicamentoId);
+    const medicamento = await this.resolverMedicamento(
+      usuarioId,
+      medicamentoId,
+    );
 
     if (!medicamento.activo) {
       throw new BadRequestException(
@@ -109,7 +109,9 @@ export class HorariosService {
       data: {
         medicamento_id: medicamentoId,
         hora_local: horaLocal,
-        ...(dto.dias_semana !== undefined ? { dias_semana: dto.dias_semana } : {}),
+        ...(dto.dias_semana !== undefined
+          ? { dias_semana: dto.dias_semana }
+          : {}),
         ...(dto.intervalo_minutos !== undefined
           ? { intervalo_minutos: dto.intervalo_minutos }
           : {}),
@@ -125,6 +127,7 @@ export class HorariosService {
     usuarioId: string,
     medicamentoId: string,
     soloActivos: boolean,
+    limite = 100,
   ) {
     await this.resolverMedicamento(usuarioId, medicamentoId);
 
@@ -134,6 +137,7 @@ export class HorariosService {
         ...(soloActivos ? { activo: true } : {}),
       },
       select: SELECT_HORARIO,
+      take: limite,
       orderBy: [{ hora_local: 'asc' }, { created_at: 'asc' }],
     });
   }
@@ -180,7 +184,9 @@ export class HorariosService {
       where: { id },
       data: {
         ...(dto.hora_local !== undefined ? { hora_local: horaLocal } : {}),
-        ...(dto.dias_semana !== undefined ? { dias_semana: dto.dias_semana } : {}),
+        ...(dto.dias_semana !== undefined
+          ? { dias_semana: dto.dias_semana }
+          : {}),
         ...(dto.intervalo_minutos !== undefined
           ? { intervalo_minutos: dto.intervalo_minutos }
           : {}),
@@ -204,7 +210,12 @@ export class HorariosService {
    */
   async findAllDelUsuario(
     usuarioId: string,
-    options: { adultoId?: string; medicamentoId?: string; soloActivos: boolean },
+    options: {
+      adultoId?: string;
+      medicamentoId?: string;
+      soloActivos: boolean;
+      limite?: number;
+    },
   ) {
     const { adultoId, medicamentoId, soloActivos } = options;
 
@@ -241,42 +252,31 @@ export class HorariosService {
       whereMedicamentos = { adulto_id: { in: adultosIds } };
     }
 
-    const medicamentos = await this.prisma.medicamentos.findMany({
+    const horarios = await this.prisma.horarios_medicamento.findMany({
       where: {
-        ...whereMedicamentos,
-        horarios_medicamento: {
-          some: soloActivos ? { activo: true } : {},
-        },
+        medicamentos: whereMedicamentos,
+        ...(soloActivos ? { activo: true } : {}),
       },
       select: {
-        id: true,
-        adulto_id: true,
-        nombre: true,
-        horarios_medicamento: {
-          where: soloActivos ? { activo: true } : {},
-          select: SELECT_HORARIO,
-          orderBy: [{ hora_local: 'asc' }, { created_at: 'asc' }],
-        },
+        ...SELECT_HORARIO,
+        medicamentos: { select: { id: true, adulto_id: true, nombre: true } },
       },
-      orderBy: [{ adulto_id: 'asc' }, { nombre: 'asc' }],
+      orderBy: [
+        { medicamentos: { adulto_id: 'asc' } },
+        { medicamentos: { nombre: 'asc' } },
+        { hora_local: 'asc' },
+        { created_at: 'asc' },
+        { id: 'asc' },
+      ],
+      take: options.limite ?? 100,
     });
 
-    return medicamentos.flatMap((medicamento) =>
-      medicamento.horarios_medicamento.map((horario) => ({
-        id: horario.id,
-        medicamento_id: medicamento.id,
-        medicamento_nombre: medicamento.nombre,
-        adulto_id: medicamento.adulto_id,
-        /** Hora pura "HH:MM" anclada en UTC (espejo del Time(6)). */
-        hora: formatearHora(horario.hora_local),
-        hora_local: horario.hora_local,
-        dias_semana: horario.dias_semana,
-        intervalo_minutos: horario.intervalo_minutos,
-        ventana_minutos: horario.ventana_minutos,
-        activo: horario.activo,
-        created_at: horario.created_at,
-      })),
-    );
+    return horarios.map(({ medicamentos: medicamento, ...horario }) => ({
+      ...horario,
+      medicamento_nombre: medicamento.nombre,
+      adulto_id: medicamento.adulto_id,
+      hora: formatearHora(horario.hora_local),
+    }));
   }
 
   async remove(usuarioId: string, medicamentoId: string, id: string) {

@@ -53,6 +53,13 @@ export class ZonasSegurasService {
       return;
     }
 
+    // La autenticacion HTTP y los permisos del dominio se comprueban antes de este ambito de objetos.
+    const usuario = await this.prisma.usuarios.findUnique({
+      where: { id: usuarioId },
+      select: { roles: { select: { codigo: true } } },
+    });
+    if (usuario?.roles.codigo === 'ADMINISTRADOR') return;
+
     const vinculo = await this.prisma.adulto_familiares.findFirst({
       where: {
         adulto_id: adultoId,
@@ -113,7 +120,7 @@ export class ZonasSegurasService {
 
   async findAll(
     usuarioId: string,
-    options: { adultoId?: string; soloActivas: boolean },
+    options: { adultoId?: string; soloActivas: boolean; limite?: number },
   ) {
     const { adultoId, soloActivas } = options;
 
@@ -131,6 +138,7 @@ export class ZonasSegurasService {
         ...(soloActivas ? { activa: true } : {}),
       },
       select: SELECT_ZONA,
+      take: options.limite ?? 100,
       orderBy: [{ adulto_id: 'asc' }, { nombre: 'asc' }],
     });
 
@@ -138,6 +146,17 @@ export class ZonasSegurasService {
   }
 
   private async obtenerAdultosAccesibles(usuarioId: string): Promise<string[]> {
+    const usuario = await this.prisma.usuarios.findUnique({
+      where: { id: usuarioId },
+      select: { roles: { select: { codigo: true } } },
+    });
+    if (usuario?.roles.codigo === 'ADMINISTRADOR') {
+      const adultos = await this.prisma.usuarios.findMany({
+        where: { roles: { codigo: 'ADULTO_MAYOR' } }, select: { id: true },
+      });
+      return adultos.map((adulto) => adulto.id);
+    }
+
     const vinculos = await this.prisma.adulto_familiares.findMany({
       where: { familiar_id: usuarioId, estado: 'ACTIVA' },
       select: { adulto_id: true },

@@ -1,0 +1,125 @@
+# Producción RIBANI en un VPS.
+#
+#   caddy              -> único servicio con puertos públicos (80/443) y TLS automático
+#   api                -> ribani-server, solo accesible desde la red de Docker
+#   web                -> panel web (ribani-web) servido por nginx, solo interno
+#
+# WhatsApp usa Meta Cloud API. Evolution API queda fuera del despliegue; si alguna
+# vez se necesita en desarrollo, está aislada en compose.evolution.yaml.
+#
+# El servicio `web` se construye desde el repo hermano ../ribani-web, así que en
+# el VPS ambos repos deben estar clonados en la misma carpeta padre:
+#   /srv/ribani/ribani-server/deploy/vps/compose.yaml  (este archivo)
+#   /srv/ribani/ribani-web
+#
+# Levantar:  cp .env.example .env && editar && docker compose up -d --build
+
+name: ribani
+
+x-logging: &logging
+  logging:
+    driver: json-file
+    options:
+      max-size: '10m'
+      max-file: '3'
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    <<: *logging
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    environment:
+      API_DOMAIN: ${API_DOMAIN:?Define API_DOMAIN en el .env}
+      WEB_DOMAIN: ${WEB_DOMAIN:?Define WEB_DOMAIN en el .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      api:
+        condition: service_started
+      web:
+        condition: service_started
+
+  web:
+    build:
+      context: ../../../ribani-web
+      dockerfile: Dockerfile
+      args:
+        # Se incrusta en el bundle: cambiarla exige reconstruir la imagen.
+        VITE_API_URL: ${PUBLIC_API_URL:?Define PUBLIC_API_URL en el .env}
+    image: ribani-web:latest
+    restart: unless-stopped
+    <<: *logging
+    expose:
+      - '80'
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '-O', '/dev/null', 'http://127.0.0.1/']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  api:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    image: ribani-server:latest
+    restart: unless-stopped
+    <<: *logging
+    # Sin `env_file`: Docker no quita las comillas del .env y DATABASE_URL
+    # llegaría como "postgresql://…". La interpolación de Compose sí las respeta.
+    environment:
+      NODE_ENV: production
+      PORT: '3000'
+      # Caddy es el único proxy delante de Nest (un salto).
+      TRUST_PROXY_HOPS: '1'
+      SWAGGER_ENABLED: ${SWAGGER_ENABLED:-false}
+      DATABASE_URL: ${DATABASE_URL:?Define DATABASE_URL en el .env}
+      DIRECT_URL: ${DIRECT_URL:?Define DIRECT_URL en el .env}
+      DATABASE_SSL_CA_PATH: /app/certs/supabase-ca.crt
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?Define JWT_ACCESS_SECRET en el .env}
+      JWT_ACCESS_EXPIRES_IN_SECONDS: ${JWT_ACCESS_EXPIRES_IN_SECONDS:-900}
+      JWT_REFRESH_EXPIRES_IN_SECONDS: ${JWT_REFRESH_EXPIRES_IN_SECONDS:-604800}
+      TWO_FACTOR_ENCRYPTION_KEY: ${TWO_FACTOR_ENCRYPTION_KEY:?Define TWO_FACTOR_ENCRYPTION_KEY en el .env}
+      RESEND_API_KEY: ${RESEND_API_KEY:?Define RESEND_API_KEY en el .env}
+      RESEND_TEMPLATE_INVITACION_ID: ${RESEND_TEMPLATE_INVITACION_ID:-}
+      RESEND_TEMPLATE_BIENVENIDA_ID: ${RESEND_TEMPLATE_BIENVENIDA_ID:-}
+      RESEND_TEMPLATE_RESET_ID: ${RESEND_TEMPLATE_RESET_ID:-}
+      CORS_ORIGINS: ${CORS_ORIGINS:?Define CORS_ORIGINS en el .env}
+      # WhatsApp apagado por defecto: activar solo tras configurar Meta.
+      WHATSAPP_DRIVER: ${WHATSAPP_DRIVER:-meta}
+      WHATSAPP_ENABLED: ${WHATSAPP_ENABLED:-false}
+      WHATSAPP_WORKER_ENABLED: ${WHATSAPP_WORKER_ENABLED:-false}
+      WHATSAPP_REMINDERS_ENABLED: ${WHATSAPP_REMINDERS_ENABLED:-false}
+      WHATSAPP_ACCESS_TOKEN: ${WHATSAPP_ACCESS_TOKEN:-}
+      WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID:-}
+      WHATSAPP_API_VERSION: ${WHATSAPP_API_VERSION:-}
+      META_APP_SECRET: ${META_APP_SECRET:-}
+      WHATSAPP_WEBHOOK_VERIFY_TOKEN: ${WHATSAPP_WEBHOOK_VERIFY_TOKEN:-}
+      WHATSAPP_TEST_TEMPLATE: ${WHATSAPP_TEST_TEMPLATE:-}
+      WHATSAPP_ALERT_TEMPLATE: ${WHATSAPP_ALERT_TEMPLATE:-}
+      WHATSAPP_REMINDER_TEMPLATE: ${WHATSAPP_REMINDER_TEMPLATE:-}
+      WHATSAPP_TEMPLATE_LANGUAGE: ${WHATSAPP_TEMPLATE_LANGUAGE:-es_MX}
+    expose:
+      - '3000'
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3000/').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  caddy_data:
+  caddy_config:

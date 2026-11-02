@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Get,
   Headers,
@@ -31,5 +32,10 @@ export class WhatsappWebhookController {
     @Headers('x-hub-signature-256') firma?: string,
   ) {
     return this.webhook.recibir(req.rawBody, firma, req.body as unknown);
+  }
+  @Post('evolution')
+  @HttpCode(200)
+  recibirEvolution(@Headers('apikey') apikey?: string, @Body() body?: unknown) {
+    return this.webhook.recibirEvolution(apikey, body);
   }
 }

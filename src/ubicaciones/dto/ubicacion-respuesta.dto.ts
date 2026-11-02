@@ -13,6 +13,18 @@ export class UbicacionRespuestaDto {
   @ApiProperty({ format: 'date-time' }) registrada_en: string;
 }
 
+/** Última ubicación por adulto (GET /ubicaciones/ultimas, solo admin). */
+export class UbicacionAdultoResumenDto {
+  @ApiProperty({ format: 'uuid' }) adulto_id: string;
+  @ApiProperty() nombre: string;
+  @ApiProperty() apellido: string;
+  @ApiProperty() latitud: number;
+  @ApiProperty() longitud: number;
+  @ApiPropertyOptional({ nullable: true }) precision_metros: number | null;
+  @ApiProperty({ enum: ['GPS', 'RED', 'MANUAL', 'OTRA'] }) fuente: string;
+  @ApiProperty({ format: 'date-time' }) registrada_en: string;
+}
+
 /** Respuesta de POST /ubicaciones/lote. */
 export class LoteUbicacionesRespuestaDto {
   @ApiProperty({ description: 'Reportes insertados en la base.' })

@@ -1,16 +1,17 @@
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
+import { EnvioError, type TransporteWhatsapp } from './whatsapp-transporte.js';
 
-export class MetaError extends Error {
-  constructor(
-    readonly codigo: string,
-    readonly reintentable = false,
-  ) {
-    super(`Meta rechazó el envío (${codigo}).`);
+export class MetaError extends EnvioError {
+  constructor(codigo: string, reintentable = false, credencialInvalida = false) {
+    super(codigo, reintentable, credencialInvalida);
+    this.message = `Meta rechazó el envío (${codigo}).`;
   }
 }
 
 @Injectable()
-export class MetaWhatsappService {
+export class MetaWhatsappService implements TransporteWhatsapp {
+  readonly proveedor = 'META_CLOUD_API' as const;
+
   disponible(): boolean {
     return (
       process.env.WHATSAPP_ENABLED === 'true' &&
@@ -78,6 +79,8 @@ export class MetaWhatsappService {
           ? String(body.error.code)
           : `HTTP_${response.status}`,
         response.status === 429,
+        // 190: token caducado o inválido. Meta no aceptó el mensaje.
+        body?.error?.code === 190,
       );
     const id = body?.messages?.[0]?.id;
     if (typeof id !== 'string' || !id || id.length > 150)

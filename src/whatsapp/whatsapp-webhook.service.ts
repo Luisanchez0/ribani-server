@@ -9,7 +9,10 @@ import {
   estadoSiguiente,
   extraerEstados,
   firmaValida,
+  type EventoMeta,
 } from './whatsapp.protocol.js';
+import { extraerEstadosEvolution, claveValida } from './whatsapp-evolution.protocol.js';
+import type { ProveedorWhatsapp } from './whatsapp-transporte.js';
 
 @Injectable()
 export class WhatsappWebhookService {
@@ -38,16 +41,34 @@ export class WhatsappWebhookService {
       throw new ServiceUnavailableException(
         'Falta configurar el número de Meta.',
       );
-    for (const evento of extraerEstados(
-      body,
-      process.env.WHATSAPP_PHONE_NUMBER_ID,
-    )) {
+    return this.aplicar(
+      extraerEstados(body, process.env.WHATSAPP_PHONE_NUMBER_ID),
+      'META_CLOUD_API',
+    );
+  }
+
+  async recibirEvolution(apikey: string | undefined, body: unknown) {
+    if (!claveValida(apikey, process.env.WHATSAPP_EVOLUTION_APIKEY ?? ''))
+      throw new ForbiddenException('Clave de Evolution API inválida.');
+    const instancia = (process.env.WHATSAPP_EVOLUTION_INSTANCE ?? '').trim();
+    if (!instancia)
+      throw new ServiceUnavailableException(
+        'Falta configurar la instancia de Evolution API.',
+      );
+    return this.aplicar(
+      extraerEstadosEvolution(body, instancia),
+      'EVOLUTION_API',
+    );
+  }
+
+  private async aplicar(eventos: EventoMeta[], proveedor: ProveedorWhatsapp) {
+    for (const evento of eventos) {
       await this.prisma.$transaction(async (tx) => {
         const filas = await tx.$queryRaw<
           { id: string; estado: string }[]
-        >`SELECT id, estado FROM notificaciones_whatsapp WHERE proveedor = 'META_CLOUD_API' AND proveedor_message_id = ${evento.messageId} FOR UPDATE`;
+        >`SELECT id, estado FROM notificaciones_whatsapp WHERE proveedor = ${proveedor} AND proveedor_message_id = ${evento.messageId} FOR UPDATE`;
         const n = filas[0];
-        // El callback puede adelantarse al guardado de wamid. Solicitar reentrega.
+        // El callback puede adelantarse al guardado del identificador. Solicitar reentrega.
         if (!n) {
           if (Date.now() - evento.fecha.getTime() < 120_000)
             throw new ServiceUnavailableException(
@@ -91,7 +112,12 @@ export class WhatsappWebhookService {
               [campo]: evento.fecha,
               siguiente_intento_en: null,
               codigo_error:
-                estado === 'FALLIDA' ? (evento.codigo ?? 'META_FALLIDA') : null,
+                estado === 'FALLIDA'
+                  ? (evento.codigo ??
+                    (proveedor === 'EVOLUTION_API'
+                      ? 'EVOLUTION_FALLIDA'
+                      : 'META_FALLIDA'))
+                  : null,
               updated_at: new Date(),
             },
           });

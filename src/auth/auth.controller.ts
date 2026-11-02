@@ -1,14 +1,14 @@
+import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
-import { ApiCreatedResponse, ApiExtraModels, ApiOkResponse, ApiTags, getSchemaPath } from '@nestjs/swagger';
+  ApiCreatedResponse,
+  ApiExtraModels,
+  ApiOkResponse,
+  ApiTags,
+  getSchemaPath,
+} from '@nestjs/swagger';
 import type { Request } from 'express';
 
+import { AuthRateLimitGuard } from './auth-rate-limit.guard.js';
 import { AuthService } from './auth.service.js';
 import { DisableTwoFactorDto } from './dto/disable-two-factor.dto.js';
 import { LoginDto } from './dto/login.dto.js';
@@ -22,8 +22,13 @@ import { TwoFactorLoginDto } from './dto/two-factor-login.dto.js';
 import { VerifyTwoFactorDto } from './dto/verify-two-factor.dto.js';
 import { JwtAuthGuard } from './gurads/jwt-auth.guard.js';
 import {
-  ConfigDosPasosDto, DesafioDosPasosDto, EstadoDosPasosDto, MensajeRespuestaDto,
-  RegistroRespuestaDto, TokensRespuestaDto, UsuarioActualDto,
+  ConfigDosPasosDto,
+  DesafioDosPasosDto,
+  EstadoDosPasosDto,
+  MensajeRespuestaDto,
+  RegistroRespuestaDto,
+  TokensRespuestaDto,
+  UsuarioActualDto,
 } from './dto/auth-respuesta.dto.js';
 
 interface AuthenticatedRequest extends Request {
@@ -35,10 +40,9 @@ interface AuthenticatedRequest extends Request {
 @ApiTags('auth')
 @ApiExtraModels(TokensRespuestaDto, DesafioDosPasosDto)
 @Controller('auth')
+@UseGuards(AuthRateLimitGuard)
 export class AuthController {
-  constructor(
-    private readonly authService: AuthService,
-  ) {}
+  constructor(private readonly authService: AuthService) {}
 
   @Post('register')
   @ApiCreatedResponse({ type: RegistroRespuestaDto })
@@ -47,14 +51,15 @@ export class AuthController {
   }
 
   @Post('login')
-  @ApiCreatedResponse({ schema: { oneOf: [
-    { $ref: getSchemaPath(TokensRespuestaDto) },
-    { $ref: getSchemaPath(DesafioDosPasosDto) },
-  ] } })
-  login(
-    @Body() dto: LoginDto,
-    @Req() request: Request,
-  ) {
+  @ApiCreatedResponse({
+    schema: {
+      oneOf: [
+        { $ref: getSchemaPath(TokensRespuestaDto) },
+        { $ref: getSchemaPath(DesafioDosPasosDto) },
+      ],
+    },
+  })
+  login(@Body() dto: LoginDto, @Req() request: Request) {
     return this.authService.login(dto, {
       ip: this.getIp(request),
       userAgent: request.headers['user-agent'],
@@ -63,10 +68,7 @@ export class AuthController {
 
   @Post('refresh')
   @ApiCreatedResponse({ type: TokensRespuestaDto })
-  refresh(
-    @Body() dto: RefreshTokenDto,
-    @Req() request: Request,
-  ) {
+  refresh(@Body() dto: RefreshTokenDto, @Req() request: Request) {
     return this.authService.refresh(dto, {
       ip: this.getIp(request),
       userAgent: request.headers['user-agent'],
@@ -75,31 +77,41 @@ export class AuthController {
 
   @Post('logout')
   @ApiCreatedResponse({ type: MensajeRespuestaDto })
-  logout(@Body() dto: RefreshTokenDto) {
-    return this.authService.logout(dto);
+  logout(@Body() dto: RefreshTokenDto, @Req() request: Request) {
+    return this.authService.logout(dto, {
+      ip: request.ip,
+      userAgent: request.headers['user-agent'],
+    });
   }
 
   /** Solicita el código de recuperación (manda correo con el código). */
   @Post('forgot-password')
   @ApiCreatedResponse({ type: MensajeRespuestaDto })
-  forgotPassword(@Body() dto: SolicitarResetPasswordDto) {
-    return this.authService.solicitarResetPassword(dto);
+  forgotPassword(
+    @Body() dto: SolicitarResetPasswordDto,
+    @Req() request: Request,
+  ) {
+    return this.authService.solicitarResetPassword(dto, {
+      ip: request.ip,
+      userAgent: request.headers['user-agent'],
+    });
   }
 
   /** Restablece la contraseña usando el código recibido por correo. */
   @Post('reset-password')
   @ApiCreatedResponse({ type: MensajeRespuestaDto })
-  resetPassword(@Body() dto: ResetPasswordDto) {
-    return this.authService.resetPassword(dto);
+  resetPassword(@Body() dto: ResetPasswordDto, @Req() request: Request) {
+    return this.authService.resetPassword(dto, {
+      ip: request.ip,
+      userAgent: request.headers['user-agent'],
+    });
   }
 
   @Post('2fa/setup')
   @ApiCreatedResponse({ type: ConfigDosPasosDto })
   @UseGuards(JwtAuthGuard)
   setupTwoFactor(@Req() request: AuthenticatedRequest) {
-    return this.authService.setupTwoFactor(
-      request.user.id,
-    );
+    return this.authService.setupTwoFactor(request.user.id);
   }
 
   @Post('2fa/verify')
@@ -109,18 +121,12 @@ export class AuthController {
     @Req() request: AuthenticatedRequest,
     @Body() dto: VerifyTwoFactorDto,
   ) {
-    return this.authService.verifyTwoFactor(
-      request.user.id,
-      dto,
-    );
+    return this.authService.verifyTwoFactor(request.user.id, dto);
   }
 
   @Post('2fa/login')
   @ApiCreatedResponse({ type: TokensRespuestaDto })
-  loginWithTwoFactor(
-    @Body() dto: TwoFactorLoginDto,
-    @Req() request: Request,
-  ) {
+  loginWithTwoFactor(@Body() dto: TwoFactorLoginDto, @Req() request: Request) {
     return this.authService.loginWithTwoFactor(dto, {
       ip: this.getIp(request),
       userAgent: request.headers['user-agent'],
@@ -134,32 +140,17 @@ export class AuthController {
     @Req() request: AuthenticatedRequest,
     @Body() dto: DisableTwoFactorDto,
   ) {
-    return this.authService.disableTwoFactor(
-      request.user.id,
-      dto,
-    );
+    return this.authService.disableTwoFactor(request.user.id, dto);
   }
 
   @Get('me')
   @ApiOkResponse({ type: UsuarioActualDto })
   @UseGuards(JwtAuthGuard)
   me(@Req() request: AuthenticatedRequest) {
-    return this.authService.getCurrentUser(
-      request.user.id,
-    );
+    return this.authService.getCurrentUser(request.user.id);
   }
 
   private getIp(request: Request): string | undefined {
-    const forwarded = request.headers['x-forwarded-for'];
-
-    if (typeof forwarded === 'string') {
-      return forwarded.split(',')[0]?.trim();
-    }
-
-    if (Array.isArray(forwarded)) {
-      return forwarded[0];
-    }
-
     return request.ip;
   }
 }

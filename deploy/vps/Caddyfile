@@ -1,0 +1,30 @@
+# Caddy termina TLS y reparte dos dominios en la red interna de Docker:
+#   API_DOMAIN -> api:3000   (ribani-server)
+#   WEB_DOMAIN -> web:80     (panel web, nginx)
+# Ambas variables se inyectan desde el .env del compose.
+# Caddy añade X-Forwarded-Proto: https, que es lo que Nest valida con
+# TRUST_PROXY_HOPS=1 en producción.
+
+{$API_DOMAIN} {
+	encode zstd gzip
+
+	reverse_proxy api:3000 {
+		# Sin búfer para los streams SSE de ubicaciones y alertas.
+		flush_interval -1
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}
+
+{$WEB_DOMAIN} {
+	# nginx ya comprime: aquí solo se reenvía el estático del SPA.
+	reverse_proxy web:80
+
+	log {
+		output stdout
+		format console
+	}
+}

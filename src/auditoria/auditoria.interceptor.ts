@@ -2,11 +2,10 @@ import {
   CallHandler,
   ExecutionContext,
   Injectable,
-  Logger,
   NestInterceptor,
 } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
-import { Observable, tap } from 'rxjs';
+import { Observable, catchError, concatMap } from 'rxjs';
 
 import { AuditoriaService } from './auditoria.service.js';
 
@@ -14,8 +13,6 @@ const METODOS_AUDITABLES = new Set(['POST', 'PATCH', 'DELETE']);
 
 @Injectable()
 export class AuditoriaInterceptor implements NestInterceptor {
-  private readonly logger = new Logger(AuditoriaInterceptor.name);
-
   constructor(private readonly auditoria: AuditoriaService) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
@@ -40,33 +37,38 @@ export class AuditoriaInterceptor implements NestInterceptor {
 
     const url = (request.originalUrl ?? request.url).split('?')[0];
 
-    if (url.startsWith('/ubicaciones') || url.startsWith('/auth/refresh')) {
+    if (
+      url.startsWith('/ubicaciones') ||
+      /^\/auth\/(?:web\/)?(?:login|2fa\/login|refresh|logout|forgot-password|reset-password)$/.test(
+        url,
+      )
+    ) {
       return next.handle();
     }
 
+    const userAgent = Array.isArray(request.headers['user-agent'])
+      ? request.headers['user-agent'][0]
+      : request.headers['user-agent'];
+    const entry = {
+      actorId: request.user?.id ?? null,
+      accion: `${request.method} ${request.route?.path ?? url}`,
+      entidad: url.split('/').filter(Boolean)[0] ?? 'desconocida',
+      entidadId:
+        typeof request.params?.id === 'string' ? request.params.id : null,
+      ip: request.ip ?? null,
+      userAgent: userAgent ?? null,
+    };
     return next.handle().pipe(
-      tap({
-        next: () => {
-          const userAgent = Array.isArray(request.headers['user-agent'])
-            ? request.headers['user-agent'][0]
-            : request.headers['user-agent'];
-
-          this.auditoria
-            .registrar({
-              actorId: request.user?.id ?? null,
-              accion: `${request.method} ${request.route?.path ?? url}`,
-              entidad: url.split('/').filter(Boolean)[0] ?? 'desconocida',
-              entidadId:
-                typeof request.params?.id === 'string'
-                  ? request.params.id
-                  : null,
-              ip: request.ip ?? null,
-              userAgent: userAgent ?? null,
-            })
-            .catch((error) =>
-              this.logger.warn(`Auditoria omitida: ${String(error)}`),
-            );
-        },
+      catchError(async (error: unknown) => {
+        await this.auditoria.registrar({
+          ...entry,
+          accion: `${entry.accion} ERROR`,
+        });
+        throw error;
+      }),
+      concatMap(async (response: unknown) => {
+        await this.auditoria.registrar(entry);
+        return response;
       }),
     );
   }

@@ -137,6 +137,23 @@ describe('Meta Cloud API', () => {
       }
     }
   });
+  it('distingue un token caducado (código 190) de los demás rechazos', async () => {
+    configurar();
+    for (const [code, esperado] of [
+      [190, true],
+      [131030, false],
+    ] as const) {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue(
+          new Response(JSON.stringify({ error: { code } }), { status: 401 }),
+        ),
+      );
+      await expect(
+        new MetaWhatsappService().enviar('+521234567890', 'prueba', 'es_MX', []),
+      ).rejects.toMatchObject({ credencialInvalida: esperado });
+    }
+  });
 });
 
 describe('Consentimiento y propiedad', () => {

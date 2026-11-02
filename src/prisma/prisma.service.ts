@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../generated/prisma/client.js';
+import { databaseConnectionOptions } from '../common/database-connection.js';
 
 @Injectable()
 export class PrismaService
@@ -15,7 +16,7 @@ export class PrismaService
       throw new Error('DATABASE_URL is required to connect to PostgreSQL.');
     }
 
-    super({ adapter: new PrismaPg({ connectionString }) });
+    super({ adapter: new PrismaPg(databaseConnectionOptions(connectionString)) });
   }
 
   async onModuleInit(): Promise<void> {

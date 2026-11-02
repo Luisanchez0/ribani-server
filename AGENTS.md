@@ -9,16 +9,16 @@ usuarios/perfil, roles/permisos, familiares/invitaciones, contactos,
 medicamentos/horarios/tomas, dispositivos, alertas, ubicación SSE, zonas
 seguras, auditoría, correo con Resend y el módulo WhatsApp (Meta Cloud API:
 destinatarios/consentimiento, prueba, cola, webhook, historial y recordatorios).
-WhatsApp está deshabilitado por defecto; ver `docs/whatsapp.md` antes de activarlo.
+WhatsApp usa Meta y está deshabilitado por defecto; ver `docs/whatsapp.md` antes
+de activarlo. Evolution API es solo una opción de desarrollo.
 Las secciones que hablan de APIs
 futuras describen el orden original de desarrollo: no reconstruir esos módulos.
 
 La etapa actual es estabilizar autorización y sesiones, completar los contratos
-OpenAPI y verificar pruebas, lint y compilación. Esta revisión ejecutó 101 pruebas
-del backend, lint y build/exportación OpenAPI correctamente con Node 22.23.2.
+OpenAPI y verificar pruebas, lint y compilación. La última revisión ejecutó 308
+pruebas del backend, lint y build/exportación OpenAPI correctamente con Node 24.22.1.
 El lint conserva advertencias previas no bloqueantes. No se ejecutó e2e contra
-la base real. Autenticación y usuarios/perfil ya tienen respuestas documentadas;
-los contratos de los demás dominios se completarán progresivamente.
+la base real. Todos los dominios tienen respuestas documentadas en OpenAPI.
 
 La configuración existente de Prisma es `prisma7.config.ts`, utilizada
 explícitamente por los scripts de generación; no renombrarla por seguir ejemplos.
