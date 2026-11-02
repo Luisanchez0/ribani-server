@@ -60,6 +60,10 @@ export class InvitacionFamiliarRespuestaDto extends VinculoFamiliarRespuestaDto 
 }
 
 /** Respuesta al completar el registro el adulto invitado (público). */
+export class CodigoInvitacionRespuestaDto {
+  @ApiProperty() mensaje!: string;
+}
+
 export class CompletarInvitacionRespuestaDto {
   @ApiProperty() adulto_id: string;
   @ApiProperty() email: string;

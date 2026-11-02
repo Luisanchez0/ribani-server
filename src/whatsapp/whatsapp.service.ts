@@ -2,12 +2,16 @@ import {
   BadRequestException,
   ConflictException,
   ForbiddenException,
+  Inject,
   Injectable,
   NotFoundException,
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { MetaWhatsappService } from './meta-whatsapp.service.js';
+import {
+  WHATSAPP_TRANSPORTE,
+  type TransporteWhatsapp,
+} from './whatsapp-transporte.js';
 import type {
   ConsentimientoWhatsappDto,
   PreferenciasWhatsappDto,
@@ -35,12 +39,14 @@ export const idiomaWhatsapp = () =>
 export class WhatsappService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly meta: MetaWhatsappService,
+    @Inject(WHATSAPP_TRANSPORTE)
+    private readonly transporte: TransporteWhatsapp,
   ) {}
 
   integracion() {
     return {
-      habilitada: this.meta.disponible(),
+      habilitada: this.transporte.disponible(),
+      proveedor: this.transporte.proveedor,
       procesador_habilitado: process.env.WHATSAPP_WORKER_ENABLED === 'true',
       recordatorios_habilitados:
         process.env.WHATSAPP_REMINDERS_ENABLED === 'true',
@@ -210,9 +216,9 @@ export class WhatsappService {
   }
 
   async prueba(usuarioId: string, admin: boolean, id: string) {
-    if (!this.meta.disponible() || !process.env.WHATSAPP_TEST_TEMPLATE)
+    if (!this.transporte.disponible() || !process.env.WHATSAPP_TEST_TEMPLATE)
       throw new ServiceUnavailableException(
-        'Configura Meta y una plantilla de prueba sin parámetros antes de encolar.',
+        'Configura el proveedor de WhatsApp y una plantilla de prueba sin parámetros antes de encolar.',
       );
     const destino = await this.prisma.whatsapp_destinatarios.findUnique({
       where: { id },
@@ -239,6 +245,7 @@ export class WhatsappService {
         throw new ConflictException('Espera un minuto entre pruebas.');
       const n = await tx.notificaciones_whatsapp.create({
         data: {
+          proveedor: this.transporte.proveedor,
           destinatario_id: id,
           tipo: 'PRUEBA',
           plantilla: process.env.WHATSAPP_TEST_TEMPLATE!,
@@ -466,6 +473,7 @@ export class WhatsappService {
     if (!adulto?.activo || !destinos.length) return 0;
     const resultado = await this.prisma.notificaciones_whatsapp.createMany({
       data: destinos.map((d) => ({
+        proveedor: this.transporte.proveedor,
         destinatario_id: d.id,
         alerta_id: alerta.id,
         tipo: alerta.tipo === 'SOS' ? 'SOS' : 'ALERTA',

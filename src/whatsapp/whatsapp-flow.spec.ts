@@ -102,6 +102,40 @@ describe('Cola WhatsApp', () => {
     await worker.procesarUna('n');
     expect(meta.enviar).not.toHaveBeenCalled();
   });
+  it.each(['RESUELTA', 'CANCELADA'])(
+    'cancela sin enviar el aviso de una alerta %s',
+    async (estado) => {
+      const { worker, prisma, whatsapp, meta } = setup({
+        tipo: 'ALERTA',
+        alerta_id: 'a',
+        alertas: { adulto_id: 'adulto', estado },
+      });
+      whatsapp.destinatariosAlerta.mockResolvedValue([{ id: 'd' }]);
+      await worker.procesarUna('n');
+      expect(meta.enviar).not.toHaveBeenCalled();
+      expect(prisma.notificaciones_whatsapp.updateMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            estado: 'CANCELADA',
+            codigo_error: 'ALERTA_CERRADA',
+          }),
+        }),
+      );
+    },
+  );
+  it.each(['ABIERTA', 'EN_ATENCION'])(
+    'envía el aviso de una alerta %s',
+    async (estado) => {
+      const { worker, whatsapp, meta } = setup({
+        tipo: 'ALERTA',
+        alerta_id: 'a',
+        alertas: { adulto_id: 'adulto', estado },
+      });
+      whatsapp.destinatariosAlerta.mockResolvedValue([{ id: 'd' }]);
+      await worker.procesarUna('n');
+      expect(meta.enviar).toHaveBeenCalledOnce();
+    },
+  );
   it('cancela un recordatorio de una toma ya registrada', async () => {
     vi.stubEnv('WHATSAPP_REMINDERS_ENABLED', 'true');
     const { worker, meta } = setup({
@@ -188,6 +222,21 @@ describe('Cola WhatsApp', () => {
     expect(meta.enviar).toHaveBeenCalledTimes(1);
     expect(prisma.notificaciones_whatsapp.updateMany).not.toHaveBeenCalled();
   });
+  it('un token caducado no agota los intentos: el aviso espera a que se renueve', async () => {
+    const { worker, prisma, meta } = setup({ intentos: 3 });
+    meta.enviar.mockRejectedValue(new MetaError('190', false, true));
+    await worker.procesarUna('n');
+    expect(prisma.notificaciones_whatsapp.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          estado: 'FALLIDA',
+          codigo_error: '190',
+          intentos: 2,
+          siguiente_intento_en: expect.any(Date),
+        }),
+      }),
+    );
+  });
   it('no excede tres intentos ni siquiera ante 429', async () => {
     const { worker, prisma, meta } = setup({ intentos: 3 });
     meta.enviar.mockRejectedValue(new MetaError('130429', true));
@@ -268,6 +317,41 @@ describe('Webhook durable', () => {
   });
 });
 
+describe('Proveedor al encolar', () => {
+  it.each(['META_CLOUD_API', 'EVOLUTION_API'] as const)(
+    'las alertas quedan marcadas para %s, el canal que procesa el worker',
+    async (proveedor) => {
+      vi.stubEnv('WHATSAPP_ALERT_TEMPLATE', 'alerta');
+      const createMany = vi.fn().mockResolvedValue({ count: 1 });
+      const service = new WhatsappService(
+        prismaCast({
+          configuracion_adulto: { findUnique: vi.fn().mockResolvedValue(null) },
+          usuarios: {
+            findUnique: vi
+              .fn()
+              .mockResolvedValue({ nombre: 'Ana', activo: true }),
+          },
+          notificaciones_whatsapp: { createMany },
+        }),
+        { proveedor, disponible: () => true, enviar: vi.fn() },
+      );
+      vi.spyOn(service, 'destinatariosAlerta').mockResolvedValue([
+        { id: 'd' },
+      ] as never);
+
+      await service.encolarAlerta({
+        id: 'a',
+        adulto_id: 'adulto',
+        tipo: 'CAIDA',
+        titulo: 'Caída',
+        ocurrida_en: new Date(),
+      });
+
+      expect(createMany.mock.calls[0][0].data[0].proveedor).toBe(proveedor);
+    },
+  );
+});
+
 describe('Recordatorios', () => {
   function setup({ count = 0, estado = 'PENDIENTE', habilitado = true } = {}) {
     const ahora = new Date();
@@ -310,6 +394,20 @@ describe('Recordatorios', () => {
       ),
     };
   }
+  it.each([
+    { driver: 'meta', proveedor: 'META_CLOUD_API' },
+    { driver: 'evolution', proveedor: 'EVOLUTION_API' },
+  ])(
+    'encola el recordatorio para el proveedor activo ($driver)',
+    async ({ driver, proveedor }) => {
+      vi.stubEnv('WHATSAPP_DRIVER', driver);
+      const s = setup();
+      await s.service.encolarToma('t', 'recordatorio', s.ahora);
+      expect(s.tx.notificaciones_whatsapp.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({ proveedor }),
+      });
+    },
+  );
   it('con max_repeticiones=0 admite solo la notificación inicial', async () => {
     const s = setup();
     await s.service.encolarToma('t', 'recordatorio', s.ahora);

@@ -1,0 +1,10 @@
+# Túnel de desarrollo: expone solo el webhook de WhatsApp, no el resto de la API.
+#   ngrok http 3000 --traffic-policy-file=deploy/ngrok-webhook.yml
+on_http_request:
+  - expressions:
+      - "!req.url.path.startsWith('/webhooks/whatsapp')"
+    actions:
+      - type: custom-response
+        config:
+          status_code: 404
+          body: "No encontrado"

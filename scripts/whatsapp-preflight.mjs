@@ -121,9 +121,75 @@ function evaluar(claves) {
 const resultado = evaluar({ ...CHEQUEOS, ...PLANTILLAS })
 for (const linea of resultado.filas) console.log(linea)
 
-const listo = env('WHATSAPP_ENABLED') === 'true' && resultado.pendientes.length === 0
+// Un driver distinto haría que este reporte diera por listo un canal que no se usa.
+if (env('WHATSAPP_DRIVER').toLowerCase() === 'evolution') {
+  resultado.pendientes.push(
+    'WHATSAPP_DRIVER — está en evolution; este preflight solo valida Meta. Usa "meta".',
+  )
+}
 
-if (listo && process.argv.includes('--ping')) {
+const configuracionLista =
+  env('WHATSAPP_ENABLED') === 'true' && resultado.pendientes.length === 0
+let metaRechazo = false
+
+/**
+ * Meta acepta el envío (HTTP 200) aunque la cuenta esté bloqueada y solo avisa del
+ * fallo por webhook (131031). Las llamadas SIP no afectan a la mensajería.
+ */
+async function revisarSaludDeEnvio(version, phoneId) {
+  const response = await fetch(
+    `https://graph.facebook.com/${version}/${phoneId}?fields=health_status`,
+    {
+      headers: { Authorization: `Bearer ${env('WHATSAPP_ACCESS_TOKEN')}` },
+      signal: AbortSignal.timeout(15_000),
+    },
+  )
+  const salud = (await response.json().catch(() => null))?.health_status
+  if (!response.ok || !salud) {
+    metaRechazo = true
+    console.log(`ENVÍO SIN COMPROBAR — Graph respondió HTTP ${response.status}.`)
+    return
+  }
+  console.log(`ENVÍO: ${salud.can_send_message}`)
+  if (salud.can_send_message !== 'AVAILABLE') metaRechazo = true
+  for (const entidad of salud.entities ?? []) {
+    for (const error of entidad.errors ?? []) {
+      if (error.error_code === 138024 || error.error_code === 138025) continue
+      console.log(`  - ${entidad.entity_type} ${error.error_code}: ${error.error_description}`)
+    }
+  }
+}
+
+/** Sin esto, una plantilla no aprobada solo se descubre al fallar un envío real. */
+async function revisarPlantillas(version) {
+  const waba = env('WHATSAPP_BUSINESS_ACCOUNT_ID')
+  if (!waba) {
+    console.log('PLANTILLAS — sin revisar: define WHATSAPP_BUSINESS_ACCOUNT_ID.')
+    return
+  }
+  const response = await fetch(
+    `https://graph.facebook.com/${version}/${waba}/message_templates?fields=name,language,status&limit=100`,
+    {
+      headers: { Authorization: `Bearer ${env('WHATSAPP_ACCESS_TOKEN')}` },
+      signal: AbortSignal.timeout(15_000),
+    },
+  )
+  const cuerpo = await response.json().catch(() => null)
+  if (!response.ok || !Array.isArray(cuerpo?.data)) {
+    metaRechazo = true
+    console.log(`PLANTILLAS FALLO — Graph respondió HTTP ${response.status}; error: ${cuerpo?.error?.code ?? 'desconocido'}.`)
+    return
+  }
+  const idioma = env('WHATSAPP_TEMPLATE_LANGUAGE') || 'es_MX'
+  for (const clave of Object.keys(PLANTILLAS)) {
+    const nombre = env(clave)
+    const estado = cuerpo.data.find((p) => p.name === nombre && p.language === idioma)?.status ?? 'NO EXISTE'
+    if (estado !== 'APPROVED') metaRechazo = true
+    console.log(`PLANTILLA ${nombre} (${idioma}): ${estado}`)
+  }
+}
+
+if (configuracionLista && process.argv.includes('--ping')) {
   const version = env('WHATSAPP_API_VERSION')
   const phoneId = env('WHATSAPP_PHONE_NUMBER_ID')
   const url = `https://graph.facebook.com/${version}/${phoneId}?fields=verified_name,display_phone_number`
@@ -137,22 +203,35 @@ if (listo && process.argv.includes('--ping')) {
       console.log(
         `PING OK — token y teléfono verificados en Meta (id: ${cuerpo.id}, número: ${cuerpo.display_phone_number ?? '—'}).`,
       )
+      await revisarSaludDeEnvio(version, phoneId)
+      await revisarPlantillas(version)
     } else {
+      metaRechazo = true
       console.log(
         `PING FALLO — Graph respondió HTTP ${response.status}; error: ${
           cuerpo?.error?.code ?? cuerpo?.error?.message ?? 'desconocido'
-        }. Revisa el token y los permisos de mensajería de la app.`,
+        }. ${
+          cuerpo?.error?.code === 190
+            ? 'El token caducó o no es válido: genera otro.'
+            : 'Revisa el token y los permisos de mensajería de la app.'
+        }`,
       )
     }
   } catch {
+    metaRechazo = true
     console.log('PING FALLO — no se pudo contactar Graph (red o timeout). No se cambió nada.')
   }
-} else if (listo) {
+} else if (configuracionLista) {
   console.log('SUGERENCIA — corre con --ping cuando quieras validar token y número contra Graph.')
 }
 
+const listo = configuracionLista && !metaRechazo
+
 console.log('')
-if (!listo) {
+if (metaRechazo) {
+  console.log('NO LISTO — Meta no confirmó la configuración; revisa los fallos de arriba.')
+  process.exitCode = 1
+} else if (!listo) {
   if (env('WHATSAPP_ENABLED') !== 'true') {
     console.log('DOBLE CHECK — WHATSAPP_ENABLED sigue false (deshabilitado a propósito; docs/whatsapp.md).')
   }

@@ -11,13 +11,16 @@ import {
 import { ApiBearerAuth, ApiOkResponse, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 
+import { AuthRateLimitGuard } from '../auth/auth-rate-limit.guard.js';
 import { JwtAuthGuard } from '../auth/gurads/jwt-auth.guard.js';
 import { PermissionsGuard } from '../authorization/guards/permissions.guard.js';
 import { RequirePermissions } from '../authorization/decorators/permissions.decorator.js';
 
 import { CompletarInvitacionFamiliarDto } from './dto/completar-invitacion-familiar.dto.js';
 import { CrearInvitacionFamiliarDto } from './dto/crear-invitacion-familiar.dto.js';
+import { SolicitarCodigoInvitacionDto } from './dto/solicitar-codigo-invitacion.dto.js';
 import {
+  CodigoInvitacionRespuestaDto,
   CompletarInvitacionRespuestaDto,
   InvitacionFamiliarRespuestaDto,
   VinculoFamiliarRespuestaDto,
@@ -54,8 +57,17 @@ export class InvitacionesFamiliaresController {
     );
   }
 
-  /** El adulto invitado completa su registro y activa el vínculo. */
+  /** Público: envía al correo invitado el código que demuestra que es suyo. */
+  @Post('solicitar-codigo')
+  @UseGuards(AuthRateLimitGuard)
+  @ApiCreatedResponse({ type: CodigoInvitacionRespuestaDto })
+  solicitarCodigo(@Body() dto: SolicitarCodigoInvitacionDto) {
+    return this.familiaresService.solicitarCodigoInvitacion(dto);
+  }
+
+  /** El adulto invitado completa su registro con el código y activa el vínculo. */
   @Post('completar')
+  @UseGuards(AuthRateLimitGuard)
   @ApiCreatedResponse({ type: CompletarInvitacionRespuestaDto })
   completar(@Body() dto: CompletarInvitacionFamiliarDto) {
     return this.familiaresService.completarInvitacion(dto);

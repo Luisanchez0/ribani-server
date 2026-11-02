@@ -1,7 +1,7 @@
 # WhatsApp — Meta Cloud API
 
-La integración está preparada y **deshabilitada por defecto**. No se han enviado
-mensajes reales. No se cambiaron tablas, políticas ni datos en Supabase.
+Meta Cloud API es el canal de WhatsApp de RIBANI. La integración está
+**deshabilitada por defecto** y se activa por entorno.
 
 ## Datos existentes y autorización
 
@@ -54,9 +54,11 @@ por NestJS/Prisma y su autorización. La web no utiliza claves de Supabase.
    contactos activos y familiares con vínculo activo y consentimiento aceptado.
 
 **Activar el procesador también procesa las notificaciones ya encoladas** cuya
-plantilla esté configurada y cuyo destino siga habilitado. Revisar historial y
-consentimientos antes de activar. Las alertas ya creadas no se reencolan al añadir
-una plantilla posteriormente.
+plantilla esté configurada y cuyo destino siga habilitado. Los avisos de alertas
+RESUELTA o CANCELADA no se envían: se cancelan con `codigo_error = ALERTA_CERRADA`.
+Por eso, si una alerta se cierra antes de que salga su aviso, ese aviso no llega y
+la alerta solo queda en el historial. Revisar historial y consentimientos antes de
+activar. Las alertas ya creadas no se reencolan al añadir una plantilla posteriormente.
 
 ### Preflight rápido
 
@@ -80,7 +82,11 @@ intentos. Cada envío usa bloqueo transaccional sobre el destinatario, compartid
 con la revocación. Una revocación espera a que termine el envío que ya está en curso;
 cuando responde, el consentimiento anterior ya no autoriza nuevos envíos.
 
-Solo un rechazo HTTP 429 permite reintento automático con espera creciente. Timeout,
+Un token caducado (código 190 de Meta) deja el aviso en espera y se reintenta cada
+cinco minutos sin gastar intentos, porque Meta no aceptó el mensaje; el backend lo
+registra como error. Usar un token permanente de usuario del sistema: el temporal
+caduca en unas 24 horas. Salvo ese caso, solo un rechazo HTTP 429 permite reintento
+automático con espera creciente. Timeout,
 respuesta 5xx, resultado incierto y procesos interrumpidos requieren revisión en Meta
 antes de reenviar. Una fila PROCESANDO abandonada cinco minutos se marca FALLIDA con
 `RESULTADO_DESCONOCIDO`, sin reenvío automático. No se promete entrega exactamente
@@ -118,8 +124,23 @@ desde web `npm run api:types`, `npm test`, `npm run lint`, `npm run build`.
 Las pruebas usan Prisma/transporte simulados y no escriben en la base real.
 No se validó entrega real ni un webhook público sin activos de Meta.
 
+## Proveedor alternativo para pruebas: Evolution API
+
+Fue un respaldo mientras no había activos de Meta; el proyecto no lo usa. El código
+sigue disponible con `WHATSAPP_DRIVER=evolution`: Evolution API autoalojada sobre
+WhatsApp Web, con un número desechable. No es la API oficial e incumple los Términos
+de WhatsApp, así que no debe usarse para alertas reales ni en producción.
+
+La configuración completa (compose, alta de instancia, QR, `.env`, `CHECK` de
+`proveedor` en Supabase, webhook y solución de problemas) está en
+[Evolution API en RIBANI](evolution-api.md).
+
+`scripts/whatsapp-preflight.mjs` solo valida Meta y se marca pendiente si el driver
+es `evolution`.
+
 Referencias primarias consultadas:
 - [Colección oficial de Meta](https://www.postman.com/meta/whatsapp-business-platform/collection/wlk6lh4/whatsapp-cloud-api)
 - [Envío de plantilla](https://www.postman.com/meta/whatsapp-business-platform/request/o65u5m5/send-message-template-text)
 - [Raw body en NestJS](https://docs.nestjs.com/faq/raw-body)
 - [Ejemplo de firmas de Meta](https://github.com/fbsamples/whatsapp-api-examples/tree/main/signature-validation-with-webhooks-payloads)
+- [Evolution API](https://github.com/EvolutionAPI/evolution-api)

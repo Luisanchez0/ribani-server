@@ -2,7 +2,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
 import { SwaggerModule } from '@nestjs/swagger';
-import { crearDocumentoOpenApi } from './openapi.js';
+import { crearDocumentoOpenApi, swaggerHabilitado } from './openapi.js';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, { rawBody: true });
@@ -77,8 +77,9 @@ async function bootstrap(): Promise<void> {
     credentials: true,
   });
 
-  const document = crearDocumentoOpenApi(app);
-  SwaggerModule.setup('api', app, document);
+  if (swaggerHabilitado()) {
+    SwaggerModule.setup('api', app, crearDocumentoOpenApi(app));
+  }
 
   await app.listen(process.env.PORT ?? 3000);
 }

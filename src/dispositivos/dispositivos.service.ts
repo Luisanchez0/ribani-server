@@ -92,9 +92,21 @@ export class DispositivosService {
       });
     }
 
+    // La supervision permite leer dispositivos del adulto; las mutaciones
+    // siguen reservadas al propietario del dispositivo.
+    const vinculos = await this.prisma.adulto_familiares.findMany({
+      where: { familiar_id: usuarioId, estado: 'ACTIVA' },
+      select: { adulto_id: true },
+    });
+    const usuariosAccesibles = [usuarioId, ...vinculos.map((v) => v.adulto_id)];
+
     return this.prisma.dispositivos.findMany({
       where: {
-        usuario_id: usuarioId,
+        usuario_id: {
+          in: filtroUsuarioId
+            ? usuariosAccesibles.filter((id) => id === filtroUsuarioId)
+            : usuariosAccesibles,
+        },
         ...(soloActivas ? { activo: true } : {}),
       },
       select: SELECT_DISPOSITIVO,
@@ -114,7 +126,17 @@ export class DispositivosService {
     }
 
     if (!esAdmin && dispositivo.usuario_id !== usuarioId) {
-      throw new NotFoundException('Dispositivo no encontrado.');
+      const vinculo = await this.prisma.adulto_familiares.findFirst({
+        where: {
+          adulto_id: dispositivo.usuario_id,
+          familiar_id: usuarioId,
+          estado: 'ACTIVA',
+        },
+        select: { id: true },
+      });
+      if (!vinculo) {
+        throw new NotFoundException('Dispositivo no encontrado.');
+      }
     }
 
     return dispositivo;

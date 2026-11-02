@@ -39,6 +39,30 @@ interface RequestMetadata {
   userAgent?: string;
 }
 
+export interface TokensRenovados {
+  accessToken: string;
+  refreshToken: string;
+  tokenType: string;
+  expiresIn: number;
+  user: {
+    id: string;
+    nombre: string;
+    apellido: string;
+    email: string;
+    telefono: string | null;
+    emailVerificado: boolean;
+    twoFactorEnabled: boolean;
+    rol: { id: number; codigo: string; nombre: string };
+    permisos: string[];
+  };
+}
+
+interface RotacionReciente {
+  userAgent?: string;
+  vigenteHasta: number;
+  resultado: Promise<TokensRenovados>;
+}
+
 interface UsuarioConRoles {
   id: string;
   nombre: string;
@@ -63,6 +87,15 @@ interface UsuarioConRoles {
 
 @Injectable()
 export class AuthService {
+  /** Margen corto para recuperar una respuesta de refresh que no llegó al cliente. */
+  private static readonly refreshReentregaMs = 30_000;
+
+  /**
+   * Solo en memoria y por poco tiempo: tras un reinicio, o con varias instancias,
+   * el reenvío se rechaza como cualquier token usado, sin debilitar la seguridad.
+   */
+  private readonly rotacionesRecientes = new Map<string, RotacionReciente>();
+
   private readonly accessTokenExpirationSeconds = Number(
     process.env.JWT_ACCESS_EXPIRES_IN_SECONDS ?? 900,
   );
@@ -74,6 +107,12 @@ export class AuthService {
   private static readonly challengeExpirationSeconds = 300;
 
   private static readonly maxChallengeAttempts = 5;
+
+  /**
+   * Un periodo de margen (RFC 6238): sin él se rechaza un código tecleado justo
+   * al cambiar de periodo, muy probable en un adulto mayor.
+   */
+  private static readonly totpToleranciaSegundos = 30;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -208,8 +247,69 @@ export class AuthService {
     }
   }
 
+  /**
+   * La rotación es de un solo uso, pero una respuesta puede perderse tras rotar
+   * (recarga del navegador, red móvil): el cliente conserva el token anterior.
+   * Reenviarlo poco después devuelve el mismo resultado en lugar de cerrar la
+   * sesión; las renovaciones simultáneas comparten una sola rotación.
+   */
   async refresh(dto: RefreshTokenDto, metadata: RequestMetadata = {}) {
     const refreshTokenHash = this.hashToken(dto.refreshToken);
+    const ahora = Date.now();
+    for (const [hash, rotacion] of this.rotacionesRecientes) {
+      if (rotacion.vigenteHasta <= ahora) this.rotacionesRecientes.delete(hash);
+    }
+
+    const previa = this.rotacionesRecientes.get(refreshTokenHash);
+    if (previa) return this.reentregarRotacion(previa, metadata);
+
+    const rotacion: RotacionReciente = {
+      userAgent: metadata.userAgent,
+      vigenteHasta: ahora + AuthService.refreshReentregaMs,
+      resultado: this.rotarRefresh(dto, refreshTokenHash, metadata),
+    };
+    this.rotacionesRecientes.set(refreshTokenHash, rotacion);
+    try {
+      const resultado = await rotacion.resultado;
+      rotacion.vigenteHasta = Date.now() + AuthService.refreshReentregaMs;
+      return resultado;
+    } catch (error) {
+      this.rotacionesRecientes.delete(refreshTokenHash);
+      throw error;
+    }
+  }
+
+  private async reentregarRotacion(
+    rotacion: RotacionReciente,
+    metadata: RequestMetadata,
+  ) {
+    const resultado = await rotacion.resultado;
+    const rechazo = () =>
+      new UnauthorizedException('Refresh token inválido o utilizado.');
+    if (rotacion.userAgent !== metadata.userAgent) throw rechazo();
+
+    // Buscar por el token nuevo: si ya se usó, se revocó o caducó, no se reentrega.
+    const sesion = await this.prisma.sesiones.findUnique({
+      where: { refresh_token_hash: this.hashToken(resultado.refreshToken) },
+      include: { usuarios: { include: { roles: true } } },
+    });
+    if (
+      !sesion ||
+      sesion.revocada_en ||
+      sesion.expira_en <= new Date() ||
+      !sesion.usuarios.activo ||
+      !sesion.usuarios.roles.activo
+    ) {
+      throw rechazo();
+    }
+    return resultado;
+  }
+
+  private async rotarRefresh(
+    dto: RefreshTokenDto,
+    refreshTokenHash: string,
+    metadata: RequestMetadata,
+  ) {
 
     const session = await this.prisma.sesiones.findUnique({
       where: {
@@ -645,6 +745,7 @@ export class AuthService {
       const { valid } = verifySync({
         secret,
         token: dto.code,
+        epochTolerance: AuthService.totpToleranciaSegundos,
       });
 
       if (!valid) {
@@ -751,6 +852,7 @@ export class AuthService {
     const { valid } = verifySync({
       secret,
       token: dto.code,
+      epochTolerance: AuthService.totpToleranciaSegundos,
     });
 
     if (!valid) {
@@ -882,6 +984,7 @@ export class AuthService {
     const { valid } = verifySync({
       secret,
       token: dto.code,
+      epochTolerance: AuthService.totpToleranciaSegundos,
     });
 
     if (!valid) {

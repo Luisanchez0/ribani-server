@@ -11,12 +11,17 @@ import { MailService } from '../mail/mail.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
 import bcrypt from 'bcryptjs';
-import { randomUUID } from 'node:crypto';
+import { createHmac, randomInt, randomUUID } from 'node:crypto';
+
+import { AuthAttemptsService } from '../auth/auth-attempts.service.js';
+import { SolicitarCodigoInvitacionDto } from './dto/solicitar-codigo-invitacion.dto.js';
 
 import { CompletarInvitacionFamiliarDto } from './dto/completar-invitacion-familiar.dto.js';
 import { CreateFamiliarDto } from './dto/create-familiar.dto.js';
 import { CrearInvitacionFamiliarDto } from './dto/crear-invitacion-familiar.dto.js';
 import { UpdateFamiliarDto } from './dto/update-familiar.dto.js';
+
+const MINUTOS_CODIGO_INVITACION = 10;
 
 const SELECT_USUARIO_ADULTO = {
   id: true,
@@ -57,6 +62,7 @@ export class FamiliaresService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly mailService: MailService,
+    private readonly attempts: AuthAttemptsService,
   ) {}
 
 
@@ -379,44 +385,100 @@ export class FamiliaresService {
     };
   }
 
+  /**
+   * Envía al correo invitado el código que demuestra que le pertenece. Responde
+   * siempre lo mismo para no revelar qué correos tienen una invitación.
+   */
+  async solicitarCodigoInvitacion(dto: SolicitarCodigoInvitacionDto) {
+    const email = dto.email.trim().toLowerCase();
+    this.attempts.consume(`invitacion-codigo:${email}`, 3, 10 * 60_000);
+
+    const adulto = await this.prisma.usuarios.findUnique({
+      where: { email },
+      include: { roles: { select: { codigo: true } } },
+    });
+    const pendiente =
+      adulto && !adulto.activo && adulto.roles.codigo === 'ADULTO_MAYOR'
+        ? await this.invitacionPendiente(adulto.id)
+        : null;
+
+    if (adulto && pendiente) {
+      const codigo = String(randomInt(0, 1_000_000)).padStart(6, '0');
+      await this.prisma.$transaction([
+        this.prisma.password_reset_tokens.updateMany({
+          where: { usuario_id: adulto.id, usado_en: null },
+          data: { usado_en: new Date() },
+        }),
+        this.prisma.password_reset_tokens.create({
+          data: {
+            usuario_id: adulto.id,
+            token_hash: this.hashCodigoInvitacion(adulto.id, codigo),
+            expira_en: new Date(Date.now() + MINUTOS_CODIGO_INVITACION * 60_000),
+          },
+        }),
+      ]);
+      await this.mailService
+        .enviarCodigoInvitacion(email, adulto.nombre, codigo)
+        .catch(() => undefined);
+    }
+
+    return {
+      mensaje:
+        'Si tienes una invitación pendiente, recibirás un código en tu correo en los próximos minutos.',
+    };
+  }
+
   async completarInvitacion(dto: CompletarInvitacionFamiliarDto) {
     const email = dto.email.trim().toLowerCase();
+    this.attempts.consume(`invitacion-completar:${email}`, 5, 10 * 60_000);
+    // Mismo error en todos los casos: no revelar qué correos existen ni su estado.
+    const invalido = () =>
+      new BadRequestException('Código inválido o expirado.');
 
     const adulto = await this.prisma.usuarios.findUnique({
       where: { email },
       include: { roles: { select: { codigo: true } } },
     });
 
-    if (!adulto) {
-      throw new NotFoundException('No hay una invitación pendiente para ese correo.');
+    if (!adulto || adulto.activo || adulto.roles.codigo !== 'ADULTO_MAYOR') {
+      throw invalido();
     }
 
-    if (adulto.roles.codigo !== 'ADULTO_MAYOR') {
-      throw new ConflictException('El correo indicado no corresponde a una invitación de adulto mayor.');
-    }
-
-    if (adulto.activo) {
-      throw new ConflictException('Esta cuenta ya está activa. Inicia sesión para aceptar o rechazar la invitación.');
-    }
-
-    const invitacionPendiente = await this.prisma.adulto_familiares.findFirst({
-      where: {
-        adulto_id: adulto.id,
-        estado: 'PENDIENTE',
-      },
-      select: { id: true },
-      orderBy: { created_at: 'desc' },
+    const token = await this.prisma.password_reset_tokens.findUnique({
+      where: { token_hash: this.hashCodigoInvitacion(adulto.id, dto.codigo) },
+      select: { id: true, usuario_id: true, usado_en: true, expira_en: true },
     });
 
+    if (
+      !token ||
+      token.usuario_id !== adulto.id ||
+      token.usado_en ||
+      token.expira_en <= new Date()
+    ) {
+      throw invalido();
+    }
+
+    const invitacionPendiente = await this.invitacionPendiente(adulto.id);
+
     if (!invitacionPendiente) {
-      throw new NotFoundException('No hay una invitación pendiente para ese correo.');
+      throw invalido();
     }
 
     const passwordHash = await bcrypt.hash(dto.password, 12);
 
     await this.prisma.$transaction(async (tx) => {
-      await tx.usuarios.update({
-        where: { id: adulto.id },
+      const consumido = await tx.password_reset_tokens.updateMany({
+        where: {
+          id: token.id,
+          usado_en: null,
+          expira_en: { gt: new Date() },
+        },
+        data: { usado_en: new Date() },
+      });
+      if (consumido.count !== 1) throw invalido();
+
+      const activada = await tx.usuarios.updateMany({
+        where: { id: adulto.id, activo: false },
         data: {
           password_hash: passwordHash,
           activo: true,
@@ -425,6 +487,7 @@ export class FamiliaresService {
           telefono: dto.telefono?.trim() || adulto.telefono,
         },
       });
+      if (activada.count !== 1) throw invalido();
 
       await tx.adulto_familiares.update({
         where: { id: invitacionPendiente.id },
@@ -445,6 +508,23 @@ export class FamiliaresService {
       email: adulto.email,
       mensaje: 'Registro completado. Tu cuenta está activa y el vínculo quedó ACTIVA.',
     };
+  }
+
+  private invitacionPendiente(adultoId: string) {
+    return this.prisma.adulto_familiares.findFirst({
+      where: { adulto_id: adultoId, estado: 'PENDIENTE' },
+      select: { id: true },
+      orderBy: { created_at: 'desc' },
+    });
+  }
+
+  /** Prefijo propio: este código no sirve en /auth/reset-password, ni al revés. */
+  private hashCodigoInvitacion(usuarioId: string, codigo: string): string {
+    const secret = process.env.JWT_ACCESS_SECRET;
+    if (!secret) throw new Error('JWT_ACCESS_SECRET is required.');
+    return createHmac('sha256', secret)
+      .update(`invitacion:${usuarioId}:${codigo}`)
+      .digest('hex');
   }
 
   async aceptarInvitacion(adultoId: string, rolCodigo: string, id: string) {

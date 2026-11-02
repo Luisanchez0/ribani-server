@@ -70,6 +70,6 @@ if (
     JwtAuthGuard,
   ],
 
-  exports: [AuthService, JwtAuthGuard],
+  exports: [AuthService, JwtAuthGuard, AuthAttemptsService, AuthRateLimitGuard],
 })
 export class AuthModule {}

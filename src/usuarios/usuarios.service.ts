@@ -373,14 +373,29 @@ export class UsuariosService {
   async remove(id: string) {
     await this.findOne(id);
 
-    return this.prisma.usuarios.delete({
-      where: {
-        id,
-      },
-      // Para DELETE no hay nada útil que proyectar: la fila desaparece.
-      select: {
-        id: true,
-      },
+    return this.prisma.$transaction(async (tx) => {
+      // Bloquear primero al propietario impide nuevos orígenes por sus FK.
+      // Después, bloquear sus orígenes impide nuevas notificaciones mientras
+      // se limpia y se ejecutan las cascadas. Mantener este orden y ordenar ID.
+      await tx.$queryRaw`SELECT id FROM usuarios WHERE id = ${id}::uuid FOR UPDATE`;
+      await tx.$queryRaw`SELECT id FROM alertas WHERE adulto_id = ${id}::uuid ORDER BY id FOR UPDATE`;
+      await tx.$queryRaw`SELECT id FROM tomas_medicamento WHERE adulto_id = ${id}::uuid ORDER BY id FOR UPDATE`;
+
+      // Las cascadas eliminan alertas/tomas, pero sus FK de WhatsApp usan
+      // SET NULL. Sin limpiar sus notificaciones, el CHECK de origen falla.
+      await tx.notificaciones_whatsapp.deleteMany({
+        where: {
+          OR: [
+            { alertas: { adulto_id: id } },
+            { tomas_medicamento: { adulto_id: id } },
+          ],
+        },
+      });
+
+      return tx.usuarios.delete({
+        where: { id },
+        select: { id: true },
+      });
     });
   }
 

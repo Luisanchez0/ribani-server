@@ -8,7 +8,30 @@ import { AuthAttemptsService } from './auth/auth-attempts.service.js';
 import { WebAuthController } from './auth/web-auth.controller.js';
 import { UsuariosController } from './usuarios/usuarios.controller.js';
 import { UsuariosService } from './usuarios/usuarios.service.js';
-import { crearDocumentoOpenApi } from './openapi.js';
+import { crearDocumentoOpenApi, swaggerHabilitado } from './openapi.js';
+
+describe('Publicación de Swagger', () => {
+  it('queda disponible fuera de producción', () => {
+    expect(swaggerHabilitado({ NODE_ENV: 'development' })).toBe(true);
+    expect(swaggerHabilitado({})).toBe(true);
+  });
+
+  it('queda oculto en producción por defecto', () => {
+    expect(swaggerHabilitado({ NODE_ENV: 'production' })).toBe(false);
+    expect(
+      swaggerHabilitado({ NODE_ENV: 'production', SWAGGER_ENABLED: 'false' }),
+    ).toBe(false);
+    expect(
+      swaggerHabilitado({ NODE_ENV: 'production', SWAGGER_ENABLED: '1' }),
+    ).toBe(false);
+  });
+
+  it('solo se publica en producción con SWAGGER_ENABLED=true explícito', () => {
+    expect(
+      swaggerHabilitado({ NODE_ENV: 'production', SWAGGER_ENABLED: 'true' }),
+    ).toBe(true);
+  });
+});
 
 describe('Contrato OpenAPI de autenticación y perfil', () => {
   let app: INestApplication;

@@ -8,7 +8,8 @@ exacto de la web. No usar `*`. El frontend de producción necesita `VITE_API_URL
 HTTPS. Nest rechaza HTTP de producción salvo el health check `/`; Render termina
 TLS y reenvía las peticiones al proceso Node. No activar confianza indiscriminada
 en cabeceras `X-Forwarded-*` ni exponer directamente el puerto del proceso en esa
-configuración de producción.
+configuración de producción. El despliegue en VPS con Caddy usa los mismos tres
+valores y el mismo modelo de un solo salto (`docs/despliegue-vps.md`).
 
 La conexión del backend a Supabase es independiente del HTTP de desarrollo y usa
 TLS con verificación del certificado y hostname. La CA pública incluida en
@@ -41,8 +42,16 @@ proyecto. Nunca solucionar errores de certificados con `rejectUnauthorized:false
   a iniciar sesión.
 - La rotación del refresh consume condicionalmente su hash vigente. Los refresh
   nuevos incluyen una prueba firmada de revocación: un token ya rotado permite
-  cerrar únicamente su misma sesión, pero nunca renovarla. Esto cubre logout y
-  refresh simultáneos entre pestañas sin guardar tokens anteriores en claro.
+  cerrar únicamente su misma sesión, pero nunca renovarla pasado el margen de
+  reentrega. Esto cubre logout y refresh simultáneos entre pestañas.
+- Margen de reentrega: durante 30 s, reenviar el token recién rotado desde el mismo
+  User-Agent devuelve el mismo resultado si la sesión sigue vigente. Así una
+  respuesta perdida (recarga del navegador, red móvil) no cierra la sesión. Se
+  guarda solo en memoria: un reinicio o varias instancias hacen que se rechace.
+- Activar una cuenta invitada exige un código de 6 dígitos enviado a ese correo
+  (`POST /familiares/invitaciones/solicitar-codigo` y `/completar`): 10 minutos, un
+  solo uso, 5 intentos por correo y errores idénticos para no revelar cuentas. Su
+  hash lleva un prefijo propio: no sirve en `/auth/reset-password`, ni al revés.
 - La emisión de sesión/desafío y los cambios de contraseña comparten el bloqueo
   de la fila del usuario y verifican el hash usado como primer factor.
 - SSE comprueba sesión, permiso y vínculo antes de entregar datos, revisa canales

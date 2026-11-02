@@ -40,6 +40,7 @@ import { AlertasService } from '../alertas/alertas.service.js';
 import { AuditoriaController } from '../auditoria/auditoria.controller.js';
 import { AuditoriaService } from '../auditoria/auditoria.service.js';
 import { FamiliaresController } from '../familiares/familiares.controller.js';
+import { AuthAttemptsService } from '../auth/auth-attempts.service.js';
 import { FamiliaresService } from '../familiares/familiares.service.js';
 
 const ID = '11111111-1111-4111-8111-111111111111';
@@ -133,7 +134,11 @@ describe('Filtros HTTP de los dominios', () => {
         },
         {
           provide: FamiliaresService,
-          useValue: new FamiliaresService(prisma as never, {} as never),
+          useValue: new FamiliaresService(
+            prisma as never,
+            {} as never,
+            new AuthAttemptsService(),
+          ),
         },
       ],
     })

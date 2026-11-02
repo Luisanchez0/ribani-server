@@ -57,7 +57,7 @@ export class DispositivosController {
   ) {
     const esAdmin = request.user.rol?.codigo === 'ADMINISTRADOR';
     return this.dispositivosService.listar(request.user.id, esAdmin, {
-      usuarioId: esAdmin ? query.usuarioId : undefined,
+      usuarioId: query.usuarioId,
       soloActivas: query.soloActivas ?? true,
       limite: query.limite,
     });

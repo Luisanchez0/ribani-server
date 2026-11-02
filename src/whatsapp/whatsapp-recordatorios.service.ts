@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { idiomaWhatsapp } from './whatsapp.service.js';
+import { proveedorConfigurado } from './whatsapp-transporte.js';
 import { ESTADOS_PENDIENTES, recordarEn } from '../tomas/toma-pendiente.js';
 
 @Injectable()
@@ -116,6 +117,7 @@ export class WhatsappRecordatoriosService {
           continue;
         await tx.notificaciones_whatsapp.create({
           data: {
+            proveedor: proveedorConfigurado(),
             destinatario_id: d.id,
             toma_id: id,
             tipo: 'MEDICAMENTO',

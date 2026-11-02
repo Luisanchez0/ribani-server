@@ -28,7 +28,7 @@ reales en `.env`, que está excluido de Git. No imprimir ni compartir sus valore
 - `JWT_REFRESH_EXPIRES_IN_SECONDS`: duración del refresh token, por defecto 604800.
 - `TWO_FACTOR_ENCRYPTION_KEY`: clave privada para cifrar secretos TOTP.
 - `RESEND_API_KEY`: clave de correo, requerida por `MailService` al iniciar.
-- `RESEND_TEMPLATE_INVITACION_ID` / `RESEND_TEMPLATE_BIENVENIDA_ID`: plantillas opcionales.
+- `RESEND_TEMPLATE_INVITACION_ID` / `RESEND_TEMPLATE_BIENVENIDA_ID` / `RESEND_TEMPLATE_RESET_ID`: plantillas opcionales.
 - `PORT`: por defecto 3000.
 - `CORS_ORIGINS`: orígenes web permitidos, separados por coma.
 
@@ -51,8 +51,7 @@ Los scripts previos de build y desarrollo generan el cliente con
 
 `npm run test:e2e` importa la aplicación completa y puede inicializar Prisma y
 el cron de tomas contra la base configurada. No ejecutarlo indiscriminadamente
-contra la base real. Su prueba heredada de `GET /` tampoco refleja las rutas
-actualmente registradas; requiere preparar un entorno de pruebas antes de usarla.
+contra la base real; requiere preparar un entorno de pruebas antes de usarlo.
 
 ## Arquitectura y seguridad
 
@@ -73,8 +72,10 @@ servicio antes de ampliar permisos administrativos a operaciones concretas.
 
 Las alertas críticas se encolan en `notificaciones_whatsapp`. El módulo WhatsApp
 incluye destinatarios/consentimiento, prueba, procesador Meta Cloud API,
-webhook firmado, historial, preferencias y recordatorios. Está deshabilitado
-por defecto; no se realizaron envíos reales. Ver [configuración y operación](docs/whatsapp.md).
+webhook firmado, historial, preferencias y recordatorios. Meta es el canal del
+proyecto y está deshabilitado por defecto. Ver [configuración y operación](docs/whatsapp.md);
+[Evolution API](docs/evolution-api.md) queda solo como opción de desarrollo. El
+despliegue con Docker en un servidor propio está en [VPS](docs/despliegue-vps.md).
 Ubicaciones y alertas exponen SSE con Bearer token.
 
 ## Contrato OpenAPI
@@ -84,6 +85,8 @@ Con la API iniciada:
 - Swagger: `http://localhost:3000/api`
 - JSON OpenAPI: `http://localhost:3000/api-json`
 - Los endpoints REST no tienen prefijo global `/api`.
+- Con `NODE_ENV=production`, ambas rutas están ocultas salvo con
+  `SWAGGER_ENABLED=true`. La exportación a `openapi.json` no depende de esto.
 
 También se puede exportar desde el código compilado:
 
@@ -125,7 +128,7 @@ de Supabase. Contrato, parámetros y ejemplos en [endpoints de historial](docs/a
 
 Revisión de seguridad verificada con Node 24.22.1:
 
-- Backend: 221 pruebas aprobadas con Vitest, incluidos tests HTTP con BD simulada.
+- Backend: 308 pruebas aprobadas con Vitest, incluidos tests HTTP con BD simulada.
 - Web: 27 pruebas aprobadas; TypeScript, ESLint y build correctos.
 - TypeScript del backend y lint: salida 0; quedan advertencias previas.
 - Prisma 7.10: esquema válido y cliente generado sin cambios de esquema.

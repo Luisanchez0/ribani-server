@@ -1,6 +1,27 @@
 {
   "openapi": "3.0.0",
   "paths": {
+    "/": {
+      "get": {
+        "operationId": "AppController_getHello",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "App"
+        ]
+      }
+    },
     "/invitaciones/abrir": {
       "get": {
         "operationId": "InvitacionesAbrirController_abrir",
@@ -2541,6 +2562,42 @@
         ]
       }
     },
+    "/familiares/invitaciones/solicitar-codigo": {
+      "post": {
+        "operationId": "InvitacionesFamiliaresController_solicitarCodigo",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SolicitarCodigoInvitacionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CodigoInvitacionRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "familiares"
+        ]
+      }
+    },
     "/familiares/invitaciones/completar": {
       "post": {
         "operationId": "InvitacionesFamiliaresController_completar",
@@ -4616,6 +4673,13 @@
       "IntegracionWhatsappDto": {
         "type": "object",
         "properties": {
+          "proveedor": {
+            "type": "string",
+            "enum": [
+              "META_CLOUD_API",
+              "EVOLUTION_API"
+            ]
+          },
           "habilitada": {
             "type": "boolean"
           },
@@ -4630,6 +4694,7 @@
           }
         },
         "required": [
+          "proveedor",
           "habilitada",
           "procesador_habilitado",
           "recordatorios_habilitados",
@@ -5815,9 +5880,38 @@
           "mensaje"
         ]
       },
+      "SolicitarCodigoInvitacionDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "CodigoInvitacionRespuestaDto": {
+        "type": "object",
+        "properties": {
+          "mensaje": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "mensaje"
+        ]
+      },
       "CompletarInvitacionFamiliarDto": {
         "type": "object",
         "properties": {
+          "codigo": {
+            "type": "string",
+            "pattern": "^\\d{6}$",
+            "description": "Código de 6 dígitos enviado al correo con POST /familiares/invitaciones/solicitar-codigo."
+          },
           "email": {
             "type": "string",
             "maxLength": 254,
@@ -5842,6 +5936,7 @@
           }
         },
         "required": [
+          "codigo",
           "email",
           "password"
         ]
@@ -6182,8 +6277,8 @@
             "type": "string",
             "enum": [
               "SOS",
-              "OTRA",
               "MEDICAMENTO",
+              "OTRA",
               "CAIDA",
               "ZONA_SEGURA",
               "INACTIVIDAD",

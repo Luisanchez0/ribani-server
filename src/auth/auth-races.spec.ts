@@ -1,7 +1,7 @@
 import { UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { createHash, createHmac } from 'node:crypto';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthService } from './auth.service.js';
 
 process.env.JWT_ACCESS_SECRET ??=
@@ -273,13 +273,106 @@ describe('Logout durante la rotación en otra pestaña', () => {
     return result.refreshToken;
   }
 
+  describe('gracia de reentrega tras rotar', () => {
+    const navegador = { userAgent: 'navegador-a' };
+    afterEach(() => vi.useRealTimers());
+
+    it('una respuesta perdida se recupera: reenviar el token da el mismo resultado', async () => {
+      const original = await login();
+      const primera = await auth.refresh({ refreshToken: original }, navegador);
+      const segunda = await auth.refresh({ refreshToken: original }, navegador);
+
+      expect(segunda.refreshToken).toBe(primera.refreshToken);
+      expect(segunda.accessToken).toBe(primera.accessToken);
+      expect(db.sesiones.updateMany).toHaveBeenCalledTimes(1);
+    });
+
+    it('dos renovaciones simultáneas comparten una sola rotación', async () => {
+      const original = await login();
+      const [a, b] = await Promise.all([
+        auth.refresh({ refreshToken: original }, navegador),
+        auth.refresh({ refreshToken: original }, navegador),
+      ]);
+
+      expect(a.refreshToken).toBe(b.refreshToken);
+      expect(db.sesiones.updateMany).toHaveBeenCalledTimes(1);
+    });
+
+    it('otro navegador no puede reutilizar el token dentro de la gracia', async () => {
+      const original = await login();
+      await auth.refresh({ refreshToken: original }, navegador);
+
+      await expect(
+        auth.refresh({ refreshToken: original }, { userAgent: 'otro' }),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('caduca: pasados 30 s el token rotado ya no renueva', async () => {
+      const original = await login();
+      await auth.refresh({ refreshToken: original }, navegador);
+      vi.useFakeTimers({ toFake: ['Date'], now: Date.now() + 31_000 });
+
+      await expect(
+        auth.refresh({ refreshToken: original }, navegador),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+
+    it.each([
+      [
+        'la sesión se revocó',
+        () => {
+          session!.revocada_en = new Date();
+        },
+      ],
+      [
+        'la cuenta se desactivó',
+        () => {
+          db.sesiones.findUnique.mockResolvedValue({
+            ...session,
+            usuarios: { ...usuario, activo: false },
+          });
+        },
+      ],
+      [
+        'el token nuevo ya se volvió a rotar',
+        () => {
+          session!.refresh_token_hash = 'otro-hash';
+        },
+      ],
+    ])('no reentrega si %s', async (_n, cambio) => {
+      const original = await login();
+      await auth.refresh({ refreshToken: original }, navegador);
+      cambio();
+
+      await expect(
+        auth.refresh({ refreshToken: original }, navegador),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('un refresh rechazado no se recuerda como rotación válida', async () => {
+      const original = await login();
+      db.sesiones.updateMany.mockResolvedValueOnce({ count: 0 });
+      await expect(
+        auth.refresh({ refreshToken: original }, navegador),
+      ).rejects.toThrow(UnauthorizedException);
+
+      const reintento = await auth.refresh({ refreshToken: original }, navegador);
+      expect(reintento.refreshToken).not.toBe(original);
+    });
+  });
+
   it('un refresh consumido ya no renueva, pero aún revoca su misma sesión sin access token', async () => {
     const original = await login();
     const renewed = await auth.refresh({ refreshToken: original });
     expect(renewed.refreshToken).not.toBe(original);
-    await expect(auth.refresh({ refreshToken: original })).rejects.toThrow(
-      UnauthorizedException,
-    );
+    vi.useFakeTimers({ toFake: ['Date'], now: Date.now() + 31_000 });
+    try {
+      await expect(auth.refresh({ refreshToken: original })).rejects.toThrow(
+        UnauthorizedException,
+      );
+    } finally {
+      vi.useRealTimers();
+    }
     await auth.logout({ refreshToken: original });
     expect(session?.revocada_en).toBeInstanceOf(Date);
     await expect(

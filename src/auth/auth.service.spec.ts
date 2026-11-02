@@ -288,6 +288,36 @@ describe('AuthService', () => {
       );
     });
 
+    it('acepta el código del periodo anterior: se tarda en teclearlo', async () => {
+      arrangeChallenge();
+      const code = generateSync({
+        secret: TEST_TOTP_SECRET,
+        epoch: Math.floor(Date.now() / 1000) - 30,
+      });
+
+      const result = await service.loginWithTwoFactor(
+        { challengeToken: 'challenge-token-raw-value-000', code },
+        {},
+      );
+
+      expect(result).toHaveProperty('accessToken', 'access-token');
+    });
+
+    it('rechaza un código de hace más de un periodo', async () => {
+      arrangeChallenge();
+      const code = generateSync({
+        secret: TEST_TOTP_SECRET,
+        epoch: Math.floor(Date.now() / 1000) - 90,
+      });
+
+      await expect(
+        service.loginWithTwoFactor(
+          { challengeToken: 'challenge-token-raw-value-000', code },
+          {},
+        ),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+
     it('rechaza un código incorrecto e incrementa los intentos', async () => {
       arrangeChallenge();
 
