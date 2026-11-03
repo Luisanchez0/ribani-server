@@ -3,9 +3,19 @@
 #
 #   docker compose -f compose.yaml -f compose.evolution.yaml up -d --build
 #
+# O bien, con COMPOSE_FILE en el .env (ver .env.example), un simple `docker compose`
+# incluye este archivo en todos los comandos y evita recrear la API con Meta por error.
+#
 # Requiere en el .env: EVOLUTION_APIKEY, EVOLUTION_POSTGRES_PASSWORD y
 # WHATSAPP_EVOLUTION_INSTANCE, además de un ALTER del CHECK de `proveedor` si esa
 # base no admite todavía EVOLUTION_API.
+
+x-logging: &logging
+  logging:
+    driver: json-file
+    options:
+      max-size: '10m'
+      max-file: '3'
 
 services:
   api:
@@ -22,6 +32,7 @@ services:
   evolution-postgres:
     image: postgres:15-alpine
     restart: unless-stopped
+    <<: *logging
     environment:
       POSTGRES_USER: evolution
       POSTGRES_PASSWORD: ${EVOLUTION_POSTGRES_PASSWORD:?Define EVOLUTION_POSTGRES_PASSWORD en el .env}
@@ -35,8 +46,11 @@ services:
       retries: 12
 
   evolution-api:
-    image: evoapicloud/evolution-api:latest
+    # Fijada por digest: es la 2.3.7 con la que se validó el flujo de RIBANI; `latest`
+    # puede moverse a otra versión sin aviso y romper la sesión o los webhooks.
+    image: evoapicloud/evolution-api@sha256:966625532d9076a2381e973a271307d107e6f070450de3abeeea8bd18be07252
     restart: unless-stopped
+    <<: *logging
     depends_on:
       evolution-postgres:
         condition: service_healthy
