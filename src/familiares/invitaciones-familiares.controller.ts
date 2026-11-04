@@ -18,10 +18,12 @@ import { RequirePermissions } from '../authorization/decorators/permissions.deco
 
 import { CompletarInvitacionFamiliarDto } from './dto/completar-invitacion-familiar.dto.js';
 import { CrearInvitacionFamiliarDto } from './dto/crear-invitacion-familiar.dto.js';
+import { InvitarCofamiliarDto } from './dto/invitar-cofamiliar.dto.js';
 import { SolicitarCodigoInvitacionDto } from './dto/solicitar-codigo-invitacion.dto.js';
 import {
   CodigoInvitacionRespuestaDto,
   CompletarInvitacionRespuestaDto,
+  InvitacionCofamiliarRespuestaDto,
   InvitacionFamiliarRespuestaDto,
   VinculoFamiliarRespuestaDto,
 } from './dto/familiares-respuesta.dto.js';
@@ -51,6 +53,24 @@ export class InvitacionesFamiliaresController {
     @Body() dto: CrearInvitacionFamiliarDto,
   ) {
     return this.familiaresService.invitarPorEmail(
+      request.user.id,
+      request.user.rol.codigo,
+      dto,
+    );
+  }
+
+  /**
+   * Un familiar encargado invita a otro familiar (con cuenta) a acompañar a un
+   * adulto mayor con el que tiene vínculo ACTIVA. Lo acepta el adulto mayor.
+   */
+  @Post('familiar')
+  @ApiCreatedResponse({ type: InvitacionCofamiliarRespuestaDto })
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  invitarFamiliar(
+    @Req() request: AuthenticatedRequest,
+    @Body() dto: InvitarCofamiliarDto,
+  ) {
+    return this.familiaresService.invitarCofamiliar(
       request.user.id,
       request.user.rol.codigo,
       dto,

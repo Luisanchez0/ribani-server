@@ -20,6 +20,7 @@ import { CompletarInvitacionFamiliarDto } from './dto/completar-invitacion-famil
 import { CreateFamiliarDto } from './dto/create-familiar.dto.js';
 import { CrearInvitacionFamiliarDto } from './dto/crear-invitacion-familiar.dto.js';
 import { UpdateFamiliarDto } from './dto/update-familiar.dto.js';
+import { InvitarCofamiliarDto } from './dto/invitar-cofamiliar.dto.js';
 
 const MINUTOS_CODIGO_INVITACION = 10;
 
@@ -382,6 +383,134 @@ export class FamiliaresService {
       mensaje: esNuevaCuenta
         ? 'Invitación creada. El adulto debe completar su registro para activar su cuenta y aceptar el vínculo.'
         : 'Invitación enviada. El adulto mayor debe aceptar el vínculo desde su cuenta.',
+    };
+  }
+
+  /**
+   * Un FAMILIAR_ENCARGADO invita a otro familiar a acompañar a un adulto mayor
+   * con el que ya tiene un vínculo ACTIVA.
+   *
+   * - El invitado debe tener ya una cuenta FAMILIAR_ENCARGADO activa.
+   * - El vínculo nace PENDIENTE y lo acepta o rechaza el adulto mayor
+   *   (POST /familiares/invitaciones/:id/aceptar|rechazar): es el dueño de los
+   *   datos de salud y ubicación quien decide quién más los ve.
+   * - Quien invita no puede conceder permisos que él mismo no tiene.
+   * - Nunca crea un contacto principal.
+   */
+  async invitarCofamiliar(
+    callerId: string,
+    callerRolCodigo: string,
+    dto: InvitarCofamiliarDto,
+  ) {
+    if (callerRolCodigo !== 'FAMILIAR_ENCARGADO') {
+      throw new ForbiddenException(
+        'Solo un familiar encargado puede invitar a otro familiar.',
+      );
+    }
+
+    // Limita el sondeo de correos registrados desde una misma cuenta.
+    this.attempts.consume(`invitar-cofamiliar:${callerId}`, 10, 60 * 60_000);
+
+    const vinculoPropio = await this.prisma.adulto_familiares.findUnique({
+      where: {
+        adulto_id_familiar_id: {
+          adulto_id: dto.adulto_id,
+          familiar_id: callerId,
+        },
+      },
+      select: {
+        estado: true,
+        puede_ver_ubicacion: true,
+        puede_gestionar_medicamentos: true,
+      },
+    });
+
+    if (!vinculoPropio || vinculoPropio.estado !== 'ACTIVA') {
+      throw new ForbiddenException(
+        'Solo puedes invitar familiares para un adulto mayor con el que tienes un vínculo activo.',
+      );
+    }
+
+    const puedeVerUbicacion =
+      dto.puede_ver_ubicacion ?? vinculoPropio.puede_ver_ubicacion;
+    const puedeGestionarMedicamentos =
+      dto.puede_gestionar_medicamentos ??
+      vinculoPropio.puede_gestionar_medicamentos;
+
+    if (
+      (puedeVerUbicacion && !vinculoPropio.puede_ver_ubicacion) ||
+      (puedeGestionarMedicamentos && !vinculoPropio.puede_gestionar_medicamentos)
+    ) {
+      throw new ForbiddenException(
+        'No puedes conceder a otro familiar un permiso que tú no tienes.',
+      );
+    }
+
+    const email = dto.familiar_email.trim().toLowerCase();
+    const invitado = await this.prisma.usuarios.findUnique({
+      where: { email },
+      select: SELECT_USUARIO_ROL,
+    });
+
+    if (invitado?.id === callerId) {
+      throw new BadRequestException('No puedes invitarte a ti mismo.');
+    }
+
+    // Mismo mensaje si no existe, está inactivo o tiene otro rol.
+    if (
+      !invitado ||
+      !invitado.activo ||
+      invitado.roles.codigo !== 'FAMILIAR_ENCARGADO'
+    ) {
+      throw new NotFoundException(
+        'No encontramos una cuenta familiar activa con ese correo. Pídele que primero cree su cuenta en RIBANI.',
+      );
+    }
+
+    const existente = await this.prisma.adulto_familiares.findUnique({
+      where: {
+        adulto_id_familiar_id: {
+          adulto_id: dto.adulto_id,
+          familiar_id: invitado.id,
+        },
+      },
+      select: { id: true, estado: true },
+    });
+
+    if (existente?.estado === 'ACTIVA') {
+      throw new ConflictException(
+        'Ese familiar ya acompaña a este adulto mayor.',
+      );
+    }
+
+    const datos = {
+      estado: 'PENDIENTE',
+      parentesco: dto.parentesco?.trim() || null,
+      puede_ver_ubicacion: puedeVerUbicacion,
+      puede_gestionar_medicamentos: puedeGestionarMedicamentos,
+      es_contacto_principal: false,
+    };
+
+    // PENDIENTE se reenvía con los datos nuevos; REVOCADA se reabre.
+    const vinculo = existente
+      ? await this.prisma.adulto_familiares.update({
+          where: { id: existente.id },
+          data: datos,
+          select: SELECT_RELACION,
+        })
+      : await this.prisma.adulto_familiares.create({
+          data: {
+            ...datos,
+            adulto_id: dto.adulto_id,
+            familiar_id: invitado.id,
+          },
+          select: SELECT_RELACION,
+        });
+
+    return {
+      ...vinculo,
+      mensaje:
+        'Invitación creada. El adulto mayor debe aceptarla desde su aplicación para que el familiar tenga acceso.',
     };
   }
 

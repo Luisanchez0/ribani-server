@@ -2562,6 +2562,42 @@
         ]
       }
     },
+    "/familiares/invitaciones/familiar": {
+      "post": {
+        "operationId": "InvitacionesFamiliaresController_invitarFamiliar",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvitarCofamiliarDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvitacionCofamiliarRespuestaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "familiares"
+        ]
+      }
+    },
     "/familiares/invitaciones/solicitar-codigo": {
       "post": {
         "operationId": "InvitacionesFamiliaresController_solicitarCodigo",
@@ -5877,6 +5913,105 @@
           "created_at",
           "adulto",
           "esNuevaCuenta",
+          "mensaje"
+        ]
+      },
+      "InvitarCofamiliarDto": {
+        "type": "object",
+        "properties": {
+          "adulto_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "familiar_email": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email"
+          },
+          "parentesco": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "puede_ver_ubicacion": {
+            "type": "boolean"
+          },
+          "puede_gestionar_medicamentos": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "adulto_id",
+          "familiar_email"
+        ]
+      },
+      "InvitacionCofamiliarRespuestaDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "adulto_id": {
+            "type": "string"
+          },
+          "familiar_id": {
+            "type": "string"
+          },
+          "parentesco": {
+            "type": "string",
+            "nullable": true
+          },
+          "es_contacto_principal": {
+            "type": "boolean"
+          },
+          "puede_ver_ubicacion": {
+            "type": "boolean"
+          },
+          "puede_gestionar_medicamentos": {
+            "type": "boolean"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "PENDIENTE",
+              "ACTIVA",
+              "REVOCADA"
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "usuarios_adulto_familiares_adulto_idTousuarios": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UsuarioResumenDto"
+              }
+            ]
+          },
+          "usuarios_adulto_familiares_familiar_idTousuarios": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UsuarioResumenDto"
+              }
+            ]
+          },
+          "mensaje": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "adulto_id",
+          "familiar_id",
+          "es_contacto_principal",
+          "puede_ver_ubicacion",
+          "puede_gestionar_medicamentos",
+          "estado",
+          "created_at",
           "mensaje"
         ]
       },

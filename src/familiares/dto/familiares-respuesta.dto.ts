@@ -59,6 +59,11 @@ export class InvitacionFamiliarRespuestaDto extends VinculoFamiliarRespuestaDto 
   @ApiProperty() mensaje: string;
 }
 
+/** POST /familiares/invitaciones/familiar: vínculo PENDIENTE del invitado. */
+export class InvitacionCofamiliarRespuestaDto extends VinculoFamiliarRespuestaDto {
+  @ApiProperty() mensaje: string;
+}
+
 /** Respuesta al completar el registro el adulto invitado (público). */
 export class CodigoInvitacionRespuestaDto {
   @ApiProperty() mensaje!: string;
