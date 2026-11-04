@@ -28,3 +28,28 @@
 		format console
 	}
 }
+
+# Landing estática del dominio principal (LANDING_DOMAIN, p. ej. ribani.lat).
+# Los archivos se montan desde el repo hermano ../ribani-landing.
+{$LANDING_DOMAIN} {
+	root * /srv/landing
+	encode zstd gzip
+	file_server
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}
+
+# www -> dominio principal
+www.{$LANDING_DOMAIN} {
+	redir https://{$LANDING_DOMAIN}{uri} permanent
+}

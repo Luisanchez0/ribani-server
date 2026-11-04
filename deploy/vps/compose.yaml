@@ -3,6 +3,7 @@
 #   caddy              -> único servicio con puertos públicos (80/443) y TLS automático
 #   api                -> ribani-server, solo accesible desde la red de Docker
 #   web                -> panel web (ribani-web) servido por nginx, solo interno
+#   landing            -> HTML estático de ../ribani-landing que Caddy sirve directamente
 #
 # WhatsApp usa Meta Cloud API. Evolution API queda fuera del despliegue; si alguna
 # vez se necesita en desarrollo, está aislada en compose.evolution.yaml.
@@ -35,8 +36,11 @@ services:
     environment:
       API_DOMAIN: ${API_DOMAIN:?Define API_DOMAIN en el .env}
       WEB_DOMAIN: ${WEB_DOMAIN:?Define WEB_DOMAIN en el .env}
+      LANDING_DOMAIN: ${LANDING_DOMAIN:?Define LANDING_DOMAIN en el .env}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Landing estática del dominio principal (repo hermano ribani-landing).
+      - ../../../ribani-landing:/srv/landing:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
