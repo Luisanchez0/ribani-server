@@ -59,6 +59,23 @@ export class InvitacionFamiliarRespuestaDto extends VinculoFamiliarRespuestaDto 
   @ApiProperty() mensaje: string;
 }
 
+/** GET /familiares/adultos/:adultoId/familiares: quién acompaña a un adulto. */
+export class FamiliarDeAdultoRespuestaDto {
+  @ApiProperty() vinculo_id: string;
+  @ApiProperty() familiar_id: string;
+  @ApiProperty() nombre: string;
+  @ApiProperty() apellido: string;
+  @ApiProperty() email: string;
+  @ApiPropertyOptional({ nullable: true }) parentesco: string | null;
+  @ApiProperty() es_contacto_principal: boolean;
+  @ApiProperty() puede_ver_ubicacion: boolean;
+  @ApiProperty() puede_gestionar_medicamentos: boolean;
+  @ApiProperty({ enum: ['PENDIENTE', 'ACTIVA'] }) estado: string;
+  @ApiProperty({ format: 'date-time' }) created_at: string;
+  /** true en la fila del propio usuario que consulta. */
+  @ApiProperty() es_tu_vinculo: boolean;
+}
+
 /** POST /familiares/invitaciones/familiar: vínculo PENDIENTE del invitado. */
 export class InvitacionCofamiliarRespuestaDto extends VinculoFamiliarRespuestaDto {
   @ApiProperty() mensaje: string;

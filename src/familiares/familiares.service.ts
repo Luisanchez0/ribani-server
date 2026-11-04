@@ -856,6 +856,89 @@ export class FamiliaresService {
     });
   }
 
+  /**
+   * Familiares que acompañan a un adulto mayor (vínculos ACTIVA y PENDIENTE).
+   *
+   * - FAMILIAR_ENCARGADO: solo si tiene un vínculo ACTIVA con ese adulto.
+   * - ADMINISTRADOR: cualquier adulto.
+   * No incluye teléfono ni vínculos REVOCADA, ni cuentas inactivas.
+   */
+  async familiaresDeAdulto(
+    callerId: string,
+    callerRolCodigo: string,
+    adultoId: string,
+    limite = 100,
+  ) {
+    const esAdmin = callerRolCodigo === 'ADMINISTRADOR';
+
+    if (!esAdmin) {
+      const vinculoPropio =
+        callerRolCodigo === 'FAMILIAR_ENCARGADO'
+          ? await this.prisma.adulto_familiares.findUnique({
+              where: {
+                adulto_id_familiar_id: {
+                  adulto_id: adultoId,
+                  familiar_id: callerId,
+                },
+              },
+              select: { estado: true },
+            })
+          : null;
+
+      // Mismo error exista o no el adulto: no revela vínculos ajenos.
+      if (vinculoPropio?.estado !== 'ACTIVA') {
+        throw new ForbiddenException(
+          'Solo puedes ver los familiares de un adulto mayor con el que tienes un vínculo activo.',
+        );
+      }
+    }
+
+    const vinculos = await this.prisma.adulto_familiares.findMany({
+      where: {
+        adulto_id: adultoId,
+        estado: { in: ['ACTIVA', 'PENDIENTE'] },
+        usuarios_adulto_familiares_familiar_idTousuarios: { activo: true },
+      },
+      select: {
+        id: true,
+        familiar_id: true,
+        parentesco: true,
+        es_contacto_principal: true,
+        puede_ver_ubicacion: true,
+        puede_gestionar_medicamentos: true,
+        estado: true,
+        created_at: true,
+        usuarios_adulto_familiares_familiar_idTousuarios: {
+          select: { nombre: true, apellido: true, email: true },
+        },
+      },
+      take: limite,
+      orderBy: [
+        { es_contacto_principal: 'desc' },
+        { estado: 'asc' },
+        { created_at: 'asc' },
+      ],
+    });
+
+    return vinculos.map((vinculo) => {
+      const familiar = vinculo.usuarios_adulto_familiares_familiar_idTousuarios;
+      return {
+        vinculo_id: vinculo.id,
+        familiar_id: vinculo.familiar_id,
+        nombre: familiar.nombre,
+        apellido: familiar.apellido,
+        email: familiar.email,
+        parentesco: vinculo.parentesco,
+        es_contacto_principal: vinculo.es_contacto_principal,
+        puede_ver_ubicacion: vinculo.puede_ver_ubicacion,
+        puede_gestionar_medicamentos: vinculo.puede_gestionar_medicamentos,
+        estado: vinculo.estado,
+        created_at: vinculo.created_at,
+        es_tu_vinculo: vinculo.familiar_id === callerId,
+      };
+    });
+  }
+
   async misFamiliares(adultoId: string, limite = 100) {
     return this.prisma.adulto_familiares.findMany({
       where: { adulto_id: adultoId },

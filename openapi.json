@@ -2415,6 +2415,55 @@
         ]
       }
     },
+    "/familiares/adultos/{adultoId}/familiares": {
+      "get": {
+        "operationId": "FamiliaresController_familiaresDeAdulto",
+        "parameters": [
+          {
+            "name": "adultoId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limite",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FamiliarDeAdultoRespuestaDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "familiares"
+        ]
+      }
+    },
     "/familiares/{id}": {
       "get": {
         "operationId": "FamiliaresController_findOne",
@@ -5742,6 +5791,66 @@
           "puede_ver_ubicacion",
           "puede_gestionar_medicamentos",
           "estado"
+        ]
+      },
+      "FamiliarDeAdultoRespuestaDto": {
+        "type": "object",
+        "properties": {
+          "vinculo_id": {
+            "type": "string"
+          },
+          "familiar_id": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "apellido": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "parentesco": {
+            "type": "string",
+            "nullable": true
+          },
+          "es_contacto_principal": {
+            "type": "boolean"
+          },
+          "puede_ver_ubicacion": {
+            "type": "boolean"
+          },
+          "puede_gestionar_medicamentos": {
+            "type": "boolean"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "PENDIENTE",
+              "ACTIVA"
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "es_tu_vinculo": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "vinculo_id",
+          "familiar_id",
+          "nombre",
+          "apellido",
+          "email",
+          "es_contacto_principal",
+          "puede_ver_ubicacion",
+          "puede_gestionar_medicamentos",
+          "estado",
+          "created_at",
+          "es_tu_vinculo"
         ]
       },
       "UpdateFamiliarDto": {

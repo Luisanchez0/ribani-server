@@ -22,6 +22,7 @@ import { CreateFamiliarDto } from './dto/create-familiar.dto.js';
 import { UpdateFamiliarDto } from './dto/update-familiar.dto.js';
 import {
   AdultoVinculadoRespuestaDto,
+  FamiliarDeAdultoRespuestaDto,
   VinculoFamiliarRespuestaDto,
 } from './dto/familiares-respuesta.dto.js';
 import { FamiliaresService } from './familiares.service.js';
@@ -73,6 +74,24 @@ export class FamiliaresController {
   @ApiOkResponse({ type: [VinculoFamiliarRespuestaDto] })
   misFamiliares(@Req() request: AuthenticatedRequest, @Query(new ListQueryPipe({})) query: ListQuery) {
     return this.familiaresService.misFamiliares(request.user.id, query.limite);
+  }
+
+  /** Quién más acompaña a un adulto (requiere vínculo ACTIVA o ser admin). */
+  @ApiListQuery({})
+  @Get('adultos/:adultoId/familiares')
+  @ApiOkResponse({ type: [FamiliarDeAdultoRespuestaDto] })
+  @RequirePermissions('relaciones.leer')
+  familiaresDeAdulto(
+    @Req() request: AuthenticatedRequest,
+    @Param('adultoId', new ParseUUIDPipe()) adultoId: string,
+    @Query(new ListQueryPipe({})) query: ListQuery,
+  ) {
+    return this.familiaresService.familiaresDeAdulto(
+      request.user.id,
+      request.user.rol.codigo,
+      adultoId,
+      query.limite,
+    );
   }
 
   @Get(':id')
